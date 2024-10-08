@@ -1,71 +1,276 @@
-import { useRef, useState, useEffect } from 'react'
-import './App.css'
-// import PostsList from './ProductsList'
-import Header from './Header'
-import Sidebar from './Sidebar'
-import Homepage from './Homepage';
-import Products from './Products';
-import Categories from './Categories';
-import Banners from './Banners';
-import Orderlist from './Orderlist';
-import { CgOverflow } from 'react-icons/cg';
+import { useRef, useState, useEffect } from "react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom"; // Added useLocation
+import axios from "axios";
+import Container from "./components/Container";
+import "./index.css";
+import Signup from "./login/SIgnup";
+import Login from "./login/Login";
+import Forgotpassword from "./login/Forgotpassword";
+import Resetpassword from "./login/ResetPassword";
+import Homepage from "./client/Homepage";
+import ProductDetails from "./client/ProductDetails";
+import Cart from "./client/Cart";
+import OrderPage from "./client/OrderPage";
+import AddressForm from "./client/AddressForm";
+import PaymentPage from "./client/PaymentPage";
+import ProductPage from "./client/ProductPage";
+import ProfilePage from "./client/ProfilePage";
+import DeliveryAddress from "./client/DeliveryAddress";
+import Whishlist from "./client/Whishlist";
+// import UserOrders from "./client/UserOrders";
+
+const URI = "http://localhost:5000";
 
 function App() {
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const sidebarRef = useRef(null);
-  const [navId,setNavId] =useState(null);
+  const [categoryList, setCategoryList] = useState([]);
+  const [stylenav, setStyleNav] = useState("");
+  const [categorynav, setCategoryNav] = useState("");
+  const [productList, setProductList] = useState([]);
+  const [filteredProduct, setFilteredProduct] = useState([]);
 
-  const handlemenubartoggle = ()=>{
-    console.log(isSidebarOpen);
-    setIsSidebarOpen(!isSidebarOpen)
+  axios.defaults.withCredentials = true;
 
-  }
+  const navigate = useNavigate();
+  const location = useLocation(); // Use useLocation to get current pathname
 
-  const handleClickOutside = (event) => {
-    if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-      setIsSidebarOpen(false);
+  // const getproducts = async () => {
+  //   try {
+  //     const response = await axios.get(URI + "/productList");
+  //     if (response) {
+  //       localStorage.setItem('productList',JSON.stringify(response.data));
+  //       setProductList(response.data);
+  //     }
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // };
+
+  const checkAuth = async () => {
+    try {
+      const res = await axios.get(`${URI}/auth/verify`);
+      if (res.data.status) {
+        navigate('/homepage');
+      } else {
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
   useEffect(() => {
+    // getCategory();
+      // getproducts();
+    // checkAuth();
+  }, []);
 
-    // document.addEventListener('mousedown', handleClickOutside);
-    // // Cleanup function
-    // return () => {
-    //   document.removeEventListener('mousedown', handleClickOutside);
-    // };
-  }, []); 
+  const handleMenuBarToggle = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
-  const handlesidebarnav = (e)=>{
-    const navid = e.target.id
-    setNavId(navid);
+  const handleAddAddress = (e,index,pageType) => {
+    
+    if(e.target.id==="addAddress") {
+    navigate(`/addressform/?pageType=${pageType}`);
+    }
+    else{
+      navigate(`/addressform/?index=${index}&pageType=${pageType}`);
+    }
+    
   }
+
+  const handleWhishlist = async(productDetails)=>{
+    const product = {"productId" : productDetails.id};
+    console.log(product)
+    try{
+      const response = await axios.post(`${URI}/auth/whishlist`,product);
+      if(response.status===200 || response.status===201){
+        alert("product successfully added to wishlist");
+      }
+      else if(response.status(400)) alert(response.data.message)
+    }
+    catch (error) {
+      if (error.response && error.response.status === 401) {
+        navigate('/login',{state: {productDetails,selectedSize:"", navigation : "whishlist"}})
+      }
+      else if(error.response && error.response.status === 404){
+        alert(error.response.data.message)
+        navigate('/login',{state: {productDetails,selectedSize:"", navigation : "whishlist"}})
+      } else {
+        console.error('An unexpected error occurred:', error);
+      }
+    }
+
+
+  }
+
+  // const getCategory = async () => {
+  //   try {
+  //     const response = await axios.get(URI + "/category");
+  //     if (response) {
+  //       setCategoryList(...categoryList,response.data);        
+  //       localStorage.setItem("categoryList", JSON.stringify(...categoryList,response.data));
+  //   } 
+  // }
+  //   catch (err) {
+  //     console.log(err);
+  //   }
+  // };
+  const handleCart = (e,productDetails,selectedSize,count) => {
+        
+    if (e && e.target) {
+      if (e.target.id === "plus") {
+          count = count + 1;
+      } else if (e.target.id === "minus") {
+          count = count - 1;
+      } else {
+          count = 1;
+      }
+  } else {
+      count = count || 1;
+  }
+   
+    if (selectedSize && productDetails) {
+      const formdata = {
+        productDetails:productDetails.id,
+        count:count,
+        selectedSize : selectedSize
+      }     
+      
+      const addCart = async()=>{
+        const config = { headers: { "Content-Type": "multipart/form-data" } };
+        try{
+          const response = await axios.post(`${URI}/auth/cart`,formdata,config)
+          if(response.status===200 || response.status===201){
+            navigate('/cart');
+          }
+        }
+        catch (error) {
+          if (axios.isAxiosError(error)) {
+              const statusCode = error.response?.status; // Get the status code
+              const errorMessage = error.response?.data.message; // Get the error message
+              console.error(`Error: ${errorMessage}, Status Code: ${statusCode}`);              
+              if (statusCode === 401) {
+                  alert('Please log in again to Place order');
+                  navigate('/login',{state: {productDetails,selectedSize,navigation : "cart"}})
+              } else if (statusCode === 400) {
+                  console.log('Bad request. Please check your input.');
+              }
+          } else {
+              console.error('Unexpected error:', error);
+          }
+      }
+      }
+      
+      addCart();
+    }
+    else if(!selectedSize){
+      alert("please slect Size")
+    }
+    else if(!productDetails){
+      alert("an error occured to add products to cart please try again later")
+    }
+  };
+  
+ 
+
+
+  
+
+  // useEffect(() => {
+  //   // if (
+  //   //   // location.pathname === "/admin/addproducts" ||
+  //   //   // location.pathname === "/admin/categories" ||
+  //   //   // location.pathname === "/admin/editproducts" ||
+  //   //   location.pathname === "/homepage" 
+  //   //   // location.pathname === "/productpage"
+  //   // ) {
+      
+  //   }
+  // }, []);
+
+  
 
   return (
     <>
-      <div className='relative bg-red-500 w-screen  h-screen '>
-        <div ref={sidebarRef} className={`absolute h-screen  sm:w-[30%] md:w-[35%] lg:w-[20%] xl:w-[15%] bg-custom-gray transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} translation-all duration-1000`}>
-          <Sidebar 
-          isSidebarOpen={isSidebarOpen}
-          ref={sidebarRef}
-          handlesidebarnav={handlesidebarnav}
-          />      
-        </div>
-        <div className={`absolute bg-blue-500 h-full w-full  ${isSidebarOpen ? ' sm:ml-[30%] md:ml-[35%] lg:ml-[20%] xl:ml-[15%]  sm:w-[70%] md:w-[65%] lg:w-[80%] xl:w-[85%]': 'w-full'} transition-all duration-1000 `}>
-            <Header
-            handlemenubartoggle={handlemenubartoggle}
-            isSidebarOpen={isSidebarOpen}
-            /> 
-            {navId === "home" ? <Homepage /> : navId === "products" ? <Products /> : navId === "banners" ? <Banners/> :navId === "orderlist" ? <Orderlist/> : navId === "categories" ? <Categories/> : <Homepage/>} 
-        </div>    
+      <div className="relative w-screen h-screen">
+        <Routes>
+          <Route
+            path="/*"
+            element={
+              <Container
+                handleMenuBarToggle={handleMenuBarToggle}
+                isSidebarOpen={isSidebarOpen}
+                categoryList={categoryList}
+                productList={productList}
+              />
+            }
+          />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login
+           handleCart={handleCart}
+           handleWhishlist={handleWhishlist}
+          />} />
+          <Route path="/forgotpassword" element={<Forgotpassword />} />
+          <Route
+            path="/auth/resetpassword/:token"
+            element={<Resetpassword />}
+          />
+          <Route
+            path="/"
+            element={
+              <Homepage
+                categoryList={categoryList}
+                stylenav={stylenav}
+              />
+            }
+          />
+          <Route
+            path="/productpage"
+            element={
+              <ProductPage
+                categoryList={categoryList}
+                stylenav={stylenav}
+                categorynav={categorynav}
+                filteredProduct={filteredProduct}
+              />
+            }
+          />
+          <Route
+            path="/ProductDetails"
+            element={
+              <ProductDetails
+                handleCart={handleCart}
+                handleWhishlist={handleWhishlist}
+                // countop={countop}
+                // count={count}
+              />
+            }
+          />
+          <Route path="/cart" element={<Cart 
+                handleCart={handleCart}
+
+          />} />
+          <Route path="/orderpage" element={<OrderPage 
+          handleAddAddress = {handleAddAddress}
+          />} />
+          <Route path="/Whishlist" element={<Whishlist />} />
+          <Route path="/addressform" element={<AddressForm />} />
+          <Route path="/paymentpage" element={<PaymentPage />} />
+          <Route path="/profilepage" element={<ProfilePage />} />
+          <Route path="/deliveryaddress" element={<DeliveryAddress
+          handleAddAddress ={handleAddAddress}
+           />} />
+           {/* <Route path="/userorders" element={<UserOrders/>}/> */}
+
+         
         
+        </Routes>
       </div>
-      {/* <div>
-        <PostsList/>
-      </div> */}
-        
     </>
-  )
+  );
 }
 
-export default App
+export default App;

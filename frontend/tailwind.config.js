@@ -9,13 +9,39 @@ export default {
       colors: {
         'custom-gray': '#f2f2f2', // Custom color name and hex code
       },
-      width:{
-        xsm:320,
-      },
+      
       margin: {
         'hidebuttons': '-300px',
       },
     },
+    screens : {
+      'xsm' : '320px',
+      'xxsm' : '480px',
+      'lg' : '1024px',
+      'sm' : '640px',
+      'md' : '768px'
+    },
+    fontFamily: {
+      sans: ['Roboto', 'Arial', 'sans-serif'],
+    },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities(
+        {
+          '.scrollbar-hidden::-webkit-scrollbar': {
+            display: 'none',
+          },
+          '.no-scroll': {
+            'pointer-events': 'none', // Prevents all pointer interactions
+          },
+          '.scrollbar-hidden': {
+            '-ms-overflow-style': 'none', /* IE and Edge */
+            'scrollbar-width': 'none', /* Firefox */
+          },
+        },
+        ['responsive', 'hover']
+      );
+    },
+  ],
 }

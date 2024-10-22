@@ -39,6 +39,10 @@ const Login = ({handleCart,handleWhishlist}) => {
           navigate('/productDetails',{state:{product:productDetails}})
           
         }
+        else{
+          alert(res.data.message); 
+          navigate('/') 
+        }
       }
     } catch (err) {
       if(axios.isAxiosError(err)){

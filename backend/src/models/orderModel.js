@@ -1,12 +1,15 @@
 const mongoose = require('mongoose');
 
+
 const orderSchema = new mongoose.Schema({
     userId : {
         type: String,
+        sparse:true
     },
     orderId: {
         type: String,
-        unique: true
+        unique: true,
+        sparse : true
     },
     product: [Object],
     price : Number,
@@ -14,7 +17,8 @@ const orderSchema = new mongoose.Schema({
     deliveryaddress : Object,
     coupon : String,
     orderDate: { type: Date, default: Date.now },
-    status: String
+    status: String,    
+
 });
 
 const ordermodel = mongoose.model("Orders", orderSchema);

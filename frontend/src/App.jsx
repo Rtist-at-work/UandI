@@ -17,12 +17,11 @@ import ProductPage from "./client/ProductPage";
 import ProfilePage from "./client/ProfilePage";
 import DeliveryAddress from "./client/DeliveryAddress";
 import Whishlist from "./client/Whishlist";
-// import UserOrders from "./client/UserOrders";
-
+import UserOrders from "./client/UserOrders";
+import OrderTracking from "./client/OrderTracking";
 const URI = "http://localhost:5000";
 
 function App() {
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [categoryList, setCategoryList] = useState([]);
   const [stylenav, setStyleNav] = useState("");
@@ -51,9 +50,9 @@ function App() {
     try {
       const res = await axios.get(`${URI}/auth/verify`);
       if (res.data.status) {
-        navigate('/homepage');
+        navigate("/homepage");
       } else {
-        navigate('/login');
+        navigate("/login");
       }
     } catch (error) {
       console.error(error);
@@ -62,7 +61,7 @@ function App() {
 
   useEffect(() => {
     // getCategory();
-      // getproducts();
+    // getproducts();
     // checkAuth();
   }, []);
 
@@ -70,128 +69,119 @@ function App() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const handleAddAddress = (e,index,pageType) => {
-    
-    if(e.target.id==="addAddress") {
-    navigate(`/addressform/?pageType=${pageType}`);
-    }
-    else{
+  const handleAddAddress = (e, index, pageType) => {
+    if (e.target.id === "addAddress") {
+      navigate(`/addressform/?pageType=${pageType}`);
+    } else {
       navigate(`/addressform/?index=${index}&pageType=${pageType}`);
     }
-    
-  }
+  };
 
-  const handleWhishlist = async(productDetails)=>{
-    const product = {"productId" : productDetails.id};
-    console.log(product)
-    try{
-      const response = await axios.post(`${URI}/auth/whishlist`,product);
-      if(response.status===200 || response.status===201){
+  const handleWhishlist = async (productDetails) => {
+    const product = { productId: productDetails.id };
+    console.log(product);
+    try {
+      const response = await axios.post(`${URI}/auth/whishlist`, product);
+      if (response.status === 200 || response.status === 201) {
         alert("product successfully added to wishlist");
-      }
-      else if(response.status(400)) alert(response.data.message)
-    }
-    catch (error) {
+      } else if (response.status(400)) alert(response.data.message);
+    } catch (error) {
       if (error.response && error.response.status === 401) {
-        navigate('/login',{state: {productDetails,selectedSize:"", navigation : "whishlist"}})
-      }
-      else if(error.response && error.response.status === 404){
-        alert(error.response.data.message)
-        navigate('/login',{state: {productDetails,selectedSize:"", navigation : "whishlist"}})
+        navigate("/login", {
+          state: { productDetails, selectedSize: "", navigation: "whishlist" },
+        });
+      } else if (error.response && error.response.status === 404) {
+        alert(error.response.data.message);
+        navigate("/login", {
+          state: { productDetails, selectedSize: "", navigation: "whishlist" },
+        });
       } else {
-        console.error('An unexpected error occurred:', error);
+        console.error("An unexpected error occurred:", error);
       }
     }
-
-
-  }
+  };
 
   // const getCategory = async () => {
   //   try {
   //     const response = await axios.get(URI + "/category");
   //     if (response) {
-  //       setCategoryList(...categoryList,response.data);        
+  //       setCategoryList(...categoryList,response.data);
   //       localStorage.setItem("categoryList", JSON.stringify(...categoryList,response.data));
-  //   } 
+  //   }
   // }
   //   catch (err) {
   //     console.log(err);
   //   }
   // };
-  const handleCart = (e,productDetails,selectedSize,count) => {
-        
+  const handleCart = (e, productDetails, selectedSize, count) => {
     if (e && e.target) {
       if (e.target.id === "plus") {
-          count = count + 1;
+        count = count + 1;
       } else if (e.target.id === "minus") {
-          count = count - 1;
+        count = count - 1;
       } else {
-          count = 1;
+        count = 1;
       }
-  } else {
+    } else {
       count = count || 1;
-  }
-   
+    }
+
     if (selectedSize && productDetails) {
       const formdata = {
-        productDetails:productDetails.id,
-        count:count,
-        selectedSize : selectedSize
-      }     
-      
-      const addCart = async()=>{
+        productDetails: productDetails.id,
+        count: count,
+        selectedSize: selectedSize,
+      };
+
+      const addCart = async () => {
         const config = { headers: { "Content-Type": "multipart/form-data" } };
-        try{
-          const response = await axios.post(`${URI}/auth/cart`,formdata,config)
-          if(response.status===200 || response.status===201){
-            navigate('/cart');
+        try {
+          const response = await axios.post(
+            `${URI}/auth/cart`,
+            formdata,
+            config
+          );
+          if (response.status === 200 || response.status === 201) {
+            navigate("/cart");
+          }
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            const statusCode = error.response?.status; // Get the status code
+            const errorMessage = error.response?.data.message; // Get the error message
+            console.error(`Error: ${errorMessage}, Status Code: ${statusCode}`);
+            if (statusCode === 401) {
+              alert("Please log in again to Place order");
+              navigate("/login", {
+                state: { productDetails, selectedSize, navigation: "cart" },
+              });
+            } else if (statusCode === 400) {
+              console.log("Bad request. Please check your input.");
+            }
+          } else {
+            console.error("Unexpected error:", error);
           }
         }
-        catch (error) {
-          if (axios.isAxiosError(error)) {
-              const statusCode = error.response?.status; // Get the status code
-              const errorMessage = error.response?.data.message; // Get the error message
-              console.error(`Error: ${errorMessage}, Status Code: ${statusCode}`);              
-              if (statusCode === 401) {
-                  alert('Please log in again to Place order');
-                  navigate('/login',{state: {productDetails,selectedSize,navigation : "cart"}})
-              } else if (statusCode === 400) {
-                  console.log('Bad request. Please check your input.');
-              }
-          } else {
-              console.error('Unexpected error:', error);
-          }
-      }
-      }
-      
+      };
+
       addCart();
-    }
-    else if(!selectedSize){
-      alert("please slect Size")
-    }
-    else if(!productDetails){
-      alert("an error occured to add products to cart please try again later")
+    } else if (!selectedSize) {
+      alert("please slect Size");
+    } else if (!productDetails) {
+      alert("an error occured to add products to cart please try again later");
     }
   };
-  
- 
-
-
-  
 
   // useEffect(() => {
   //   // if (
   //   //   // location.pathname === "/admin/addproducts" ||
   //   //   // location.pathname === "/admin/categories" ||
   //   //   // location.pathname === "/admin/editproducts" ||
-  //   //   location.pathname === "/homepage" 
+  //   //   location.pathname === "/homepage"
   //   //   // location.pathname === "/productpage"
   //   // ) {
-      
+
   //   }
   // }, []);
-
-  
 
   return (
     <>
@@ -209,10 +199,15 @@ function App() {
             }
           />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login
-           handleCart={handleCart}
-           handleWhishlist={handleWhishlist}
-          />} />
+          <Route
+            path="/login"
+            element={
+              <Login
+                handleCart={handleCart}
+                handleWhishlist={handleWhishlist}
+              />
+            }
+          />
           <Route path="/forgotpassword" element={<Forgotpassword />} />
           <Route
             path="/auth/resetpassword/:token"
@@ -221,10 +216,7 @@ function App() {
           <Route
             path="/"
             element={
-              <Homepage
-                categoryList={categoryList}
-                stylenav={stylenav}
-              />
+              <Homepage categoryList={categoryList} stylenav={stylenav} />
             }
           />
           <Route
@@ -249,24 +241,22 @@ function App() {
               />
             }
           />
-          <Route path="/cart" element={<Cart 
-                handleCart={handleCart}
-
-          />} />
-          <Route path="/orderpage" element={<OrderPage 
-          handleAddAddress = {handleAddAddress}
-          />} />
+          <Route path="/cart" element={<Cart handleCart={handleCart} />} />
+          <Route
+            path="/orderpage"
+            element={<OrderPage handleAddAddress={handleAddAddress} />}
+          />
           <Route path="/Whishlist" element={<Whishlist />} />
           <Route path="/addressform" element={<AddressForm />} />
           <Route path="/paymentpage" element={<PaymentPage />} />
           <Route path="/profilepage" element={<ProfilePage />} />
-          <Route path="/deliveryaddress" element={<DeliveryAddress
-          handleAddAddress ={handleAddAddress}
-           />} />
-           {/* <Route path="/userorders" element={<UserOrders/>}/> */}
+          <Route
+            path="/deliveryaddress"
+            element={<DeliveryAddress handleAddAddress={handleAddAddress} />}
+          />
+          <Route path="/userorders" element={<UserOrders />}/> 
+          <Route path="/ordertracking/:orderId" element={<OrderTracking />}/> 
 
-         
-        
         </Routes>
       </div>
     </>

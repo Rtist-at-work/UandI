@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { ImCross } from "react-icons/im";
 import { MdEdit } from "react-icons/md";
 import axios from "axios";
+import Header from "./Header";
 
 const OrderPage = ({ handleAddAddress }) => {
   const [address, setAddress] = useState({});
@@ -23,7 +24,7 @@ const OrderPage = ({ handleAddAddress }) => {
   const [coupon, setCoupon] = useState("");
   const [subTotal, setSubTotal] = useState();
   const [addressOpen, setAddressOpen] = useState(true);
-  const [orderSummarySend,setOrderSummarySend] = useState()
+  const [orderSummarySend, setOrderSummarySend] = useState();
   const [isOrderSummary, setIsOrderSummary] = useState(true);
   const [total, setTotal] = useState(0);
   const [discount, setDiscount] = useState(0);
@@ -61,7 +62,7 @@ const OrderPage = ({ handleAddAddress }) => {
       try {
         const response = await axios.get(`${URI}/orderpage/productDetails`);
         setOrderSummary(response.data.cart);
-        setOrderSummarySend(response.data.productDetails)
+        setOrderSummarySend(response.data.productDetails);
       } catch (err) {
         console.log(err);
       }
@@ -94,28 +95,13 @@ const OrderPage = ({ handleAddAddress }) => {
   }, [orderSummary]);
 
   return (
-    <div className="h-screen w-screen">
-      <header className="relative h-[15%] w-full bg-blue-300 ">
-        <div className="h-[25%] w-full bg-pink-300 xsm:text-sm flex items-center justify-center">
-          10% Discount on first purchase | Welcome
-        </div>
-        <div className=" h-[75%] w-full bg-yellow-300 flex ">
-          <div className="h-full w-[30%] bg-pink-300 shrink-0">
-            <img src={uandiLogo} alt="Logo" className="h-full w-full" />
-          </div>
-          <div className="h-full w-[70%]  shrink-0">
-            <CgProfile className="absolute text-3xl right-4 top-1/2" />
-            <Link to="/cart">
-              <MdOutlineShoppingCart className="absolute text-3xl right-16 top-1/2" />
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="h-screen w-screen ">
+      <Header />
 
-      <main className="relative h-[85%] max-w-full overflow-y-auto">
+      <main className="relative h-[85%] max-w-full overflow-y-auto scrollbar-hidden md:px-8 xsm:px-4">
         {changeAddress && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-[95%] w-[90%] border-2 border-gray-300 p-6 bg-white shadow-lg rounded-lg z-10 overflow-y-auto">
-            <div className="flex justify-between items-center">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-[95%] w-[90%] border-2 border-gray-300 p-6 bg-white shadow-lg rounded-lg z-10 overflow-y-auto bg-red-300">
+            <div className="flex justify-between items-center  bg-red-300">
               <div className="font-bold text-blue-500 ">
                 Select Delivery Address
               </div>
@@ -134,15 +120,16 @@ const OrderPage = ({ handleAddAddress }) => {
                     bgSelected === addr ? "bg-green-100" : ""
                   } adress-300 border-2 border-gray-400 my-4 rounded-lg`}
                 >
-                  <div className="relative flex items-center justify-end text-gray-500 gap-0.5"
-                  onClick={(e)=>{
-                    handleAddAddress(e,index,"orderpage")
-                  }}
+                  <div
+                    className="relative flex items-center justify-end text-gray-500 gap-0.5"
+                    onClick={(e) => {
+                      handleAddAddress(e, index, "orderpage");
+                    }}
                   >
                     <MdEdit className="text-xl cursor-pointer hover:text-blue-500 transition-colors duration-300" />
                   </div>
 
-                  <div className="flex justify-between font-semibold mt-2">
+                  <div className="flex font-semibold mt-2">
                     <div>{addr.name}</div>
                     <div className="flex items-center text-blue-500">
                       {addr.addressType === "Home" ? (
@@ -181,15 +168,15 @@ const OrderPage = ({ handleAddAddress }) => {
         <div
           id="address"
           onClick={handle}
-          className="w-[90%] max-h-max font-semibold text-lg flex items-center m-2 justify-between"
+          className="lg:w-[90%] xsm:w-full max-h-max font-semibold text-lg flex items-center m-2 justify-between "
         >
           Address <MdKeyboardArrowDown id="address" onClick={handle} />
         </div>
         {addressOpen && (
-          <div className="relative h-16 w-full flex items-center">
+          <div className="relative h-16 lg:w-[90%] xsm:w-full flex items-center justify-end ">
             <button
               id="addAddress"
-              className="absolute right-4 border-2 rounded bg-blue-500 text-white p-2"
+              className="absolute  border-2 rounded bg-blue-500 text-white p-2"
               onClick={(e) => {
                 console.log(e.target.id);
                 handleAddAddress(e, index, "orderpage");
@@ -200,8 +187,8 @@ const OrderPage = ({ handleAddAddress }) => {
           </div>
         )}
 
-        {addresses && addresses.length > 0 ? (
-          <div className="max-h-max w-[90%] mx-auto p-2 border-2 border-gray-400">
+        {addressOpen && addresses && addresses.length > 0 ? (
+          <div className="max-h-max lg:w-[90%] xsm:w-full xsm:p-2 rounded border-2 border-gray-400 lg:px-8 lg:py-4">
             <div className="flex justify-between words-break">
               <h1 className="font-semibold text-lg my-2 text-blue-500">
                 Delivery Address
@@ -214,9 +201,9 @@ const OrderPage = ({ handleAddAddress }) => {
               </button>
             </div>
 
-            <div className="flex justify-between font-semibold mt-4">
+            <div className="flex font-semibold mt-4">
               <div>{addresses[0].name}</div> {/* Show first address */}
-              <div className="flex items-center ">
+              <div className="flex items-center ml-12">
                 {addresses[0].addressType === "Home" ? (
                   <CiHome />
                 ) : (
@@ -244,7 +231,7 @@ const OrderPage = ({ handleAddAddress }) => {
 
         {addressOpen ? "" : <hr />}
 
-        <div className="h-16 mx-auto mt-4 w-[90%] border-2 border-gray-300 rounded flex items-center">
+        <div className="h-16 mt-4 lg:w-[90%] xsm:w-full border-2 border-gray-300 rounded flex items-center">
           <BiSolidOffer className="h-[75%] w-[25%]  text-green-800" />
           <div className="w-[60%]">
             <div>Welcome Coupon....</div>
@@ -262,7 +249,7 @@ const OrderPage = ({ handleAddAddress }) => {
             onClick={(e) => {
               handle(e);
             }}
-            className="w-[90%] max-h-max font-semibold text-lg flex items-center m-2 justify-between"
+            className="lg:w-[90%] xsm:w-full max-h-max font-semibold text-lg mt-8 flex items-center m-2 justify-between"
           >
             Order Summary{" "}
             <MdKeyboardArrowDown
@@ -272,96 +259,130 @@ const OrderPage = ({ handleAddAddress }) => {
               }}
             />
           </div>
+          <div className="lg:grid lg:grid-cols-3 h-full lg:w-[90%] ">
+            {isOrderSummary ? (
+              <div className="max-h-max max-w-full px-2 mt-8 mb-12 lg:col-start-1 lg:col-span-2">
+                {orderSummary.length > 0 ? (
+                  <table className="w-full lg:w-[90%] table-auto">
+                    <thead>
+                      <tr className="text-left">
+                        <th className="p-2"></th>
+                        <th className="p-2">Product</th>
+                        <th className="p-2">Quantity</th>
+                        <th className="p-2 text-right">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orderSummary.map((p, index) => {
+                        const product = p.product;
+                        if (!product) return null;
 
-          {isOrderSummary ? (
-            <div className="max-h-max px-4 mt-2 mb-12">
-              {orderSummary.length > 0 ? (
-                orderSummary.map((p, index) => {
-                  const product = p.product;
-                  if (!product) return null; // Safeguard in case product is undefined or null
+                        return (
+                          <tr key={index} className="border-t">
+                            {/* Product Image */}
+                            <td className="p-2 w-[40%]">
+                              <img
+                                src={`data:image/png;base64,${product.images[0]}`}
+                                alt="img"
+                                className="xsm:w-full xxsm:w-[40%] lg:w-[25%] aspect-square rounded"
+                              />
+                            </td>
 
-                  return (
-                    <div
-                      key={index}
-                      className="relative mt-4 w-full flex flex-wrap gap-4 items-center "
-                    >
-                      <img
-                        src={`data:image/png;base64,${product.images[0]}`}
-                        alt="img"
-                        className="h-12 w-12 rounded"
-                      />
-                      <div className="flex-1 flex flex-col gap-1 ml-2">
-                        <div className="break-words font-semibold ">
-                          {product.name.length > 30
-                            ? `${product.name.substring(0, 30)}...`
-                            : product.name}
-                        </div>
-                        <div className="text-gray-500 font-base">
-                          Qty {p.count}
-                        </div>
-                      </div>
-                      <div className="text-right flex gap-2 ">
-                        <div
-                          className={`${
-                            product.offer > 0 ? "line-through text-sm" : ""
-                          }`}
-                        >
-                          {product.price * p.count}
-                        </div>
-                        {product.offer > 0 ? (
-                          <div>
-                            {product.price * p.count -
-                              ((p.product.price * p.product.offer) / 100) *
-                                p.count}
-                          </div>
-                        ) : (
-                          ""
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="break-words">
-                  Add some products to your cart
+                            {/* Product Details */}
+                            <td className="p-2">
+                              <div className="font-semibold text-sm break-words">
+                                {product.name.length > 30
+                                  ? `${product.name.substring(0, 30)}...`
+                                  : product.name}
+                              </div>
+                              {product.offer > 0 && (
+                                <p className="text-xs text-red-600 mt-1 flex items-center">
+                                  {product.offer}% Off
+                                </p>
+                              )}
+                            </td>
+
+                            {/* Quantity - Left aligned */}
+                            <td className="p-2 text-left text-gray-500 text-xs">
+                              Qty {p.count}
+                            </td>
+
+                            {/* Price and Offer */}
+                            <td className="p-2 text-right">
+                              <p
+                                className={`${
+                                  product.offer > 0
+                                    ? "line-through text-xs"
+                                    : ""
+                                }`}
+                              >
+                                ₹{(product.price * p.count).toFixed(2)}
+                              </p>
+                              {product.offer > 0 && (
+                                <div className="font-semibold text-xs text-green-800 mt-1">
+                                  ₹
+                                  {(
+                                    product.price * p.count -
+                                    ((p.product.price * p.product.offer) /
+                                      100) *
+                                      p.count
+                                  ).toFixed(2)}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="break-words">
+                    Add some products to your cart
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div></div>
+            )}
+
+            {/* Summary Section */}
+            <div className="max-h-max w-full lg:w-full lg:col-start-3 lg:col-span-1 ">
+              <div className="max-h-max max-w-max shadow-md rounded ml-auto p-8 lg:mt-8">
+                <div className="w-full p-4 h-12 flex gap-4 items-center justify-end">
+                  <p className="text-base">
+                    Price({orderSummary.length}{" "}
+                    {orderSummary.length > 1 ? " items" : " item"})
+                  </p>
+                  <p className="text-base"> {total}</p>
                 </div>
-              )}
+                <div className="w-full p-4 h-12 flex gap-4 items-center justify-end">
+                  <p className="text-base">Delivery Charge</p>
+                  <p className="text-base"> free</p>
+                </div>
+                {discount > 0 ? (
+                  <div className="w-full p-4 h-12 flex gap-4 items-center justify-end">
+                    <p className="text-base">Discount</p>
+                    <p className="text-base">{discount}</p>
+                  </div>
+                ) : (
+                  ""
+                )}
+                <div className="w-full p-4 h-12 flex gap-4 items-center justify-end">
+                  <p className="font-bold text-lg">Total</p>
+                  <p className="font-bold text-lg"> {subTotal}</p>
+                </div>
+                {isOrderSummary ? "" : <hr />}
+              </div>
+              <div className="w-full h-24 mt-4 flex justify-end items-center">
+                <button
+                  className="max-w-max aspect-[4/1] border-2 border-gray-300 bg-orange-500 rounded text-white p-4"
+                  onClick={handleexit}
+                >
+                  Continue
+                </button>
+              </div>
             </div>
-          ) : (
-            <div></div>
-          )}
-          <div className="w-full p-4 h-12 flex gap-4 items-center justify-end">
-            <p className="text-base">
-              Price({orderSummary.length}{" "}
-              {orderSummary.length > 1 ? " items" : " item"})
-            </p>
-            <p className="text-base"> {total}</p>
           </div>
-          <div className="w-full p-4 h-12 flex gap-4 items-center justify-end">
-            <p className="text-base">Delivery Charge</p>
-            <p className="text-base"> free</p>
-          </div>
-          {discount > 0 ? (
-            <div className="w-full p-4 h-12 flex gap-4 items-center justify-end">
-              <p className="text-base">Discount</p>
-              <p className="text-base">{discount}</p>
-            </div>
-          ) : (
-            ""
-          )}
-          <div className="w-full p-4 h-12 flex gap-4 items-center justify-end">
-            <p className="font-bold text-lg">Total</p>
-            <p className="font-bold text-lg"> {subTotal}</p>
-          </div>
-          {isOrderSummary ? "" : <hr></hr>}
-        </div>
-        <div className="w-full h-24 mt-4 flex justify-end items-center px-4">
-          <button
-            className="h-12 w-32 border-2 border-gray-300 bg-orange-500 rounded text-white "
-            onClick={handleexit}
-          >
-            Continue
-          </button>
         </div>
       </main>
     </div>

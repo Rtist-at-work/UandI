@@ -192,6 +192,7 @@ const AddressForm = () => {
         </label>
         <input
           id="name"
+          maxLength={20}
           value={name}
           required
           onChange={(e) => handleFormData(e)}

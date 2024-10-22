@@ -4,27 +4,27 @@ const bannerSchema = require('../models/banner');
 const ageBanner = require('../models/ageBanner');
 const posterSchema = require('../models/poster');
 const path = require('path');
-
+const upload = require('../../uploadProduct')
 const multer = require('multer');
 
-const storage = multer.memoryStorage();
+// const storage = multer.memoryStorage();
 
 
-const upload = multer({
-    storage: storage,
-    fileFilter: (req, file, callback) => {
-        const fileType = /jpeg|jpg|png|webp/;
+// const upload = multer({
+//     storage: storage,
+//     fileFilter: (req, file, callback) => {
+//         const fileType = /jpeg|jpg|png|webp/;
         
-        const mimeType = fileType.test(file.mimetype);
-        const extname = fileType.test(path.extname(file.originalname).toLowerCase());
+//         const mimeType = fileType.test(file.mimetype);
+//         const extname = fileType.test(path.extname(file.originalname).toLowerCase());
         
-        if (mimeType && extname) {
-            return callback(null, true);
-        } else {
-            callback(new Error('Give proper file format to upload'));
-        }
-    }
-});
+//         if (mimeType && extname) {
+//             return callback(null, true);
+//         } else {
+//             callback(new Error('Give proper file format to upload'));
+//         }
+//     }
+// });
 router.post('/age', (req, res) => {
     upload.array('images', 10)(req, res, async (err) => {
         if (err) {

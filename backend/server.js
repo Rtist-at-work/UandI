@@ -1,5 +1,8 @@
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const cookie = require('cookie');
 const connect = require('./db');
 const productController = require('./src/controllers/productController');
 const editproduct = require('./src/controllers/editproduct');
@@ -20,17 +23,71 @@ const adminorderlist = require('./src/controllers/adminorderlist')
 const banner = require('./src/controllers/banner')
 const orderpage = require("./src/controllers/orderpage");
 const orders = require('./src/controllers/orders')
+const orderStatusUpdation = require('./src/controllers/orderStatusUpdation')
 const cookieParser = require('cookie-parser');
 
 require('dotenv').config();
-
 const app = express();
+const server = http.createServer(app);
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+
 app.use(cookieParser());
+
+const io = require('socket.io')(server, {
+  cors: {
+      origin: "http://localhost:5173",
+      methods: ["GET", "POST", "PUT"],
+      credentials: true
+  }
+});
+
+// Socket.IO Connection
+let userSockets = {}; 
+
+io.on('connection', (socket) => {
+  const cookies = cookie.parse(socket.request.headers.cookie || '');
+  const token = cookies.token; // Assuming your JWT token is stored with the key 'token'
+
+  // Check if the token exists
+  if (!token) {
+      // Emit an authentication failure event to the client
+      socket.emit('auth_error', { status: false, message: "Authentication failed" });
+      socket.disconnect(true); // Optionally disconnect the client
+      return;
+  }
+
+  // Verify the token and extract user ID
+  let userId;
+  try {
+      const decoded = jwt.verify(token, process.env.KEY);
+      userId = decoded.id;
+      userSockets[userId] = socket.id; 
+  } catch (err) {
+      socket.emit('auth_error', { status: false, message: "Invalid token" });
+      socket.disconnect(true); // Disconnect if token is invalid
+      return;
+  }
+
+  // Listen for order status updates
+  socket.on('orderStatusUpdation', (data) => {
+      console.log(userSockets);
+      orderStatusUpdation(socket, data,userSockets,io);
+  });
+
+//   Handle disconnection
+  socket.on('disconnect', () => {
+      console.log('Client disconnected');
+      // Remove the socket ID from userSockets when the user disconnects
+      if (userId) {
+          delete userSockets[userId] ;
+          console.log(userSockets);
+      }
+  });
+});
 
 // Database connection
 connect();
@@ -51,11 +108,12 @@ app.use('/getAddress', addresspage);
 app.use('/update/address', updateUserDetails);  
 app.use('/delete/address', deleteUserDetails);  
 app.use('/orderpage', orderpage);  
-app.use('/admin/orders', adminorderlist);  
 app.use('/placeOrder', orders);  
 app.use('/banners', banner);  
+app.use('/admin/orders', adminorderlist);  
+
 // Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

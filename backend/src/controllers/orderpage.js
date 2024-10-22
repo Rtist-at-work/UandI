@@ -46,8 +46,7 @@ router.get('/productDetails',async(req,res)=>{
                         product : product,
                         count :cp.count,
                         selectedSize : cp.selectedSize
-                    }
-                    
+                    }                    
                     return c
                 }
                 return null;

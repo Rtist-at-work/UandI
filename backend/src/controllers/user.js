@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const usermodel = require('../models/usermodel');
 const multer = require('multer')
+const uploadImage = require('../../uploadProduct')
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
@@ -322,7 +323,75 @@ catch(err){
 }
 
 })
+router.post('/review', (req, res, next) => {
+    const contentType = req.headers['content-type'];
 
+    if (contentType.startsWith('multipart/form-data')) {
+        uploadImage.array('images', 10)(req, res, (err) => {
+            if (err) {
+                return res.status(400).json({ error: err.message });
+            }
+            next();
+        });
+    } else if (contentType === 'application/json') {
+        next();
+    } else {
+        return res.status(400).json({ error: "Unsupported content type" });
+    }
+}, async (req, res) => {
+   
+
+    try {
+        const { rating, orderId, review, productId } = req.body;
+        console.log(productId);
+        const token = req.cookies.token;
+        if (!token) {
+            return res.status(401).json({ status: false, message: "Token is not valid" });
+        }
+
+        // Ensure files are checked only when they are sent
+        const images = req.files ? req.files.map(file => file.buffer.toString('base64')) : [];
+
+        const decoded = await jwt.verify(token, process.env.KEY);
+        const { id } = decoded;
+
+        const user = await usermodel.findById(id);
+        if (!user) {
+            return res.status(404).json({ status: false, message: "User not found" });
+        }
+
+        const order = user.orderHistory.find(order => order.orderId === orderId);
+        if (!order) {
+            return res.status(404).json({ status: false, message: "Order not found" });
+        }
+        const product = order.productDetails.find((product)=>product.product === productId);
+
+        // Update logic for ratings and reviews
+        if (rating) {
+            console.log(rating)
+            product.review = {
+                ...product.review,
+                stars: rating
+            };
+        }
+        if (images.length > 0 || review) {
+            product.review = {
+                ...product.review,
+                // Check if order.review.text exists, if not initialize as an empty array
+                text: review ? [...(product.review.text || []), review] : product.review.text,
+                // Check if order.review.image exists, if not initialize as an empty array
+                image: images.length > 0 ? [...(product.review.image || []), ...images] : product.review.image
+            };
+        }
+        
+
+        await user.save();
+        return res.json({ status: true, message: "Review updated successfully" });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ status: false, message: "Internal server error" });
+    }
+});
 
 
 module.exports = router;

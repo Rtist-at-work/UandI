@@ -19,6 +19,7 @@ router.get('/userDetails', async (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.KEY);
     const { username } = decoded;
+    console.log(username)
     
     const user = await usermodel.findOne({ username: username });
 
@@ -35,10 +36,17 @@ router.get('/userDetails', async (req, res) => {
 });
 
 router.get('/getUser',async (req,res)=>{
-    try{
-        const username = req.body;
-    const user = await usermodel.findOne(username);
-    res.json(user);
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Access denied. No token provided.' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.KEY);
+    const { id } = decoded;
+      const user = await usermodel.findById(id);
+      res.json(user);
     }
     catch(err){
         res.json(err);
@@ -46,11 +54,19 @@ router.get('/getUser',async (req,res)=>{
 })
 
 router.post('/update/:updateId', async (req, res) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Access denied. No token provided.' });
+  }
+
+  const decoded = jwt.verify(token, process.env.KEY);
+    
+
     try {
         const personalInfo = req.body;
         const { updateId } = req.params;  // Extract updateId as a string
-        console.log(updateId);            // Log the updateId
-        console.log(personalInfo);        // Log the personalInfo
+               // Log the personalInfo
 
 
         const user = await usermodel.findByIdAndUpdate(

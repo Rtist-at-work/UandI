@@ -5,8 +5,8 @@ import { FaArrowRightLong } from "react-icons/fa6";
 
 const Footer = () => {
   return (
-    <footer className='relative h-auto w-full bg-gray-200 p-4 xsm:grid xsm:grid-cols-2 my-4'>
-                    <div >
+    <footer className='relative h-auto w-full bg-gray-200 p-4 xsm:grid xsm:grid-cols-2 my-4 '>
+                   <div >
                         <h1>SUPPORT</h1>
                         <ul className='ml-6 list-disc underline texm-sm'>
                             <li>shipping</li>
@@ -33,7 +33,7 @@ const Footer = () => {
                         <FaFacebookSquare className='xsm:text-3xl mx-2' />
                        
                     </div>
-                    <div className='col-span-2 '>
+                     <div className='col-span-2 '>
                         <h1 className='xsm:text-lg    m-2'>U&I</h1>
                         <p className='xsm:text-sm'>Join our  list for updates</p>
                         <form className='flex items-center gap-2'>
@@ -43,7 +43,7 @@ const Footer = () => {
                     </div>
                     <div className='col-span-2  my-2'>
                         <p className='xsm:text-sm'>© 2024, U&I.  ALL RIGHTS RESERVED</p>
-                    </div>
+                    </div> 
             </footer>
   )
 }

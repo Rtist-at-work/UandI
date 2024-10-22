@@ -1,5 +1,20 @@
 const mongoose = require('mongoose');
 
+const review = new mongoose.Schema({
+    text : {
+        type : [String],
+        sparse : true,
+    },
+    image : {
+        type : [String],
+        sparse : true,
+    },
+    stars : {
+        type : Number,
+        sparse : true,
+        default : 0
+    }
+})
 const productSchema = new mongoose.Schema({
     id: {
         type: String,
@@ -35,7 +50,19 @@ const productSchema = new mongoose.Schema({
     description: {
         type: String
     },
-    images: [String]
+    images: [String],
+    review : review,
+
+    reviewPoints : {
+        type : Number,
+        default : 0,
+        saprse:true
+    },
+    totalPoints : {
+        type : Number,
+        default : 0,
+        saprse:true
+    }
 });
 
 const productForm = mongoose.model('products', productSchema);

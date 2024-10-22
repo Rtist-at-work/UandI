@@ -3,23 +3,34 @@ import uandiLogo from "../assets/uandilogo.jpg";
 import { Link } from 'react-router-dom';
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { CgProfile } from "react-icons/cg";
-import { useLocation } from "react-router-dom";
+import { useLocation  } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const PaymentPage = () => {
   const URI = "http://localhost:5000";
   const location = useLocation();
-  let orderSummary = location.state.orderSummarySend;
+  const navigate = useNavigate(); // Use navigate from React Router v6
+  
+  // Extracting data passed via location.state
+  const orderSummary = location.state.orderSummarySend;
   const deliveryAddress = location.state.address;
   const subTotal = location.state.subTotal;
   const coupon = location.state.coupon;
-  const navigate = useNavigate();
 
+  const [OrderId, setOrderId] = useState();
+  const [ispaymentMethod, setIsPaymentMethod] = useState(false);
+  const [orderCounter, setOrderCounter] = useState();
+  const [isSubmitting, setIsSubmitting] = useState(false); // State to track form submission
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [ordersToday, setOrdersToday] = useState(new Set());
+  console.log(ordersToday)
+
+  // Handling the back button
   useEffect(() => {
     const handleBackButton = (event) => {
       event.preventDefault(); // Prevent the default back button behavior
-      navigate("/"); // Redirect to a specific page
+      navigate("/", { replace: true }); // Redirect to the homepage when back is pressed
     };
 
     window.history.pushState(null, "", window.location.href); // Push current state to history
@@ -30,50 +41,47 @@ const PaymentPage = () => {
     };
   }, [navigate]);
 
-  const [OrderId, setOrderId] = useState();
-  const [ispaymentMethod, setIsPaymentMethod] = useState(false);
-  const [orderCounter, setOrderCounter] = useState();
-  const [isSubmitting, setIsSubmitting] = useState(false); // State to track form submission
-
-  const [paymentMethod,setPaymentMethod] = useState('')
-  const [ordersToday, setOrdersToday] = useState(new Set());
-  
-  useEffect(() => {
-    const getOrderId = async()=>{
-      try{
-      const response = await axios.get(`${URI}/placeOrder/orderId`);
-      if(response.status==200 || response.status==200 ){
-        setOrderCounter(response.data.orderCount)
-      }
-      }
-      catch(err){
-        console.log(err)
-      }
-    }
-    getOrderId();
-    const now = new Date();
-    const currentDateKey = `${now.getFullYear()} -${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;    
-    if (!ordersToday.has(currentDateKey)) {
-      setOrderCounter(0);
-      setOrdersToday(new Set([currentDateKey])); // Reset to today
-    }
-  }, [ordersToday]);
-
+  // Generate the Order ID
   const generateOrderId = () => {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const dateString = `${year}-${month}-${day}`;
-    // Increment order counter and generate order ID
+    
     const newOrderCounter = orderCounter + 1;
     setOrderCounter(newOrderCounter);
     const orderId = `${dateString}-${String(newOrderCounter).padStart(3, '0')}`;
-    setOrderId(orderId); // Return the generated order ID
-    return(orderId)
+    setOrderId(orderId);
+    return orderId;
   };
 
+  // Order ID management on component load
+  useEffect(() => {
+    const getOrderId = async () => {
+      try {
+        const response = await axios.get(`${URI}/placeOrder/orderId`);
 
+        if (response.status === 200) {
+          setOrderCounter(response.data.orderCount);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    getOrderId();
+
+    const now = new Date();
+    const currentDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    if (!ordersToday.has(currentDateKey)) {
+      setOrderCounter(0);
+      setOrdersToday(new Set([currentDateKey])); // Reset to today
+    }
+  }, [ordersToday]);
+
+  // Handle order submission
   const handleOrderSubmission = async () => {
     if (!ispaymentMethod) {
       alert("Please select a payment method");
@@ -81,7 +89,6 @@ const PaymentPage = () => {
     }
 
     const orderId = generateOrderId(); // Get the generated order ID
-
     setIsSubmitting(true); // Disable button while order is being submitted
 
     try {
@@ -91,13 +98,17 @@ const PaymentPage = () => {
         orderSummary: orderSummary,
         coupon: coupon || '', // Use actual coupon if available
         subTotal: subTotal,
-        paymentMethod: paymentMethod
+        paymentMethod: paymentMethod,
       };
 
       const response = await axios.post(`${URI}/placeOrder`, data);
       if (response.status === 200 || response.status === 201) {
         alert(response.data.message);
-        navigate('/userorders'); // Redirect on success
+
+        navigate('/userorders', { replace: true }); // Replaces the current history entry with OrderListPage
+
+        // Step 2: Push HomePage to the history stack
+        navigate('/');
       }
 
     } catch (err) {
@@ -107,6 +118,7 @@ const PaymentPage = () => {
       setIsSubmitting(false); // Re-enable button after submission
     }
   };
+
 
   return (
     <div className='h-screen w-screen overflow-y-auto'>

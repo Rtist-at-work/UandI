@@ -15,6 +15,7 @@ router.get('/',async(req,res)=>{
     try{
         const decoded = await jwt.verify(token, process.env.KEY);
         const { id } = decoded;
+        console.log(id)
         const user = await usermodel.findById(id);
         res.json(user.addresses)
     }

@@ -20,19 +20,41 @@ const addressSchema = new mongoose.Schema({
     alternateMobile: { type: Number, min: 1000000000, max: 9999999999 }, // Optional but with length validation
     pincode: { type: Number, required: true, trim: true, minlength: 6, maxlength: 6 }, // Assuming 6-digit pincode
 });
+const review = new mongoose.Schema({
+    text : {
+        type : [String],
+        sparse : true,
+    },
+    image : {
+        type : [String],
+        sparse : true,
+    },
+    stars : {
+        type : Number,
+        sparse : true,
+        default : 0
+    }
+})
+const product = new mongoose.Schema({
+    product : Object,
+    count : Number,
+    selectedSize : String,
+    review :{type :review, default:{}, sparse:true}
+})
 
 const orderSchema = new mongoose.Schema({
     orderId: {
         type: String,
-        unique: true
+        unique: true,
+        sparse : true
     },
-    product: [Object],
+    productDetails : [product],
     price:Number,
     paymentMethod : String,
     deliveryaddress : Object,
     coupon : String,
     orderDate: { type: Date, default: Date.now },
-    status: String
+    status: String,
 });
 
 const cartSchema = new mongoose.Schema({
@@ -46,8 +68,8 @@ const whishlistSchema = new mongoose.Schema({
 })
 
 const personalInfoSchema = new mongoose.Schema({
-    username: { type: String,  },
-    email: { type: String,  },
+    username: { type: String, unique : true },
+    email: { type: String,unique: true, sparse: true  },
     mobile: { type: Number, unique: true, sparse: true },
     password: { type: String, required: true },
     name: String,
@@ -57,7 +79,7 @@ const personalInfoSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
     personalInfo: personalInfoSchema, // Separate schema for personal information
     addresses: [addressSchema], // Multiple addresses
-    orderHistory: [orderSchema], // Order history
+    orderHistory: { type: [orderSchema], default: [] }, // Order history
     cartProducts : [cartSchema],
     whishlist : [whishlistSchema]
 }, {

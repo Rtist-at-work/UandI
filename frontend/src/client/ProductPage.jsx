@@ -9,6 +9,9 @@ import { useLocation } from "react-router-dom";
 import Categories from "../components/Categories";
 import Footer from "./Footer";
 import axios from "axios";
+import { FaStar } from "react-icons/fa6";
+import Header from "./Header";
+
 
 const ProductPage = () => {
   const URI = "http://localhost:5000";
@@ -43,8 +46,9 @@ const ProductPage = () => {
   const getproducts = async () => {
     try {
       const response = await axios.get(URI + "/productList");
-      if (response.status === 200 || response.status === 201) {        
+      if (response.status === 200 || response.status === 201) {
         setProductList(response.data);
+        console.log(response)
       }
     } catch (err) {
       console.log(err);
@@ -106,23 +110,8 @@ useEffect(() => {
   
 
   return (
-    <div className="h-screen w-screen relative">
-      <header className="relative h-[15%] w-full bg-blue-300">
-        <div className="h-[25%] w-full bg-pink-300 xsm:text-sm flex items-center justify-center">
-          10% Discount on first purchase | Welcome
-        </div>
-        <div className="h-[75%] w-full bg-yellow-300 flex">
-          <div className="h-full sm:w-24 lg:w-32 bg-pink-300 shrink-0">
-            <img src={uandiLogo} alt="dsvd" className="h-full w-full" />
-          </div>
-          <div className="h-full w-[70%] shrink-0">
-            <CgProfile className="absolute text-3xl right-4 top-1/2" />
-            <Link to="/cart">
-              <MdOutlineShoppingCart className="absolute text-3xl right-16 top-1/2" />
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="h-screen w-screen relative overflow-scroll">
+      <Header/>
       <main className=" h-[85%] w-full  overflow-y-auto scrollbar-hidden ">
         <div className="max-h-max w-full flex   justify-start items-center">
           <Link to="/">
@@ -283,47 +272,65 @@ useEffect(() => {
               </div>
             </div>
           )}
-          {filteredProduct.length > 0
-            ? filteredProduct.map((product, index) => {
-                return (
-                  <div
-                    key={index}
-                    className="relative overflow-hidden max-h-max min-w-[50%] p-1 rounded z-0"
-                    onClick={() => {
-                      navigate('/productDetails',{state:{product}})
-                    }}
-                  >
-                    <div className="h-[100%] w-[100%]">
-                      {product.images.length > 0 ? (
-                        <img
-                          key={index + "img"}
-                          src={`data:image/png;base64,${product.images[0]}`}
-                          className="h-[150px] w-[100%] object-cover rounded lg:h-48 lg:w-48 border-2 border-gray-300 h-32"
-                          alt={`product-${index}`}
+          <div className="relative min-h-max w-full grid grid-cols-2 lg:grid-cols-4 gap-4 p-2">
+  {filteredProduct.length > 0
+    ? filteredProduct.map((product, index) => {
+        return (
+          <div
+            key={index}
+            className="relative overflow-hidden p-1 rounded z-0 w-full"
+            onClick={() => {
+              console.log(product.id)
+              navigate(`/productDetails?id=${product.id}`);
+            }}
+          >
+            <div className="w-full h-full">
+              {product.images.length > 0 ? (
+                <img
+                  key={index + "img"}
+                  src={`data:image/png;base64,${product.images[0]}`}
+                  className="object-cover w-full aspect-[1/1] rounded border-2 border-gray-300"
+                  alt={`product-${index}`}
+                />
+              ) : (
+                <div className="h-[200px] w-full break-words flex items-center justify-center bg-gray-100">
+                  No Images Found
+                </div>
+              )}
+              <div
+                key={index + "container"}
+                className="w-full flex flex-col justify-center gap-2"
+              >
+                <p key={index + "name"} className="xsm:text-sm">
+                  {product.name.length > 20
+                    ? product.name.slice(0, 20) + "..."
+                    : product.name}
+                </p>
+                <p key={index + "price"} className="xsm:text-sm">
+                  Rs.{product.price}/-
+                </p>
+                <div className="flex gap-1 items-center" key={index}>
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <FaStar
+                          key={rating}
+                          className={`text-xl text-gray-700 ${
+                            (product.review.stars >= rating)                            
+                              ? "text-yellow-500"
+                              : "text-gray-500"
+                          } cursor-pointer border-2 border-transparent`}                          
                         />
-                      ) : (
-                        <div className="h-[150px] w-[100%] break-words flex items-center ">
-                          No Images Found
-                        </div>
-                      )}
-                      <div
-                        key={index + "container"}
-                        className="h-[70px] w-[100%] flex flex-col justify-center gap-2"
-                      >
-                        <p key={index + "name"} className="xsm:text-sm">
-                          {product.name.length > 20
-                            ? product.name.slice(0, 20) + "..."
-                            : product.name}
-                        </p>
-                        <p key={index + "price"} className="xsm:text-sm">
-                          Rs.{product.price}/-
-                        </p>
-                      </div>
+                      ))}
                     </div>
-                  </div>
-                );
-              })
-            : ""}
+               
+
+              </div>
+            </div>
+          </div>
+        );
+      })
+    : ""}
+</div>
+
         </div>
         <div className="min-h-max w-full  overflow-x-auto z-0 px-2">
           <h1 className="my-4">INSTRUCTIONS</h1>

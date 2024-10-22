@@ -1,27 +1,26 @@
 const multer = require('multer');
 const path = require('path');
 
-var imgconfig = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, './Assets/productImages'));
-    },
-    filename: (req, file, cb) => {
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-    }
-});
+const storage = multer.memoryStorage();
 
+// Set up the multer upload with file filter to accept only specific file types
 const upload = multer({
-    storage: imgconfig,
-    limits: { fileSize: '1000000' },
+    storage: storage,
     fileFilter: (req, file, callback) => {
+        // Define allowed file types
         const fileType = /jpeg|jpg|png|webp/;
         const mimeType = fileType.test(file.mimetype);
         const extname = fileType.test(path.extname(file.originalname).toLowerCase());
-        if (mimeType && extname){
-            return callback(null, true);
+
+        // Check file types, reject if not proper format
+        if (mimeType && extname) {
+            callback(null, true);
+        } else {
+            callback(new Error('Give proper file format to upload'));
         }
-        callback('Give proper file format to upload');
-    }
+    },
+    limits: { fileSize: 1024 * 1024 * 5 } // Limit file size to 5MB
 });
+
 
 module.exports = upload;

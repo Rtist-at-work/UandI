@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/usermodel');
 const Order = require('../models/orderModel');
+const product = require('../models/productSchema')
 
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
@@ -35,7 +36,6 @@ router.post('/', async (req, res) => {
         if (!deliveryAddress || !Array.isArray(orderSummary) || orderSummary.length === 0) {
             return res.status(400).json({ status: false, message: "Invalid order data" });
         }
-        
         const order = new Order({
             userId: id,
             orderId: orderId,
@@ -45,24 +45,31 @@ router.post('/', async (req, res) => {
             deliveryaddress: deliveryAddress,
             coupon: coupon || '', // Default to empty string if no coupon
             orderDate: Date.now(),
-            status: "order placed"
+            status: "order placed",
         });
 
         await order.save();
-
+        orderSummary.map((order)=>{
+            console.log(order)
+        })
         // Update user order history
         user.orderHistory.push({
             orderId: orderId,
-            product: orderSummary,
+            productDetails: orderSummary.map((order) => ({
+                product: order.product,
+                count: order.count,
+                selectedSize: order.selectedSize
+            })),
             price: subTotal,
-            paymentMethod : paymentMethod,
+            paymentMethod: paymentMethod,
             deliveryaddress: deliveryAddress,
             coupon: coupon || '',
             orderDate: Date.now(),
             status: "order placed"
         });
+        
 
-        // Clear user's cart products
+        // // Clear user's cart products
         user.cartProducts = []; // Assuming cartProducts is an array
 
         await user.save(); // Save the user instance
@@ -98,7 +105,9 @@ router.get('/orderId', async (req, res) => {
         return res.status(500).json({ status: false, message: "An error occurred", error: err.message });
     }
 });
+
 router.get('/orderDetails',async(req,res)=>{
+    const orderId = req.query.orderId;
     const token = req.cookies.token;
 
     if (!token) {
@@ -108,23 +117,52 @@ router.get('/orderDetails',async(req,res)=>{
     try {
         const decoded = await jwt.verify(token, process.env.KEY);
         const { id } = decoded;
-
+    
         if (!id) {
             return res.status(401).json({ status: false, message: "User not found. Please login to place order" });
         }
-
+    
         const user = await User.findById(id);
         if (!user) {
             return res.status(401).json({ status: false, message: "User not found. Please login to place order" });
         }
+    
+        const products = await product.find(); // Ensure you await the product query
+    
+        const orders = user.orderHistory.map((order) => {
+            // Get product details from each order
+            let productDetails = order.productDetails;
+            console.log(productDetails)
 
-        res.status(200).json({status:true,message:"order fetched successfully",orders : user.orderHistory});
+            // Update product details with the full product info
+            productDetails = productDetails.map((productDetail) => {
+                productDetail.product = products.find(
+                    (prod) => prod.id.toString()=== productDetail.product// Use toString() for comparison
+                );
+                return productDetail;
+                
+            });
+            
+            order.product = productDetails;
+            return(order);
+        });
+        console.log(orders)
+        if(orderId){
+            const filteredOrder = orders.find((order)=>(order.orderId===orderId));
+            return res.status(200).json({ status: true, filteredOrder });
+        }
+        console.log(orders);
+    
+        // Send the response with orders or further processing
+        return res.status(200).json({ status: true, orders });
+    
+    } catch (error) {
+        console.error("Error verifying token or fetching user:", error);
+        return res.status(500).json({ status: false, message: "Internal server error" });
     }
-    catch(err){
-        res.json(err);
-    }
-
+    
 })
+
 
 
 

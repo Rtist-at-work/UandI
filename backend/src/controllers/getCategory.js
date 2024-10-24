@@ -6,7 +6,6 @@ router.get('/',async(req,res)=>{
     try{
         const category = await categorymodel.find();
         const categorynav = req.query.categorynav || "";
-        const stylenav = req.query.stylenav || "";
         if(category && categorynav){
             
             const styleList = category.filter(                

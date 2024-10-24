@@ -100,13 +100,13 @@ const OrderPage = ({ handleAddAddress }) => {
 
       <main className="relative h-[85%] max-w-full overflow-y-auto scrollbar-hidden md:px-8 xsm:px-4">
         {changeAddress && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-[95%] w-[90%] border-2 border-gray-300 p-6 bg-white shadow-lg rounded-lg z-10 overflow-y-auto bg-red-300">
-            <div className="flex justify-between items-center  bg-red-300">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-[95%] max-w-max border-2 border-gray-300 p-6 bg-white shadow-lg rounded-lg z-10 overflow-y-auto bg-red-300  ">
+            <div className="flex justify-between items-center ">
               <div className="font-bold text-blue-500 ">
                 Select Delivery Address
               </div>
               <ImCross
-                className="text-sm text-red-600"
+                className="text-sm text-red-600 cursor-pointer"
                 onClick={() => setChangeAddress(false)}
               />
             </div>
@@ -116,9 +116,9 @@ const OrderPage = ({ handleAddAddress }) => {
                 <div
                   key={index}
                   onClick={() => setBgSelected(addr)}
-                  className={` max-h-max w-full mx-auto p-4 ${
+                  className={` max-h-max max-w-max  p-4 ${
                     bgSelected === addr ? "bg-green-100" : ""
-                  } adress-300 border-2 border-gray-400 my-4 rounded-lg`}
+                  } adress-300 border-2 border-gray-400 my-4 rounded-lg hover:shadow-md cursor-pointer`}
                 >
                   <div
                     className="relative flex items-center justify-end text-gray-500 gap-0.5"
@@ -131,7 +131,7 @@ const OrderPage = ({ handleAddAddress }) => {
 
                   <div className="flex font-semibold mt-2">
                     <div>{addr.name}</div>
-                    <div className="flex items-center text-blue-500">
+                    <div className="flex items-center text-blue-500 ml-12">
                       {addr.addressType === "Home" ? (
                         <CiHome className="text-gray-500" />
                       ) : (
@@ -153,7 +153,7 @@ const OrderPage = ({ handleAddAddress }) => {
             )}
             <div className="flex justify-end">
               <button
-                className="max-h-max w-24 border-2 border-black p-2 rounded font-bold bg-blue-300"
+                className="max-h-max w-24 hover:shadow-lg p-2 rounded font-bold text-white bg-blue-500"
                 onClick={() => {
                   setAddress(bgSelected);
                   setChangeAddress(false);

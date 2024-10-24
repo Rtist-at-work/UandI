@@ -17,7 +17,6 @@ const router = express.Router();
 router.use(cookieParser())
 
 
-// Registration validation rules
 const registerValidation = [
     body('username').notEmpty().withMessage('Username is required.'),
     body('emailOrMobile').notEmpty().withMessage('Email or Mobile is required.').custom(value => {

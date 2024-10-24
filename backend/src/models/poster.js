@@ -6,3 +6,4 @@ const posterBannerSchema = new mongoose.Schema({
 
 const posterSchema = mongoose.model('posterBanner',posterBannerSchema);
 module.exports = posterSchema;
+//lfenjlfndojv

@@ -11,17 +11,16 @@ import { RxCross2 } from "react-icons/rx";
 import { useRef } from "react";
 import { TbBookUpload } from "react-icons/tb";
 import { MdDelete } from "react-icons/md";
-
-
+import Header from "./Header";
 
 const OrderTracking = () => {
   const URI = "http://localhost:5000";
   const navigate = useNavigate();
   const [popup, setPopup] = useState(false);
   const [order, setOrder] = useState(null);
-  const [productId,setProductId] = useState();
+  const [productId, setProductId] = useState();
   const [selectedRating, setSelectedRating] = useState([]); // Store selected rating
-  const [review,setReview] = useState("");
+  const [review, setReview] = useState("");
   const [hover, setHover] = useState([]);
   const { orderId } = useParams(); // Get orderId from URL
   const imageRef = useRef(null);
@@ -34,14 +33,16 @@ const OrderTracking = () => {
             orderId: orderId, // If orderId is empty, send an empty string
           },
         });
-  
+
         if (response.status === 200 || response.status === 201) {
           setOrder(response.data.filteredOrder);
-  
+
           const productDetails = response.data.filteredOrder.productDetails;
           if (productDetails.length > 0) {
             // Collect all ratings in a temporary array
-            const ratings = productDetails.map((product) => product.review.stars);  
+            const ratings = productDetails.map(
+              (product) => product.review.stars
+            );
             setSelectedRating(ratings);
           }
         }
@@ -49,12 +50,10 @@ const OrderTracking = () => {
         console.error(err);
       }
     };
-  
+
     getOrders();
   }, []); // Make sure this useEffect only runs once
-  
-  console.log(selectedRating);
-  
+
   useEffect(() => {
     const socketInstance = io(URI, {
       withCredentials: true,
@@ -70,7 +69,6 @@ const OrderTracking = () => {
     });
 
     socketInstance.on("orderStatusUpdated", ({ orderId, newStatus }) => {
-      console.log("kiyfiy")
       if (order && order.orderId === orderId) {
         setOrder((prevOrder) => ({
           ...prevOrder,
@@ -108,20 +106,22 @@ const OrderTracking = () => {
     }
   };
 
-  const handlereview = async(rating, index,Id) => {
+  const handlereview = async (rating, index, Id) => {
     const updated = [...selectedRating];
     updated[index] = rating;
     setSelectedRating(updated);
-    try{
+    try {
       const config = { headers: { "Content-Type": "application/json" } };
-      const response = await axios.post(`${URI}/auth/review`,{'rating' : rating,'orderId' : order.orderId, 'productId' : Id },config);
-      if(response.status===200){
+      const response = await axios.post(
+        `${URI}/auth/review`,
+        { rating: rating, orderId: order.orderId, productId: Id },
+        config
+      );
+      if (response.status === 200) {
         alert("rated successfully");
       }
-    }
-    catch(err){
+    } catch (err) {
       console.log(err);
-
     }
   };
   // Ensure order is defined before accessing its properties
@@ -132,21 +132,19 @@ const OrderTracking = () => {
     let files = Array.from(e.target.files);
     if (files.length > 0) {
       const imageUrls = files.map((file) => URL.createObjectURL(file));
-        setImages([...images, ...imageUrls]);      
+      setImages([...images, ...imageUrls]);
     }
   };
 
-
   const handleDel = (index) => {
-   
-      const filteredimages = images.filter((_, ind) => ind !== index);
-      setImages(filteredimages);
-  }
-  const handleReviewSumbission = async()=>{
-    if(!review){
-      alert("please write something")
+    const filteredimages = images.filter((_, ind) => ind !== index);
+    setImages(filteredimages);
+  };
+  const handleReviewSumbission = async () => {
+    if (!review) {
+      alert("please write something");
     }
-    console.log(productId)
+    console.log(productId);
     const formData = new FormData();
     formData.append("review", review);
     formData.append("orderId", order.orderId);
@@ -157,41 +155,30 @@ const OrderTracking = () => {
     try {
       const config = { headers: { "Content-Type": "multipart/form-data" } };
       const response = await axios.post(`${URI}/auth/review`, formData, config);
-      
+
       // Clear form fields after success
-      if(response.status===200 || response.status===201){
+      if (response.status === 200 || response.status === 201) {
         setReview("");
         setImages([]);
         alert("Review added successfully");
       }
     } catch (err) {
       // Check if the error message is related to the file format
-      if (err.response && err.response.status === 400 && err.response.data.error === 'Give proper file format to upload') {
-        alert('Give proper file format to upload');
+      if (
+        err.response &&
+        err.response.status === 400 &&
+        err.response.data.error === "Give proper file format to upload"
+      ) {
+        alert("Give proper file format to upload");
       } else {
         console.log("Error adding product:", err);
-        alert('An error occurred while adding the product');
+        alert("An error occurred while adding the product");
       }
     }
-  }
+  };
   return (
-    <div className="relative h-screen w-full">
-      <header className="relative h-[15%] w-full bg-blue-300">
-        <div className="h-[25%] w-full bg-pink-300 xsm:text-sm flex items-center justify-center">
-          10% Discount on first purchase | Welcome
-        </div>
-        <div className="h-[75%] w-full bg-yellow-300 flex">
-          <div className="h-full w-[30%] bg-pink-300 shrink-0">
-            <img src={uandiLogo} alt="U&I Logo" className="h-full w-full" />
-          </div>
-          <div className="h-full w-[70%] shrink-0 relative">
-            <CgProfile className="absolute text-3xl right-4 top-1/2" />
-            <Link to="/cart">
-              <MdOutlineShoppingCart className="absolute text-3xl right-16 top-1/2" />
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="relative h-screen w-full overflow-auto scrollbar-hidden">
+      <Header />
       <div className="w-full bg-gray-100 py-8 flex justify-center items-center">
         <div className="flex justify-between items-center w-[80%] max-w-[1024px] relative">
           {steps.map((step, index) => (
@@ -229,82 +216,120 @@ const OrderTracking = () => {
           ))}
         </div>
       </div>
-
-      <main className="relative h-[75%] w-full flex justify-center items-center overflow-y-auto p-4">
-        <div className="h-full overflow-y-auto">
+      <main className=" w-full flex justify-center items-center p-4">
+        <div className="h-full w-full flex flex-col items-center">
           {order && order.productDetails && order.productDetails.length > 0 ? (
-            order.productDetails.map((productItem, index) => (
-              <>
-                <div
-                  className=" w-full aspect-[4/1] mt-6 flex gap-2 items-center bg-white shadow-md rounded-lg p-4"
-                  key={productItem._id}
-                >
-                  <img
-                    src={`data:image/png;base64,${
-                      productItem.product.images?.length > 0
-                        ? productItem.product.images[0]
-                        : "default_image_url"
-                    }`}
-                    alt={productItem.product.name}
-                    className="relative w-[25%] aspect-[1/1] object-cover rounded"
-                  />
-                  <div className="flex-1">
-                    <div className="xsm:text-sm mb-2 font-semibold text-gray-800">
-                      {productItem.product.name.length > 20
-                        ? `${productItem.product.name.slice(0, 20)}...`
-                        : productItem.product.name}
-                    </div>
-                    <div className="flex item-center justify-left xsm:text-sm mb-2 text-gray-700">
-                      {productItem.product.price}{" "}
-                      {"offer" + productItem.product.offer}
-                    </div>
-                    <div className="text-xs text-gray-500 mb-2">
-                      Selected Size: {productItem.selectedSize}
-                    </div>
-                    <div className="flex gap-2 text-xs text-green-500">
-                      <div>Arriving Tomorrow</div>
+            order.productDetails.map((productItem, index) =>{
+              let coupon = 0 ;
+              let offer = 0 ;
+              if(productItem && productItem.coupon) coupon++ ;
+              if(productItem.offer) offer++ ;
+              console.log(order)
+              return(
+                <>
+                  <div
+                    className=" w-[90%]   max-h-max mt-6 flex gap-2 items-center bg-white shadow-md rounded-lg p-4 bg-red-400"
+                    key={productItem._id}
+                  >
+                    <img
+                      src={`data:image/png;base64,${
+                        productItem.product.images?.length > 0
+                          ? productItem.product.images[0]
+                          : "default_image_url"
+                      }`}
+                      alt={productItem.product.name}
+                      className=" sm:w-32 xsm:w-24 xsm:h-24 sm:h-32 aspect-square object-cover mr-4"
+                    />
+                    <div className="flex-1 ">
+                      <div className="xsm:text-xsm md:text-base font-semibold mb-2">
+                        {productItem.product.name.length > 20
+                          ? `${productItem.product.name.slice(0, 20)}...`
+                          : productItem.product.name}
+                      </div>
+                      <div className="flex gap-2 items-center justify-left xsm:text-sm mb-2 text-gray-700">
+                        <p className="text-base font-semibold">
+                          ₹{" "}
+                          {productItem.product.price -
+                            (productItem.product.price / 100) *
+                              productItem.product.offer.toFixed(2)}/-
+                        </p>
+                        <p
+                          className={`${
+                            productItem.product.offer > 0
+                              ? "line-through text-sm text-gray-500"
+                              : "text-base font-semibold"
+                          }`}
+                        >
+                          ₹{productItem.product.price}/-
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
+                      
+                        {(order.coupon).length > 0 && (
+                          <p className="text-base text-green-700">1 Coupon</p>
+                        ) }
+                        {(order.coupon.length > 0) ? ((productItem.product.offer) > 0) ? (
+                          <p className="text-base text-green-700">&</p>
+                         ) : ("") : ""}
+                         {(productItem.product.offer) > 0 && (
+                          <p className="text-base text-green-700">1  Offer</p>
+                        ) }
+                        {(order.coupon).length > 0 || (productItem.product.offer > 0) && (
+                          <p className="text-base text-green-700"> applied</p>
+                        ) }
+                       
+                      
+                      </div>
+                      
+                      <div className="text-xs text-gray-500 mb-2">
+                        {productItem.selectedSize}
+                      </div>
+                      <div className="flex gap-2 text-xs text-green-500">
+                        <div>Arriving Tomorrow</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                {order.status.toLowerCase() === "delivered" && (
-                  <div className="flex gap-4 items-center mt-4">
-                    <div className="flex gap-1 items-center" key={index}>
-                      {[1, 2, 3, 4, 5].map((rating) => (
-                        <FaStar
-                          key={rating}
-                          className={`text-xl text-gray-700 ${
-                            (selectedRating.length > index && selectedRating[index] >= rating) ||
-                            hover[index] >= rating
-                              ? "text-yellow-500"
-                              : "text-gray-500"
-                          } cursor-pointer border-2 border-transparent`}
-                          onClick={() => {
-                            handlereview(rating, index,productItem.product.id); // Handle review submission
-                          }}
-                          onMouseEnter={() => {
-                            const updated = [...selectedRating];
-                            updated[index] = rating;
-                            setHover(updated); // Set hover state
-                          }}
-                          onMouseLeave={() => {
-                            setHover(selectedRating); // Reset hover state on mouse leave
-                          }}
-                        />
-                      ))}
+                  {order.status.toLowerCase() === "delivered" && (
+                    <div className="flex gap-4 w-[90%]  items-center mt-4">
+                      <div className="flex gap-1 items-center" key={index}>
+                        {[1, 2, 3, 4, 5].map((rating) => (
+                          <FaStar
+                            key={rating}
+                            className={`text-xl text-gray-700 ${
+                              (selectedRating.length > index &&
+                                selectedRating[index] >= rating) ||
+                              hover[index] >= rating
+                                ? "text-yellow-500"
+                                : "text-gray-500"
+                            } cursor-pointer border-2 border-transparent`}
+                            onClick={() => {
+                              handlereview(rating, index, productItem.product.id); // Handle review submission
+                            }}
+                            onMouseEnter={() => {
+                              const updated = [...selectedRating];
+                              updated[index] = rating;
+                              setHover(updated); // Set hover state
+                            }}
+                            onMouseLeave={() => {
+                              setHover(selectedRating); // Reset hover state on mouse leave
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <div
+                        className="text-sm text-gray-700 flex items-center cursor-pointer"
+                        onClick={() => {
+                          setProductId(productItem.product.id);
+                          setPopup(!popup);
+                        }}
+                      >
+                        Write a review
+                      </div>
                     </div>
-                    <div
-                      className="text-sm text-gray-700 flex items-center cursor-pointer"
-                      onClick={() => {
-                        setProductId( productItem.product.id)
-                        setPopup(!popup);
-                      }}
-                    >
-                      Write a review
-                    </div>
-                  </div>
-                )}
-              </>
-            ))
+                  )}
+                </>
+              )
+            } )
           ) : (
             <div className="text-center">Loading order details...</div>
           )}
@@ -324,9 +349,9 @@ const OrderTracking = () => {
               className="border-2 w-full h-32 border-gray-300 overflow-y-auto rounded-lg p-2 resize-none mb-4"
               placeholder="Write your review here..."
               value={review}
-              onChange={(e)=>{
-                console.log(e.target.value)
-                setReview(e.target.value)
+              onChange={(e) => {
+                console.log(e.target.value);
+                setReview(e.target.value);
               }}
             />
             <div className="flex p-2 h-24 w-full border-2 border-gray-300 rounded">
@@ -337,14 +362,18 @@ const OrderTracking = () => {
                 name="Image"
                 ref={imageRef}
                 className="opacity-0 ml-hidebuttons "
-                onChange={(e)=>{handleImageUpload(e)}}
+                onChange={(e) => {
+                  handleImageUpload(e);
+                }}
               />
               <TbBookUpload
                 id="image"
                 className="h-[100%] w-[10%] cursor-pointer"
-                onClick={()=>{imageRef.current.click();}}
+                onClick={() => {
+                  imageRef.current.click();
+                }}
               />
-              <div className="flex h-[100%] w-[90%] overflow-x-auto">
+              <div className="flex h-[100%] w-[90%]">
                 {images.length > 0 ? (
                   images.map((image, index) => (
                     <div className=" relative h-[100%] w-[35%] rounded ml-2 shrink-0 ">
@@ -357,7 +386,9 @@ const OrderTracking = () => {
                       <MdDelete
                         id="image"
                         className="absolute right-1 top-1 text-red-600 text-lg"
-                        onClick={() => {handleDel(index)}}
+                        onClick={() => {
+                          handleDel(index);
+                        }}
                       />
                     </div>
                   ))
@@ -366,8 +397,11 @@ const OrderTracking = () => {
                 )}
               </div>
             </div>
-            <button className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
-            onClick={()=>{handleReviewSumbission()}}
+            <button
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+              onClick={() => {
+                handleReviewSumbission();
+              }}
             >
               Submit
             </button>

@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const User = require('../models/usermodel');  // Assuming you have a User model
 

@@ -53,7 +53,6 @@ router.get('/', async (req, res) => {
                 return acc + curr;
             }, 0);
 
-            // If no reviews, set stars to 0, else calculate the average
             if (total === 0 && count === 0) {
                 product.review.stars = 0;
             } else {

@@ -1,7 +1,5 @@
-const mongoose = require('mongoose');
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const usermodel = require('../models/usermodel'); 
 const router = express.Router();

@@ -30,7 +30,7 @@ const Homepage = () => {
   const handleStyleNav = (c, s) => {
     navigate(`/productpage?categorynav=${c}&stylenav=${s}`);
   };
-
+//mmvml
   return (
     <div className="h-screen w-screen">
       <Header/>

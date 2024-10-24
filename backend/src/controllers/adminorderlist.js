@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/orderModel');
 
-// Get all orders
+
 router.get('/', async (req, res) => {
 
     try {

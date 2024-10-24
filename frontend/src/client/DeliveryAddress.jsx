@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { MdDelete } from "react-icons/md";
+import Header from "./Header";
 
 const DeliveryAddress = ({handleAddAddress}) => {
   const [addresses, setAddresses] = useState([]);
@@ -44,26 +45,9 @@ const DeliveryAddress = ({handleAddAddress}) => {
 
   return (
     <div className="h-screen w-screen">
-      <header className="relative h-[15%]  w-full bg-blue-300 ">
-        <div className="h-[25%] w-full bg-pink-300 xsm:text-sm flex items-center justify-center">
-          10% Discount on first purchase | Welcome
-        </div>
-        <div className=" h-[75%] w-full bg-yellow-300 flex ">
-          <div className="h-full w-[30%] bg-pink-300 shrink-0">
-            <img src={uandiLogo} alt="dsvd" className="h-full w-full" />
-          </div>
-          <div className="h-full w-[70%]  shrink-0">
-            <CgProfile className=" absolute text-3xl right-4 top-1/2" />
-            <Link to="/cart">
-              <MdOutlineShoppingCart className="absolute text-3xl right-16 top-1/2" />
-            </Link>
-          </div>
-
-          <div className="w-[70%] "></div>
-        </div>
-      </header>
+      <Header />
       <main className=" h-[85%] w-full  overflow-y-auto ">
-        <div className="relative h-16 w-full flex items-center">
+        <div className="relative h-16 w-full flex items-center ">
           <button
             id="addAddress"
             className=" absolute right-4 border-2 rounded bg-blue-500 text-white p-2 "
@@ -74,22 +58,22 @@ const DeliveryAddress = ({handleAddAddress}) => {
         </div>
         {addresses.length > 0 ? (
             addresses.map((address,index) => (
-              <div key={index} className="max-h-max w-[90%] mx-auto p-2 border-2 border-gray-400 my-4">
+              <div key={index} className="max-h-max w-[90%] mx-auto xsm:p-4 border-2 border-gray-400 my-4 hover:shadow-md cursor-pointer md:p-8 rounded">
                 <div className="flex justify-between items-center words-break">
                   <button                  
                     id="changeAddress"
                     onClick={(e)=>{handleAddAddress(e,index,"deliveryaddress")}}
-                    className="border-2 border-gray-300 bg-yellow-500 min-w-max max-h-max p-2 text-white text-sm font-bold rounded "
+                    className="bg-yellow-500 min-w-max max-h-max p-2 px-4 text-white text-sm font-bold rounded "
                   >
-                    Change
+                    Edit
                   </button>
                     <MdDelete 
                     id="deleteAddress"
                       onClick={()=>{handleDeleteAddress(index)}}
-                      className=" text-red-600 text-2xl font-bold rounded "
+                      className=" text-red-600 text-2xl font-bold rounded"
                     />
                 </div>
-                <div className="flex justify-between font-semibold mt-4">
+                <div className="flex justify-between font-semibold mt-4 text-customDark">
                   <div>{address.name}</div>
                   <div className="flex items-center ">
                     {address.adressType === "Home" ? (

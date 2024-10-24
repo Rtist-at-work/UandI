@@ -69,7 +69,6 @@ router.put("/update", async (req, res) => {
         // Hash the new password
         const hashpassword = await bcrypt.hash(newpassword, 10);
 
-        // Update the password
         const updateUser = await usermodel.findByIdAndUpdate(
             { _id: id },
             { $set: { "personalInfo.password": hashpassword } },

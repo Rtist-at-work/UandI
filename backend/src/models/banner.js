@@ -6,3 +6,4 @@ const mainBannerSchema = new mongoose.Schema({
 
 const bannersSchema = mongoose.model('Banner', mainBannerSchema);
 module.exports = bannersSchema;
+//lfenjlfndojv

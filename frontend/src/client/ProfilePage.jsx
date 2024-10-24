@@ -8,6 +8,7 @@ import uandiLogo from "../assets/uandilogo.jpg";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { CgProfile } from "react-icons/cg";
 import { Link } from "react-router-dom";
+import Header from "./Header";
 
 const ProfilePage = () => {
   const URI = "http://localhost:5000";
@@ -23,7 +24,7 @@ const ProfilePage = () => {
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [password, setPassword] = useState("");
-  const [login, setLogin] = useState(false);
+  const [login, setLogin] = useState(true);
 
   const navigate = useNavigate();
 
@@ -41,10 +42,8 @@ const ProfilePage = () => {
           username: response.data.personalInfo.username,
           gender: response.data.personalInfo.gender,
           password: response.data.personalInfo.password,
-
         });
         setLogin(true);
-
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -148,30 +147,13 @@ const ProfilePage = () => {
 
   return (
     <div className="relative h-screen w-screen">
-      <header className="relative h-[15%]  w-full bg-blue-300 ">
-        <div className="h-[25%] w-full bg-pink-300 xsm:text-sm flex items-center justify-center">
-          10% Discount on first purchase | Welcome
-        </div>
-        <div className=" h-[75%] w-full bg-yellow-300 flex ">
-          <div className="h-full w-[30%] bg-pink-300 shrink-0">
-            <img src={uandiLogo} alt="dsvd" className="h-full w-full" />
-          </div>
-          <div className="h-full w-[70%]  shrink-0">
-            <CgProfile className=" absolute text-3xl right-4 top-1/2" />
-            <Link to="/cart">
-              <MdOutlineShoppingCart className="absolute text-3xl right-16 top-1/2" />
-            </Link>
-          </div>
-
-          <div className="w-[70%] "></div>
-        </div>
-      </header>
-      <main className="relative h-[85%] w-full overflow-y-auto overflow-x-hidden mb-8">
+      <Header />
+      <main className="relative h-[85%] w-full overflow-y-auto scrollbar-hidden md:p-8 xsm:p-2 mb-8">
         {login ? (
           <>
             <div className="h-[30%] w-full p-2 flex flex-wrap items-center justify-around gap-2">
               <div
-                className="border-2 border-gray-300 h-[40%] w-[40%] p-2 rounded flex items-center justify-center gap-2"
+                className="border-2 border-gray-300 h-[40%] w-[40%] p-2 rounded flex items-center justify-center gap-2 hover:shadow-md cursor-pointer"
                 onClick={() => {
                   navigate("/whishlist");
                 }}
@@ -179,7 +161,7 @@ const ProfilePage = () => {
                 <GoHeart /> Whishlist
               </div>
               <div
-                className="border-2 border-gray-300 h-[40%] w-[40%] p-2 rounded flex items-center justify-center gap-2"
+                className="border-2 border-gray-300 h-[40%] w-[40%] p-2 rounded flex items-center justify-center gap-2 hover:shadow-md cursor-pointer"
                 onClick={() => {
                   navigate("/userorders");
                 }}
@@ -187,121 +169,110 @@ const ProfilePage = () => {
                 <FaBorderAll /> Orders
               </div>
             </div>
-
-            <form className="px-4 flex flex-col gap-4 mb-8">
-              <div className="flex flex-col gap-2">
-                <label className="text-gray-400 text-sm">Mobile Number</label>
-                <div className="border-b-2 border-gray-300 flex items-center justify-between">
-                  <input
-                    type="number"
-                    id="mobile"
-                    value={personalInfo.mobile}
-                    onChange={handleChange}
-                    onWheel={(e) => e.target.blur()}
-                    className="outline-none"
-                  />
-                  <div className="text-blue-500" onClick={handleUpdate}>
-                    update
+            <div className="relative w-full max-h-max flex flex-col md:flex-row gap-6 p-4 overflow-auto">
+              {/* Form Section */}
+              <form className="w-full md:w-[50%] flex flex-col gap-6 mb-8 bg-white shadow-md rounded-lg p-6 flex-1">
+                {/* Mobile Number */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-gray-500 text-sm">Mobile Number</label>
+                  <div className="border-b-2 border-gray-300 flex items-center justify-between">
+                    <input
+                      type="number"
+                      id="mobile"
+                      value={personalInfo.mobile}
+                      onChange={handleChange}
+                      onWheel={(e) => e.target.blur()}
+                      className="w-full outline-none py-1 text-gray-700"
+                    />
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-gray-400 text-sm">E-mail</label>
-                <div className="border-b-2 border-gray-300 flex items-center justify-between">
-                  <input
-                    type="text"
-                    id="email"
-                    value={personalInfo.email}
-                    onChange={handleChange}
-                    className="outline-none"
-                  />
-                  <div className="text-blue-500" onClick={handleUpdate}>
-                    update
+                {/* E-mail */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-gray-500 text-sm">E-mail</label>
+                  <div className="border-b-2 border-gray-300 flex items-center justify-between">
+                    <input
+                      type="text"
+                      id="email"
+                      value={personalInfo.email}
+                      onChange={handleChange}
+                      className="outline-none w-full py-1 text-gray-700"
+                    />
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-gray-400 text-sm">User Name</label>
-                <div className="border-b-2 border-gray-300 flex items-center justify-between">
-                  <input
-                    type="text"
-                    id="username"
-                    value={personalInfo.username}
-                    onChange={handleChange}
-                    className="outline-none"
-                  />
-                  <div className="text-blue-500" onClick={handleUpdate}>
-                    update
+                {/* Username */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-gray-500 text-sm">User Name</label>
+                  <div className="border-b-2 border-gray-300 flex items-center justify-between">
+                    <input
+                      type="text"
+                      id="username"
+                      value={personalInfo.username}
+                      onChange={handleChange}
+                      className="outline-none w-full py-1 text-gray-700"
+                    />
                   </div>
                 </div>
-              </div>
 
-              {/* Personal Information Section */}
-              <div className="flex flex-col gap-2">
-                <label className="text-gray-400 text-sm">Name</label>
-                <div className="border-b-2 border-gray-300 flex items-center justify-between">
-                  <input
-                    type="text"
-                    id="name"
-                    value={personalInfo.name}
-                    onChange={handleChange}
-                    className="outline-none"
-                  />
-                  <div
-                    className="text-blue-500 cursor-pointer"
-                    onClick={handleUpdate}
-                  >
-                    update
+                {/* Name */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-gray-500 text-sm">Name</label>
+                  <div className="border-b-2 border-gray-300 flex items-center justify-between">
+                    <input
+                      type="text"
+                      id="name"
+                      value={personalInfo.name}
+                      onChange={handleChange}
+                      className="outline-none w-full py-1 text-gray-700"
+                    />
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-gray-400 text-sm">Gender</label>
-                <div className="border-b-2 border-gray-300 flex items-center justify-between">
-                  <select
-                    id="gender"
-                    value={personalInfo.gender} // This binds the selected value to the state
-                    onChange={handleChange} // Update the state on change
-                    className="outline-none"
-                  >
-                    <option value="">Select Gender</option>{" "}
-                    {/* Empty value for placeholder */}
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Transgender">Transgender</option>
-                  </select>
-
-                  <div
-                    className="text-blue-500 cursor-pointer"
-                    onClick={handleUpdate}
-                  >
-                    update
+                {/* Gender */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-gray-500 text-sm">Gender</label>
+                  <div className="border-b-2 border-gray-300 flex items-center justify-between">
+                    <select
+                      id="gender"
+                      value={personalInfo.gender}
+                      onChange={handleChange}
+                      className="outline-none w-full py-1 text-gray-700 bg-transparent"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Transgender">Transgender</option>
+                    </select>
                   </div>
+                  <button onClick={handleUpdate} className="mx-auto max-h-max max-w-max px-4 py-2 mt-8 text-white font-semibold bg-blue-500 hover:shadow-md rounded">Update</button>
                 </div>
-              </div>
-            </form>
+              </form>
 
-            <div className="max-h-max w-full p-2 flex flex-col gap-4">
-              <div
-                className="flex items-center justify-between"
-                onClick={handleNavigate}
-              >
-                Delivery Address <MdOutlineKeyboardArrowRight />
+              {/* Right Section */}
+              <div className="w-full md:w-[50%] bg-white shadow-md rounded-lg p-6 flex-1">
+                {/* Delivery Address */}
+                <div
+                  className="flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded transition-colors"
+                  onClick={handleNavigate}
+                >
+                  <span className="text-gray-700">Delivery Address</span>
+                  <MdOutlineKeyboardArrowRight className="text-gray-500" />
+                </div>
+                <hr className="my-2" />
+
+                {/* Password Reset */}
+                <div
+                  className="flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded transition-colors"
+                  onClick={handlePasswordReset}
+                >
+                  <span className="text-gray-700">Password Reset</span>
+                  <MdOutlineKeyboardArrowRight className="text-gray-500" />
+                </div>
+                <hr className="my-2" />
               </div>
-              <hr />
             </div>
-            <div className="max-h-max w-full p-2 mb-4 flex flex-col gap-4">
-              <div
-                className="flex items-center justify-between"
-                onClick={handlePasswordReset}
-              >
-                Password Reset <MdOutlineKeyboardArrowRight />
-              </div>
-              <hr />
-            </div>
+
             {reset && (
               <div className="absolute top-0 left-0 h-screen w-screen flex items-center justify-center bg-black bg-opacity-50">
                 <div className="bg-white p-6 rounded-lg shadow-lg w-[300px] flex flex-col gap-4">
@@ -379,9 +350,9 @@ const ProfilePage = () => {
                 Please login to view your orders.
               </p>
               <button
-                 onClick={()=>{
-                  navigate('/login')
-                 }}
+                onClick={() => {
+                  navigate("/login");
+                }}
                 className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300"
               >
                 Login

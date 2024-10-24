@@ -1,7 +1,5 @@
 const express = require('express');
 const app = express();
-const bcrypt = require('bcrypt');
-const userloginmodel = require('../models/usermodel');
 const jwt = require("jsonwebtoken");
 const cookieParser = require('cookie-parser')
 require('dotenv').config();

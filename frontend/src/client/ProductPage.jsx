@@ -280,7 +280,6 @@ useEffect(() => {
             key={index}
             className="relative overflow-hidden p-1 rounded z-0 w-full"
             onClick={() => {
-              console.log(product.id)
               navigate(`/productDetails?id=${product.id}`);
             }}
           >
@@ -372,3 +371,4 @@ useEffect(() => {
 };
 
 export default ProductPage;
+//mmvml

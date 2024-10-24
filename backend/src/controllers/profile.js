@@ -66,7 +66,6 @@ router.post('/update/:updateId', async (req, res) => {
     try {
         const personalInfo = req.body;
         const { updateId } = req.params;  // Extract updateId as a string
-               // Log the personalInfo
 
 
         const user = await usermodel.findByIdAndUpdate(

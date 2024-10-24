@@ -3,6 +3,8 @@ import Footer from "../components/mobile components/Footer";
 import { MdDelete } from "react-icons/md";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Header from "./Header";
+import { FaStar } from "react-icons/fa6";
 
 const Whishlist = () => {
   const URI = "http://localhost:5000";
@@ -59,12 +61,13 @@ const Whishlist = () => {
     deletewhishlistProduct();
   };
   return (
-    <div className="h-[93%] w-[100%]">
-      <h1 className="h-[10%] flex text-lg p-2 items-center">MY WISHLIST</h1>
-      <div className="h-[85%] w-[100%] overflow-auto grid xsm:grid-cols-2 gap-1 p-1 place-content-between">
+    <div className="relative h-screen w-screen">
+      <Header />
+      <div className="max-h-max w-full p-4 ">
+        <h1 className="h-[10%] flex text-lg p-2 items-center">MY WISHLIST</h1>
+
         {whishlist && whishlist.length > 0 ? (
           whishlist.map((products, index) => {
-            console.log(index);
             let product = null;
 
             if (productList) {
@@ -83,46 +86,75 @@ const Whishlist = () => {
             return (
               <div
                 key={index}
-                className="relative overflow-hidden h-auto w-[100%] p-1 border-2 border-gray-300 rounded"
+                className="relative flex items-center justify-between xxsm:w-[90%] cursor-pointer md:w-[80%] mx-auto shadow-md p-2 mb-8 rounded"
                 onClick={() => {
-                  if (product) {
-                    navigate("/productDetails", { state: { product } });
-                  }
+                  navigate(`/productDetails?id=${product.id}`);
                 }}
               >
-                <div className="relative h-[100%] w-[100%]">
-                  <MdDelete
-                    id={product ? product.id : null}
-                    className="absolute right-0 top-0  h-[10%] w-[15%] bg-white  text-red-500 cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deletewhishlist(index);
-                    }}
+                {product && product.images ? (
+                  <img
+                    src={image}
+                    className="sm:w-32 xsm:w-24 xsm:h-24 sm:h-32 xsm:w-24 xsm:h-24 aspect-square object-cover mr-4" // Thumbnail size
+                    alt={`product-${index}`}
                   />
-                  {product && product.images ? (
-                    <img
-                      src={image}
-                      className="h-[150px] w-[100%] object-cover"
-                      alt={`product-${index}`}
-                    />
-                  ) : (
-                    <div className="h-[150px] w-[100%] flex items-center justify-center">
-                      No Images Found
+                ) : (
+                  <div className="sm:w-32 xsm:w-24 xsm:h-24 sm:h-32 xsm:w-24 xsm:h-24 aspect-square flex items-center justify-center bg-gray-200 mr-4">
+                    No Images Found
+                  </div>
+                )}
+                <div className="flex-grow flex flex-col gap-2  ">
+                  <p className="xsm:text-xsm md:text-base  font-semibold">
+                    {product && product.name.length > 30
+                      ? `${product.name.slice(0, 30)}...`
+                      : product
+                      ? product.name
+                      : "Unknown"}
+                  </p>
+                  <div className="flex gap-2 items-center">
+                    {product && product.offer > 0 && (
+                      <>
+                        <p className="text-base font-semibold">
+                          {product
+                            ? `₹${(
+                                product.price -
+                                (product.price / 100) * product.offer
+                              ).toFixed(2)}/-`
+                            : "Price Unavailable"}
+                        </p>
+                        <p
+                          className={`${
+                            product.offer > 0
+                              ? "line-through text-sm text-gray-500"
+                              : "text-base"
+                          }`}
+                        >
+                          {product
+                            ? `₹${product.price}/-`
+                            : "Price Unavailable"}
+                        </p>
+                        <p className="text-sm text-green-700 font-semibold">
+                          {product.offer}% Off
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  {product && product.review.stars && (
+                    <div className="px-2 py-1 max-w-max bg-green-700 gap-2 flex items-center gap-1 rounded">
+                      <p className="font-semibold text-sm text-white">
+                        {product.review.stars}
+                      </p>
+                      <FaStar className="xsm:h-3 xsm:w-3 md:h-2 xsm:w-2 text-white" />
                     </div>
                   )}
-                  <div className="h-auto w-[100%] flex flex-col justify-center gap-3 p-1">
-                    <p className="xsm:text-sm">
-                      {product && product.name.length > 20
-                        ? `${product.name.slice(0, 20)}...`
-                        : product
-                        ? product.name
-                        : "Unknown"}
-                    </p>
-                    <p className="xsm:text-sm">
-                      {product ? `Rs.${product.price}/-` : "Price Unavailable"}
-                    </p>
-                  </div>
                 </div>
+                <MdDelete
+                  id={product ? product.id : null}
+                  className="absolute top-2 right-2 h-6 w-4 bg-white text-red-500 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deletewhishlist(index);
+                  }}
+                />
               </div>
             );
           })
@@ -131,10 +163,6 @@ const Whishlist = () => {
             No Products Found
           </div>
         )}
-      </div>
-
-      <div className="absolute h-[5%] w-[100%] flex items-center justify-center bottom-0 bg-gray-300">
-        <Footer />
       </div>
     </div>
   );

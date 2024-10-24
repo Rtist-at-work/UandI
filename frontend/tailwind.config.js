@@ -8,6 +8,7 @@ export default {
     extend: {
       colors: {
         'custom-gray': '#f2f2f2', // Custom color name and hex code
+        'customDark': '#182628', // Your custom color
       },
       
       margin: {
@@ -25,6 +26,7 @@ export default {
       sans: ['Roboto', 'Arial', 'sans-serif'],
     },
   },
+  
   plugins: [
     function ({ addUtilities }) {
       addUtilities(

@@ -2,7 +2,7 @@ import uandiLogo from "../assets/uandilogo.jpg";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { CgProfile } from "react-icons/cg";
 import { Link } from "react-router-dom";
-
+//ojoj
 const Header = () => {
   return (
     <header className="relative h-[15%] w-full bg-red-200">

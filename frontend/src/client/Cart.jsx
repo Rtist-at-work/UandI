@@ -137,7 +137,6 @@ const Cart = ({ handleCart }) => {
 
                   return (
                     <tr key={filteredProduct.id} className="border-b">
-                      {/* Product Image */}
                       <td className="p-2 flex items-center gap-4 w-full ">
                         {filteredProduct.images &&
                         filteredProduct.images.length > 0 ? (

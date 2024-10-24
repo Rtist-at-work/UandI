@@ -6,7 +6,7 @@ const orderStatusUpdation = async (socket, data,userSockets,io) => {
     const newStatus = value;
 
     try {
-        // Find user and update the order in user's order history (as before)
+        // Find user and update the order in user's order history 
         const user = await User.findById(userId);
         const order = user.orderHistory.find(order => order.orderId === orderId);
         order.status = value;

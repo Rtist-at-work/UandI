@@ -23,7 +23,6 @@ router.post('/', async (req, res) => {
         return res.json({ status: false, message: "Invalid password" });
     }
 
-    // Generate JWT token if password is valid
     const token = jwt.sign(
         {
           username: user.personalInfo.username,

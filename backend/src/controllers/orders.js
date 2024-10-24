@@ -32,7 +32,6 @@ router.post('/', async (req, res) => {
 
         const { orderId, deliveryAddress, orderSummary, coupon, subTotal,paymentMethod } = req.body;
 
-        // Ensure deliveryAddress and orderSummary are present
         if (!deliveryAddress || !Array.isArray(orderSummary) || orderSummary.length === 0) {
             return res.status(400).json({ status: false, message: "Invalid order data" });
         }
@@ -132,7 +131,6 @@ router.get('/orderDetails',async(req,res)=>{
         const orders = user.orderHistory.map((order) => {
             // Get product details from each order
             let productDetails = order.productDetails;
-            console.log(productDetails)
 
             // Update product details with the full product info
             productDetails = productDetails.map((productDetail) => {
@@ -146,12 +144,10 @@ router.get('/orderDetails',async(req,res)=>{
             order.product = productDetails;
             return(order);
         });
-        console.log(orders)
         if(orderId){
             const filteredOrder = orders.find((order)=>(order.orderId===orderId));
             return res.status(200).json({ status: true, filteredOrder });
         }
-        console.log(orders);
     
         // Send the response with orders or further processing
         return res.status(200).json({ status: true, orders });

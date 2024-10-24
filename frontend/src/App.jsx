@@ -66,6 +66,7 @@ function App() {
   }, []);
 
   const handleMenuBarToggle = () => {
+    console.log("ok")
     setIsSidebarOpen(!isSidebarOpen);
   };
 
@@ -182,7 +183,6 @@ function App() {
 
   //   }
   // }, []);
-//mmvml
 
   return (
     <>

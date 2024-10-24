@@ -240,13 +240,16 @@ const OrderTracking = () => {
                       alt={productItem.product.name}
                       className=" sm:w-32 xsm:w-24 xsm:h-24 sm:h-32 aspect-square object-cover mr-4"
                     />
-                    <div className="flex-1 ">
-                      <div className="xsm:text-xsm md:text-base font-semibold mb-2">
+                    <div className="flex-1 flex flex-col gap-2 ">
+                      <div className="xsm:text-xsm md:text-base font-semibold">
                         {productItem.product.name.length > 20
                           ? `${productItem.product.name.slice(0, 20)}...`
                           : productItem.product.name}
                       </div>
-                      <div className="flex gap-2 items-center justify-left xsm:text-sm mb-2 text-gray-700">
+                      <div className="text-xs text-gray-500">
+                        {productItem.selectedSize}
+                      </div>
+                      <div className="flex gap-2 items-center justify-left xsm:text-sm text-gray-700">
                         <p className="text-base font-semibold">
                           ₹{" "}
                           {productItem.product.price -
@@ -266,23 +269,17 @@ const OrderTracking = () => {
                       <div className="flex gap-1">
                       
                         {(order.coupon).length > 0 && (
-                          <p className="text-base text-green-700">1 Coupon</p>
+                          <p className="xsm:text-xsm md:text-base  text-green-700 font-semibold">1 Coupon</p>
                         ) }
                         {(order.coupon.length > 0) ? ((productItem.product.offer) > 0) ? (
-                          <p className="text-base text-green-700">&</p>
+                          <p className="xsm:text-xsm md:text-base  text-green-700 font-semibold">&</p>
                          ) : ("") : ""}
                          {(productItem.product.offer) > 0 && (
-                          <p className="text-base text-green-700">1  Offer</p>
+                          <p className="xsm:text-xsm md:text-base  text-green-700 font-semibold">1  Offer</p>
                         ) }
                         {(order.coupon).length > 0 || (productItem.product.offer > 0) && (
-                          <p className="text-base text-green-700"> applied</p>
+                          <p className="xsm:text-xsm md:text-base  text-green-700 font-semibold"> applied</p>
                         ) }
-                       
-                      
-                      </div>
-                      
-                      <div className="text-xs text-gray-500 mb-2">
-                        {productItem.selectedSize}
                       </div>
                       <div className="flex gap-2 text-xs text-green-500">
                         <div>Arriving Tomorrow</div>

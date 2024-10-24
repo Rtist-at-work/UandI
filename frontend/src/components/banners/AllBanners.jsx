@@ -32,44 +32,17 @@ const AllBanners = (URI) => {
   };
 
   return (
-    <div className="relative xsm:h-[93%] lg-h[90%] w-[100%] z-20">
-      <main className="relative h-[95%] w-[100%] overflow-auto">
-        <form>
-          <input
-            ref={uploadRef}
-            type="file"
-            multiple
-            onChange={handleImageDisplay}
-            className="hidden"
-          />
-        </form>
-        <h1 className="m-2">Main Container</h1>
-        <div className="h-[40%] w-full">
-          <div className="relative h-[100%] xxsm:h-[60%] sm:h-[80%] md:h-[100%] lg:h-[120%] w-full z-0 p-4 flex">
-            <div className="relative h-full w-[70%] overflow-y-auto">
-              <div className="h-[75%] w-[75%] bg-blue-200"></div>
-              <div className="absolute bottom-0 right-0 h-[50%] w-[50%] bg-green-300"></div>
-            </div>
-            <div className="absolute right-0 w-[48%] h-[43%] flex items-center justify-center">
-              <button
-                className="max-h-max min-w-max p-2 rounded border-2 border-gray-200 bg-blue-500 text-white text-sm"
-                onClick={() => setImageUpload(!imageUpload)}
-              >
-                Add Images
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {imageUpload && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-gray-700 bg-opacity-50">
-            <div className="relative max-h-max w-[90%] flex flex-col gap-2 border-2 p-4 border-blue-500 bg-white rounded">
+    <div className="absolute  h-[90%] w-full rounded-md shadow-md  z-20">
+      <main className="relative h-[95%] w-[100%] overflow-auto scrollbar-hidden p-2">
+      {imageUpload && (
+          <div className="absolute h-full w-full flex items-center justify-center z-50 bg-gray-700 bg-opacity-50">
+            <div className="relative max-h-max w-[70%] flex flex-col gap-2 border-2 p-4 border-blue-500 bg-white rounded">
               <MdCancel
                 className="absolute text-red-500 right-2 top-2 text-lg"
                 onClick={() => setImageUpload(!imageUpload)}
               />
               <label className="text-sm">Add Image Container 1</label>
-              <div className="relative h-24 w-full border-2 border-gray-300 rounded p-2 flex items-center gap-2">
+              <div className="relative h-32 w-full border-2 border-gray-300 rounded p-2 flex items-center gap-2">
                 <input
                   type="file"
                   ref={imageRef_1}
@@ -78,7 +51,7 @@ const AllBanners = (URI) => {
                   onChange={(e) => handleImageDisplay(e)}
                 />
                 <FiUpload
-                  className="h-24 w-[10%]"
+                  className="sm:w-12 xsm:h-8 sm:h-12 xsm:w-8 cursor-pointer"
                   onClick={() => imageRef_1.current.click()}
                 />
                 <div className="relative h-full w-[90%] overflow-auto flex items-center gap-1">
@@ -109,10 +82,38 @@ const AllBanners = (URI) => {
             </div>
           </div>
         )}
+        <form>
+          <input
+            ref={uploadRef}
+            type="file"
+            multiple
+            onChange={handleImageDisplay}
+            className="hidden"
+          />
+        </form>
+        <h1 className="m-2">Main Container</h1>
+        <div className="h-[40%] w-full">
+          <div className="relative h-[100%] xxsm:h-[60%] sm:h-[80%] md:h-[100%] lg:h-[120%] w-full z-0 p-4 flex">
+            <div className="relative h-full w-[70%] overflow-y-auto">
+              <div className="h-[75%] w-[75%] bg-blue-200"></div>
+              <div className="absolute bottom-0 right-0 h-[50%] w-[50%] bg-green-300"></div>
+            </div>
+            <div className="absolute right-0 w-[48%] h-[43%] flex items-center justify-center">
+              <button
+                className="max-h-max min-w-max p-2 rounded border-2 border-gray-200 bg-blue-500 text-white text-sm"
+                onClick={() => setImageUpload(!imageUpload)}
+              >
+                Add Images
+              </button>
+            </div>
+          </div>
+        </div>
+
+        
         <ShopByAge />
         <PosterBanner />
       </main>
-      <footer className="absolute bottom-0 flex items-center justify- gap-2 p-2 lg:h-[0] xsm:h-[5%] w-[100%] bg-red-100 lg:hidden">
+      <footer className="h-[5%] w-full md:hidden xsm:block">
         <Footer />
       </footer>
     </div>

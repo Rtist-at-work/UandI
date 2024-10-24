@@ -5,7 +5,6 @@ import { useNavigate,useParams } from 'react-router-dom';
 
 
 const Resetpassword = () => {
-//mmvml
 
     axios.defaults.withCredentials = true;
 

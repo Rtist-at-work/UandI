@@ -3,6 +3,8 @@ import React, { useRef, useState, useEffect } from "react";
 import { FiUpload } from "react-icons/fi";
 import { MdCancel } from "react-icons/md";
 import { MdDelete } from "react-icons/md";
+import { FaChevronRight } from "react-icons/fa";
+import { FaAngleLeft } from "react-icons/fa6";
 
 const ShopByAge = () => {
   const URI = "http://localhost:5000";
@@ -13,6 +15,8 @@ const ShopByAge = () => {
   const [age, setAge] = useState([]); // ages corresponding to images
   const [banner, setBanner] = useState([]); // fetched banners
   const imageRef_1 = useRef(null);
+  const [ageBanner, setAgeBanner] = useState([]);
+
 
   // Fetch banners on component mount
   useEffect(() => {
@@ -21,6 +25,8 @@ const ShopByAge = () => {
         const response = await axios.get(`${URI}/banners/fetchage`);
         if (response.status === 200 || response.status === 201) {
           setBanner(response.data.banner);
+          setAgeBanner(response.data.banner.slice(0, 5));
+
         }
       } catch (err) {
         console.log(err);
@@ -93,45 +99,21 @@ const ShopByAge = () => {
       <div className="h-[25%] w-full flex items-center justify-between p-2">
         <h1 className="xsm:text-sm">Shop by Age</h1>
         <button
-          className="max-h-max min-w-max p-2 rounded border-2 border-gray-200 bg-blue-500 text-white text-sm"
+          className="max-h-max min-w-max p-2 rounded border-2 border-gray-200 bg-blue-500 text-white text-sm cursor-pointer"
           onClick={() => setImageUpload(!imageUpload)}
         >
           Add Age
         </button>
       </div>
-      <div className="h-[85%] w-full p-2 flex gap-4 items-center justify-around overflow-x-auto scrollbar-hidden">
-        {banner &&
-          banner.map((bannerItem,index) => {
-            return(
-              <div
-                key={index}
-                className="relative flex flex-col items-center"
-              >
-                <div className="relative bg-yellow-300 rounded-full h-24 w-24 overflow-hidden flex items-center justify-center ">
-                  <img
-                    src={`data:image/png;base64,${bannerItem.images[0]}`}
-                    className="h-full w-full object-cover"
-                    alt={`img-${index}`}
-                  />
-                </div>
-                <p className="mt-2 text-center">
-                  {bannerItem.age[0] || "Age not available"}
-                </p>{" "}
-                {/* Added margin-top for spacing */}
-              </div>
-            )
-          })}
-      </div>
-
       {imageUpload && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-gray-700 bg-opacity-50">
-          <div className="relative max-h-max w-[90%] flex flex-col gap-2 border-2 p-4 border-blue-500 bg-white rounded">
+        <div className="absolute h-full w-full flex items-center justify-center z-50 bg-gray-700 bg-opacity-50">
+          <div className="relative max-h-max w-[70%] flex flex-col gap-2 border-2 p-4 border-blue-500 bg-white rounded">
             <MdCancel
               className="absolute text-red-500 right-2 top-2 text-lg cursor-pointer"
               onClick={() => setImageUpload(!imageUpload)}
             />
             <label className="text-sm">Add Image</label>
-            <div className="relative max-h-max w-full border-2 border-gray-300 rounded p-2 flex items-center gap-2">
+            <div className="relative h-32 w-full border-2 border-gray-300 rounded p-2 flex items-center gap-2">
               <input
                 type="file"
                 ref={imageRef_1}
@@ -141,7 +123,7 @@ const ShopByAge = () => {
                 onChange={handleImageDisplay}
               />
               <FiUpload
-                className="h-24 w-[10%] cursor-pointer"
+                className="sm:w-12 xsm:h-8 sm:h-12 xsm:w-8 cursor-pointer"
                 onClick={() => imageRef_1.current.click()}
               />
               <div className="relative h-full w-[90%] overflow-auto flex items-center gap-1">
@@ -178,6 +160,80 @@ const ShopByAge = () => {
           </div>
         </div>
       )}
+      <div className="w-full aspect-[4/1]  flex items-center   ">
+          <FaAngleLeft
+            className="left-0 z-50 text-2xl w-[2%] cursor-pointer sm:block xsm:hidden"
+            onClick={() => {
+              // Find the current start index of ageBanner in the main banner array
+              const startIndex = banner.indexOf(ageBanner[0]);
+
+              // If the start index is already 0, don't move further
+              if (startIndex === 0) return;
+
+              // Calculate the new start index by subtracting 5 (move left)
+              const newStartIndex = startIndex - 5 < 0 ? 0 : startIndex - 5;
+
+              // Slice the banner array to get the new set of 5 banners
+              setAgeBanner(banner.slice(newStartIndex, newStartIndex + 5));
+            }}
+          />
+
+          <div className="relative flex gap-2 items-center sm:overflow-hidden xsm:overflow-auto sm:w-[96%] xsm:w-full h-full ">
+            {ageBanner &&
+              ageBanner.map((bannerItem, index) => {
+                return (
+                  <div
+                    key={index}
+                    className="w-[20%] sm:flex xsm:hidden  flex-col gap-2 items-center justify-center aspect-[1/1]"
+                  >
+                    <img
+                      src={`data:image/png;base64,${bannerItem.images[0]}`}
+                      className="w-[70%] aspect-[1/1] rounded-full object-cover"
+                      alt={`img-${index}`}
+                    />
+                    <p className="h-[20%] max-w-max ">
+                      {bannerItem.age[0] || "Age not available"}
+                    </p>
+                  </div>
+                );
+              })}
+            {banner &&
+              banner.map((bannerItem, index) => {
+                return (
+                  <div
+                    key={index}
+                    className="h-full sm:hidden  shrink-0 xsm:flex flex-col items-center justify-center aspect-[1/1] scrollbar-hidden"
+                  >
+                    <img
+                      src={`data:image/png;base64,${bannerItem.images[0]}`}
+                      className="h-[70%] aspect-[1/1] rounded-full object-cover"
+                      alt={`img-${index}`}
+                    />
+                    <p className="h-[20%]">
+                      {bannerItem.age[0] || "Age not available"}
+                    </p>
+                  </div>
+                );
+              })}
+          </div>
+          <FaChevronRight
+            className="left-0 z-50 text-2xl w-[2%] cursor-pointer sm:block xsm:hidden"
+            onClick={() => {
+              // Find the current start index of ageBanner in the main banner array
+              const startIndex = banner.indexOf(ageBanner[0]);
+
+              // Calculate the new start index by adding 5 (move right)
+              const newStartIndex =
+                startIndex + 5 >= banner.length ? 0 : startIndex + 5;
+
+              // Slice the banner array to get the new set of 5 banners
+              setAgeBanner(banner.slice(newStartIndex, newStartIndex + 5));
+            }}
+          />
+        </div>
+
+
+      
     </div>
   );
 };

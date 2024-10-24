@@ -143,14 +143,14 @@ const Categories = ({  URI }) => {
   console.log(categoryList)
   
   return (
-    <div className="relative  xsm:h-[93%] lg-h[90%] w-[100%] ">
+    <div className="absolute  h-[90%] w-full bg-white-800 rounded-md shadow-md">
       <main className="absolute h-[95%] w-[100%]  overflow-auto">
-        <div className=" h-[10%] flex items-center justify-between mb-8 mt-2">
+        <div className=" h-[10%] flex items-center  justify-between mb-8 mt-2 mx-auto">
           <h1 className="ml-2 text-xl font-bold ">CATEGORIES</h1>
           <button
             id="formopen"
             type="button"
-            className="relative right-4  bg-blue-500 rounded lg:text-lg text-sm h-[70%] xsm:w-[20%] border-2 border-gray-300"
+            className="relative right-4 bg-blue-500 rounded lg:text-lg text-sm h-[70%] xsm:w-[20%] text-white font-semibold hover:shadow-md"
             onClick={(e) => {
               setPopup(!popup);
             }}
@@ -161,46 +161,46 @@ const Categories = ({  URI }) => {
         </div>
         {categoryList.length > 0 &&
           categoryList.map((category, index) => {
-            console.log(category);
             const capitalizedCategory =
               category.category.charAt(0).toUpperCase() +
               category.category.slice(1);
 
             return (
               <div
-                id={capitalizedCategory}
-                className="h-12 w-[90%] mx-auto border-2 border-gray-300 mb-4 px-4 rounded flex items-center justify-between"
-              >
-                <div
-                  className="flex-1 text-xl break-words"
-                  onClick={() => {
-                    navigate(
-                      `/admin/stylespage/?category=${capitalizedCategory}`
-                    );
-                  }}
-                >
-                  {capitalizedCategory}
-                </div>
-                <MdEdit
-                  className="h-6 w-6 text-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const st = categoryList.find(
-                      (data) => data.category === category.category
-                    );
-                    if (st) {
-                      setStyle(st.style);
-                    }
-                    let cl = [...categoryList];
-                    cl.splice(index, 1);
-                    cl = cl.flatMap((category) => [category.category]);
-                    setCategoryExistance(cl);
-                    setEditId(category._id)
-                    setCategory(category.category);
-                    setEditPopup(!editpopup);
-                  }}
-                />
-              </div>
+  id={capitalizedCategory}
+  className="w-full sm:w-[75%] md:w-[50%] mx-auto mb-4 px-6 py-2 cursor-pointer rounded-lg bg-blue-300 shadow-md hover:bg-blue-400 transition-all duration-200"
+>
+  <div className="flex justify-between items-center">
+    <div
+      className="text-lg sm:text-xl md:text-2xl font-semibold break-words text-gray-700"
+      onClick={() => {
+        navigate(`/admin/stylespage/?category=${capitalizedCategory}`);
+      }}
+    >
+      {capitalizedCategory}
+    </div>
+    <MdEdit
+      className="h-6 w-6 text-gray-600 hover:text-gray-800 transition-colors duration-150 cursor-pointer"
+      onClick={(e) => {
+        e.stopPropagation();
+        const st = categoryList.find(
+          (data) => data.category === category.category
+        );
+        if (st) {
+          setStyle(st.style);
+        }
+        let cl = [...categoryList];
+        cl.splice(index, 1);
+        cl = cl.flatMap((category) => [category.category]);
+        setCategoryExistance(cl);
+        setEditId(category._id);
+        setCategory(category.category);
+        setEditPopup(!editpopup);
+      }}
+    />
+  </div>
+</div>
+
             );
           })}
       </main>
@@ -403,6 +403,5 @@ const Categories = ({  URI }) => {
     </div>
   );
 };
-//mmvml
 
 export default Categories;

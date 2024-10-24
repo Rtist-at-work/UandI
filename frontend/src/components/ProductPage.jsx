@@ -31,51 +31,50 @@ const ProductPage = () => {
   }, []);
 
   return (
-    <div className="h-[93%] w-[100%]">
-      {/* Conditional Rendering with Null Check */}
+    <div className="absolute h-[90%] w-full bg-white-800 rounded-md shadow-md">
+    {/* Conditional Rendering with Null Check */}
+    <main className="xsm:h-[95%] md:h-full w-full">
       <h1 className="h-[10%] flex text-lg p-2 items-center">
         {filteredProduct && filteredProduct.length > 0 ? filteredProduct[0].category : "No Category"}
       </h1>
   
-      <div className="h-[85%] w-[100%] overflow-auto flex flex-wrap px-2 gap-1 xxsm:px-4 justify-start ">
+      <div className="h-[90%] w-full overflow-y-auto px-2 py-4 grid grid-cols-2 md:grid-cols-4 gap-2 cursor-pointer hover:shadow-inner scrollbar-hidden">
         {filteredProduct && filteredProduct.length > 0 ? (
           filteredProduct.map((product, index) => {
             let image = null;
             if (product.images.length > 0) {
               const imageBuffer = product.images[0];
               image = `data:image/png;base64,${imageBuffer}`;
-            }  
+            }
             return (
               <div
                 key={index}
-                className="relative overflow-hidden max-h-max  w-36 md:w-44 p-1 rounded"
+                className="relative w-full max-h-max shadow-md shrink-0 rounded bg-white shadow-sm p-2 border-2 border-gray-300"
               >
-                <div className="max-h-max w-[100%] bg-red-200">
+                <div className="w-full">
                   <MdEditSquare
                     id={product.id}
                     className="absolute right-0 top-0 h-8 w-[15%] bg-white text-gray-500 cursor-pointer"
                     onClick={() => {
-                      navigate(`/admin/editproducts`,{state:{product}});
+                      navigate(`/admin/editproducts`, { state: { product } });
                     }}
                   />
                   {product.images.length > 0 ? (
                     <img
                       src={image}
-                      className="h-36 md:h-44 w-[100%] object-cover rounded"
+                      className="w-full aspect-[1/1] object-cover rounded"
                       alt={`product-${index}`}
                     />
                   ) : (
-                    <div className="h-[150px] w-[100%] flex items-center justify-center">
+                    <div className="h-[150px] w-full flex items-center justify-center">
                       No Images Found
                     </div>
                   )}
-                  <div className="h-[70px] w-[100%] flex flex-col justify-center gap-2 p-1">
+                  <div className="h-[70px] w-full flex flex-col justify-center gap-2 p-1">
                     <p className="xsm:text-sm">
                       {product.name.length > 20 ? `${product.name.slice(0, 20)}...` : product.name}
                     </p>
-                    <p className="xsm:text-sm">
-                      Rs.{product.price}/-
-                    </p>
+                    <p className="xsm:text-sm">Rs.{product.price}/-</p>
                   </div>
                 </div>
               </div>
@@ -87,11 +86,13 @@ const ProductPage = () => {
           </div>
         )}
       </div>
+    </main>
   
-      <div className="absolute h-[5%] w-[100%] flex items-center justify-center bottom-0 bg-gray-300">
-        <Footer />
-      </div>
+    <div className="absolute h-[5%] w-full md:hidden xsm:block flex items-center justify-center bottom-0 bg-gray-300">
+      <Footer />
     </div>
+  </div>
+  
   );
 }  
 //mmvml

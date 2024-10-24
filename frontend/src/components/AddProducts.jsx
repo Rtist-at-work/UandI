@@ -4,7 +4,7 @@ import axios from "axios";
 import Footer from "./mobile components/Footer";
 import { MdDelete } from "react-icons/md";
 
-const AddProducts = ({ URI,  }) => {
+const AddProducts = ({ URI }) => {
   const imageRef = useRef(null);
   const colorRef = useRef(null);
   const [name, setName] = useState("");
@@ -18,24 +18,22 @@ const AddProducts = ({ URI,  }) => {
   const [images, setImages] = useState([]);
   const [colors, setColors] = useState([]);
   const [isCategory, setIsCategory] = useState({});
-  const [categoryList,setCategoryList] = useState([]);
+  const [categoryList, setCategoryList] = useState([]);
 
- 
   useEffect(() => {
     const getCategory = async () => {
       try {
-        const response = await axios.get(`${URI}/category`);        
+        const response = await axios.get(`${URI}/category`);
         if (response.status === 200 || response.status === 201) {
           setCategoryList(response.data);
         }
       } catch (err) {
         console.log(err);
       }
-    }
+    };
     getCategory();
-
   }, []);
-  
+
   const handleChange = (e) => {
     const { id, value } = e.target;
     if (id === "name") setName(value);
@@ -49,10 +47,10 @@ const AddProducts = ({ URI,  }) => {
     console.log(offer);
   };
 
-  const handleStock = (e)=>{
-    const {value } = e.target;
+  const handleStock = (e) => {
+    const { value } = e.target;
     setStockStatus(value);
-  }
+  };
 
   const handlesize = (e) => {
     const { value, checked } = e.target;
@@ -76,13 +74,11 @@ const AddProducts = ({ URI,  }) => {
 
   const handleButtonClick = (e) => {
     const id = e.target.id;
-    if(id==="image"){
-    imageRef.current.click();
-
+    if (id === "image") {
+      imageRef.current.click();
     }
-    if(id==="color"){
-    colorRef.current.click();
-
+    if (id === "color") {
+      colorRef.current.click();
     }
   };
 
@@ -90,40 +86,45 @@ const AddProducts = ({ URI,  }) => {
     let files = Array.from(e.target.files);
     if (files.length > 0) {
       const imageUrls = files.map((file) => URL.createObjectURL(file));
-      if(e.target.id==="image"){
+      if (e.target.id === "image") {
         setImages([...images, ...imageUrls]);
       }
-      if(e.target.id === "color"){
+      if (e.target.id === "color") {
         setColors([...colors, ...imageUrls]); // Updated to use colors state
       }
     }
   };
 
-
   const handleDel = (index) => {
-   
-      const filteredimages = images.filter((_, ind) => ind !== index);
-      setImages(filteredimages);
-    
+    const filteredimages = images.filter((_, ind) => ind !== index);
+    setImages(filteredimages);
+
     // if(id==="color"){
     //   const filteredcolors = colors.filter((_, ind) => ind !== index);
     //   setColors(filteredcolors); // Updated to use colors state
     // }
   };
   const handleDelColors = (index) => {
-   
-      const filteredColors = colors.filter((_, ind) => ind !== index);
-      setColors(filteredColors);
-    
+    const filteredColors = colors.filter((_, ind) => ind !== index);
+    setColors(filteredColors);
+
     // if(id==="color"){
     //   const filteredcolors = colors.filter((_, ind) => ind !== index);
     //   setColors(filteredcolors); // Updated to use colors state
     // }
   };
 
-
   const validateForm = () => {
-    if (!name || !price || !category || !offer || !stockStatus || size.length === 0 || !description || images.length === 0) {
+    if (
+      !name ||
+      !price ||
+      !category ||
+      !offer ||
+      !stockStatus ||
+      size.length === 0 ||
+      !description ||
+      images.length === 0
+    ) {
       alert("Please fill out all fields and upload at least one image.");
       return false;
     }
@@ -138,7 +139,7 @@ const AddProducts = ({ URI,  }) => {
     formData.append("price", price);
     formData.append("offer", offer);
     formData.append("stock", stockStatus);
-    Array.from(size).forEach(size => formData.append("sizes", size));
+    Array.from(size).forEach((size) => formData.append("sizes", size));
     formData.append("category", category);
     formData.append("style", style);
     formData.append("description", description);
@@ -152,39 +153,43 @@ const AddProducts = ({ URI,  }) => {
     try {
       const config = { headers: { "Content-Type": "multipart/form-data" } };
       const response = await axios.post(`${URI}/addproducts`, formData, config);
-      
+
       // Clear form fields after success
-      if(response.status===200 || response.status===201){
+      if (response.status === 200 || response.status === 201) {
         setSize([]);
         setName("");
-      setPrice("");
-      setOffer("");
-      setStockStatus("");
-      setStockStatus([])
-      setCategory("");
-      setStyle("")
-      setDescription("");
-      setImages([]);
-      alert("Product added successfully");
+        setPrice("");
+        setOffer("");
+        setStockStatus("");
+        setStockStatus([]);
+        setCategory("");
+        setStyle("");
+        setDescription("");
+        setImages([]);
+        alert("Product added successfully");
       }
     } catch (err) {
       // Check if the error message is related to the file format
-      if (err.response && err.response.status === 400 && err.response.data.error === 'Give proper file format to upload') {
-        alert('Give proper file format to upload');
+      if (
+        err.response &&
+        err.response.status === 400 &&
+        err.response.data.error === "Give proper file format to upload"
+      ) {
+        alert("Give proper file format to upload");
       } else {
         console.log("Error adding product:", err);
-        alert('An error occurred while adding the product');
+        alert("An error occurred while adding the product");
       }
     }
-};
+  };
 
   return (
-    <div className="relative  xsm:h-[93%] lg-h[90%] w-screen ">
-      <div className="absolute h-[95%] w-[100%]  overflow-auto px-2">
-        <header className="text-xl font-bold xsm:h-[5%] lg:h-[10%] w-full mt-2">
+    <div className="absolute  h-[90%] w-full rounded-md shadow-md">
+      <div className="relative xsm:h-[95%] md:h-full w-[100%]  overflow-hidden scrollbar-hidden p-2">
+        <header className="text-xl mb-4 font-bold h-[5%] w-full ">
           ADD PRODUCT
         </header>
-        <main className=" px-4 lg:h-[90%] max-h-max w-full py-4 overflow-y-auto">
+        <main className="relative px-8 h-[95%] w-full py-4 overflow-y-auto scrollbar-hidden">
           <form
             className="flex flex-col space-y-4 max-h-max w-full"
             onSubmit={handleFormSubmission}
@@ -211,14 +216,14 @@ const AddProducts = ({ URI,  }) => {
             />
             <label htmlFor="price"> OFFER </label>
             <input
-             type="number"
-             id="offer"
-             onWheel={(e) => e.target.blur()} 
-             name="offer"
-             placeholder="offer %"
-             className="h-12 rounded border-gray-300 border-2 border-gray-300 px-4"
-             onChange={handleChange}
-             value={offer}
+              type="number"
+              id="offer"
+              onWheel={(e) => e.target.blur()}
+              name="offer"
+              placeholder="offer %"
+              className="h-12 rounded border-gray-300 border-2 border-gray-300 px-4"
+              onChange={handleChange}
+              value={offer}
             />
             <label htmlFor="category"> CATEGORY </label>
             <select
@@ -346,12 +351,16 @@ const AddProducts = ({ URI,  }) => {
                 name="Image"
                 ref={imageRef}
                 className="opacity-0 ml-hidebuttons "
-                onChange={(e)=>{handleImageUpload(e)}}
+                onChange={(e) => {
+                  handleImageUpload(e);
+                }}
               />
               <TbBookUpload
                 id="image"
                 className="h-[100%] w-[10%] cursor-pointer"
-                onClick={(e)=>{handleButtonClick(e)}}
+                onClick={(e) => {
+                  handleButtonClick(e);
+                }}
               />
               <div className="flex h-[100%] w-[90%] overflow-x-auto">
                 {images.length > 0 ? (
@@ -366,7 +375,9 @@ const AddProducts = ({ URI,  }) => {
                       <MdDelete
                         id="image"
                         className="absolute right-1 top-1 text-red-600 text-lg"
-                        onClick={() => {handleDel(index)}}
+                        onClick={() => {
+                          handleDel(index);
+                        }}
                       />
                     </div>
                   ))
@@ -379,19 +390,22 @@ const AddProducts = ({ URI,  }) => {
 
             <div className="flex p-2 h-24 w-full border-2 border-gray-300 rounded">
               <input
-                
                 type="file"
                 multiple
                 id="color"
                 name="color"
                 ref={colorRef}
                 className="opacity-0 ml-hidebuttons "
-                onChange={(e)=>{handleImageUpload(e)}}
+                onChange={(e) => {
+                  handleImageUpload(e);
+                }}
               />
               <TbBookUpload
                 id="color"
                 className="h-[100%] w-[10%] cursor-pointer"
-                onClick={(e)=>{handleButtonClick(e)}}
+                onClick={(e) => {
+                  handleButtonClick(e);
+                }}
               />
               <div className="flex h-[100%] w-[90%] overflow-x-auto">
                 {colors.length > 0 ? (
@@ -406,17 +420,19 @@ const AddProducts = ({ URI,  }) => {
                       <MdDelete
                         id="color"
                         className="absolute right-1 top-1 text-red-600 text-lg"
-                        onClick={() => {handleDelColors(index)}}
+                        onClick={() => {
+                          handleDelColors(index);
+                        }}
                       />
                     </div>
                   ))
                 ) : (
                   <p>No colors uploaded</p>
                 )}
-              </div> 
+              </div>
             </div>
             <button
-              className="h-12 w-24 lg:font-medium text-sm items-bottom  rounded border-2 mx-auto"
+              className="h-12 w-24 lg:font-medium text-sm items-bottomrounded border-2  mx-auto"
               type="submit"
             >
               SAVE
@@ -424,7 +440,7 @@ const AddProducts = ({ URI,  }) => {
           </form>
         </main>
       </div>
-      <footer className="absolute bottom-0 flex items-center justify- gap-2 p-2  lg:h-[0] xsm:h-[5%] w-[100%] bg-red-100 lg:hidden">
+      <footer className="h-[5%] w-full md:hidden xsm:block">
         <Footer />
       </footer>
     </div>

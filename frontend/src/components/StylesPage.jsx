@@ -30,7 +30,7 @@ const StylesPage = () => {
         console.log(response);
         if (response.status === 200 || response.status === 201) {
           setProductList(response.data);
-          console.log(response.data.images)
+          console.log(response.data.images);
         }
       } catch (err) {
         console.log(err);
@@ -38,22 +38,21 @@ const StylesPage = () => {
     };
 
     getproducts();
-//mmvml
 
     const getCategory = async () => {
       const category = queryParams.get("category");
-      console.log(category)
+      console.log(category);
       try {
         const response = await axios.get(
           `${URI}/category/?categorynav=${category}`
         );
         if (response.status === 200 || response.status === 201) {
           setCategoryList(response.data);
-          console.log(response.data)
+          console.log(response.data);
           const sl = response.data.category.filter(
             (c) => c.category === category.toLowerCase()
           );
-          console.log(sl)
+          console.log(sl);
           setFilteredStyles(sl);
           setPopup(false);
         }
@@ -68,53 +67,34 @@ const StylesPage = () => {
   const categoryForm = (e) => {
     e.target.id === "formopen" ? setPopup(true) : setPopup(false);
   };
- 
 
   return (
-    <div className="relative  xsm:h-[93%] lg-h[90%] w-[100%]">
-      <main className="absolute h-[95%] w-[100%]  overflow-auto ">
-        <div className=" h-[10%] flex items-center justify-between">
-          <h1 className="ml-2 text-xl font-bold ">STYLES</h1>
-          <button
-            id="formopen"
-            type="button"
-            className="relative right-4  bg-blue-500 rounded lg:text-lg text-sm h-[70%] xsm:w-[20%] border-2 border-gray-300"
-            onClick={(e) => {
-              categoryForm(e);
-            }}
-          >
-            {" "}
-            Edit{" "}
-          </button>
-        </div>
-
+    <div className=" h-[90%] w-full  rounded-md shadow-md p-4">
+      <main className="xsm:h-[95%] md:h-full w-[100%]  overflow-auto scrollbar-hidden">
+          <h1 className=" h-[10%] ml-2 text-xl font-bold ">STYLES</h1>
         {filteredStyles.length > 0 && filteredStyles[0].style.length > 0 ? (
           filteredStyles[0].style.map((s) => {
             console.log(s);
             let cat = productList.filter(
               (product) => product.style === s.value
-              
             );
-            console.log(cat)
-            console.log(s.value)
-            console.log(s.key)
             return (
               <div
                 id="container"
                 key={s.key}
-                className="h-[20%] w-[100%] xxsm:h-[35%] xsm:h-[25%] sm:h-[40%] px-2"
+                className="h-[20%] w-[100%] xxsm:h-[35%] xsm:h-[25%] sm:h-[40%] px-4 mt-4"
               >
                 <div
                   id="headerContainer"
                   className="h-[30%] sm:h-[20%] w-[100%] py-2 flex items-center justify-between"
                 >
-                  {s.value}
+                  <p className="font-semibold md:text-md xsm:text-base">{s.value}</p>
                   <p
                     id={s.value}
                     onClick={(e) => {
                       handleproductlist(e);
                     }}
-                    className=" underline text-sm"
+                    className=" underline text-sm  cursor-pointer"
                   >
                     See all
                   </p>
@@ -131,7 +111,7 @@ const StylesPage = () => {
                         return (
                           <div
                             key={`${imgIndex}`}
-                            className="flex flex-shrink-0 gap-2 p-0.5 h-[100%] sm:w-[25%] xsm:w-[25%] xxsm:w-[25%] md:w-[20%] lg:w-[12%] rounded overflow-hidden overflow-x-auto border-2 border-gray-300"
+                            className="flex flex-shrink-0 gap-2 p-0.5 h-[100%] aspect-[1/1] rounded overflow-hidden overflow-x-auto border-2 border-gray-300"
                           >
                             <img
                               src={`data:image/png;base64,${base64Img}`}
@@ -192,7 +172,7 @@ const StylesPage = () => {
           </div>
         )} */}
 
-      <footer className="absolute bottom-0 flex items-center justify- gap-2 p-2  lg:h-[0] xsm:h-[5%] w-[100%] bg-red-100 lg:hidden">
+      <footer className="h-[5%] w-ful md:hidden xsm:block">
         <Footer />
       </footer>
     </div>

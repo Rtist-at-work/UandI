@@ -197,6 +197,55 @@ const PosterBanner = () => {
           Add poster
         </button>
       </div>
+      {/* Image Upload Modal */}
+      {imageUpload && (
+        <div className="absolute h-full w-full flex items-center justify-center z-50 bg-gray-700 bg-opacity-50">
+          <div className="relative max-h-max w-[70%] flex flex-col gap-2 border-2 p-4 border-blue-500 bg-white rounded">
+            <MdCancel
+              className="absolute text-red-500 right-2 top-2 text-lg cursor-pointer"
+              onClick={() => setImageUpload(false)}
+            />
+            <label className="text-sm">Add Image</label>
+            <div className="relative h-32  w-full border-2 border-gray-300 rounded p-2 flex items-center gap-2">
+              <input
+                type="file"
+                ref={imageRef}
+                multiple
+                className="opacity-0 ml-hidebuttons"
+                onChange={handleImageDisplay}
+              />
+              <FiUpload
+                className="sm:w-12 xsm:h-8 sm:h-12 xsm:w-8 cursor-pointer"
+                onClick={() => imageRef.current.click()}
+              />
+              <div className="relative h-full w-[90%] overflow-auto flex items-center gap-1">
+                {previewImages.map((image, index) => (
+                  <div
+                    key={index}
+                    className="relative max-h-max w-16 flex-shrink-0 flex flex-col gap-1"
+                  >
+                    <img
+                      src={image}
+                      className="h-16 w-16 rounded border-2 border-gray-500 p-0.5"
+                      alt={`uploaded-${index}`}
+                    />
+                    <MdDelete
+                      className="absolute top-1 right-1 text-red-500 cursor-pointer"
+                      onClick={() => handleDelete(index)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button
+              className="max-h-max p-2 text-sm text-white mx-auto mt-4 w-16 rounded border-2 border-gray-200 bg-blue-500"
+              onClick={handleFormSubmission}
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Slideshow Container */}
       <div className="p-2 h-full w-full flex flex-col items-center">
@@ -235,55 +284,7 @@ const PosterBanner = () => {
         </div>
       </div>
 
-      {/* Image Upload Modal */}
-      {imageUpload && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-gray-700 bg-opacity-50">
-          <div className="relative max-h-max w-[90%] flex flex-col gap-2 border-2 p-4 border-blue-500 bg-white rounded">
-            <MdCancel
-              className="absolute text-red-500 right-2 top-2 text-lg cursor-pointer"
-              onClick={() => setImageUpload(false)}
-            />
-            <label className="text-sm">Add Image</label>
-            <div className="relative max-h-max w-full border-2 border-gray-300 rounded p-2 flex items-center gap-2">
-              <input
-                type="file"
-                ref={imageRef}
-                multiple
-                className="opacity-0 ml-hidebuttons"
-                onChange={handleImageDisplay}
-              />
-              <FiUpload
-                className="h-24 w-[10%] cursor-pointer"
-                onClick={() => imageRef.current.click()}
-              />
-              <div className="relative h-full w-[90%] overflow-auto flex items-center gap-1">
-                {previewImages.map((image, index) => (
-                  <div
-                    key={index}
-                    className="relative max-h-max w-16 flex-shrink-0 flex flex-col gap-1"
-                  >
-                    <img
-                      src={image}
-                      className="h-16 w-16 rounded border-2 border-gray-500 p-0.5"
-                      alt={`uploaded-${index}`}
-                    />
-                    <MdDelete
-                      className="absolute top-1 right-1 text-red-500 cursor-pointer"
-                      onClick={() => handleDelete(index)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <button
-              className="max-h-max p-2 text-sm text-white mx-auto mt-4 w-16 rounded border-2 border-gray-200 bg-blue-500"
-              onClick={handleFormSubmission}
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 };

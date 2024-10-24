@@ -125,7 +125,7 @@ const Whishlist = () => {
                           className={`${
                             product.offer > 0
                               ? "line-through text-sm text-gray-500"
-                              : "text-base"
+                              : "text-base font-semibold"
                           }`}
                         >
                           {product
@@ -138,14 +138,18 @@ const Whishlist = () => {
                       </>
                     )}
                   </div>
-                  {product && product.review.stars && (
+                  {product && product.review.stars ? (
                     <div className="px-2 py-1 max-w-max bg-green-700 gap-2 flex items-center gap-1 rounded">
                       <p className="font-semibold text-sm text-white">
                         {product.review.stars}
                       </p>
                       <FaStar className="xsm:h-3 xsm:w-3 md:h-2 xsm:w-2 text-white" />
                     </div>
-                  )}
+                  ): 
+                  (
+                    <div className="text-gray-500 md:text-base xsm:text-xs">no reviews</div>
+                  )
+                  }
                 </div>
                 <MdDelete
                   id={product ? product.id : null}

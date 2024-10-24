@@ -63,16 +63,13 @@ const Container = ({ handleMenuBarToggle, isSidebarOpen }) => {
   };
 
   return (
-    <div className="absolute  h-[100%] w-[100%]  flex flex-row">
-      <div className="relative  w-[0%] h-[100%] bg-pink-700 opacity-0">
-        <Sidebar
+    <div className="h-full w-full flex p-4 gap-4 ">
+       <Sidebar
           isSidebarOpen={isSidebarOpen}
           ref={sidebarRef}
           handleMenuBarToggle={handleMenuBarToggle}
         />
-      </div>
-
-      <div className=" relative h-[100%] w-[100%]">
+         <div className=" relative h-[100%] md:w-[80%] xsm:w-full shadow-md">
         <Header
           handleMenuBarToggle={handleMenuBarToggle}
           isSidebarOpen={isSidebarOpen}
@@ -122,9 +119,10 @@ const Container = ({ handleMenuBarToggle, isSidebarOpen }) => {
           />
         </Routes>
       </div>
+
     </div>
+    
   );
 };
-//mmvml
 
 export default Container;

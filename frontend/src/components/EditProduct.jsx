@@ -182,208 +182,212 @@ const EditProduct = ({ URI }) => {
   return (
     <div className="absolute  h-[90%] w-full rounded-md shadow-md">
       <div className="relative xsm:h-[95%] md:h-full w-[100%]  overflow-hidden scrollbar-hidden p-2">
-        <header className="text-xl mb-4 font-bold h-[5%] w-full ">
-          EDIT PRODUCT
+        <header className="flex justify-between items-center px-4">
+          <h1 className="text-xl font-bold xsm:text-base">EDIT PRODUCT</h1>
+          <button className="mr-[5%] max-w-max max-h-max px-4 p-2 bg-red-500 hover:shadow-md cursor-pointer rounded-s-full font-semibold text-white rounded-e-full">
+            Delete
+          </button>
         </header>
+
         <main className="relative px-8 h-[95%] w-full py-4 overflow-y-auto scrollbar-hidden">
           <form
             className="flex flex-col space-y-4 max-h-max w-full"
             onSubmit={handleFormSubmission}
           >
-             <label htmlFor="name"> NAME </label>
-          <input
-            type="text"
-            id="name"
-            name="Name"
-            placeholder="Product Name"
-            className="h-12 rounded border-2 border-gray-300 px-4 bg-blue-50 outline-blue-500"
-            onChange={handleChange}
-            value={name}
-          />
-          <label htmlFor="price"> PRICE </label>
-          <input
-            type="number"
-            id="price"
-            name="Price"
-            placeholder="Price"
-            className="h-12 rounded border-gray-300 border-2 border-gray-300 px-4 bg-blue-50 outline-blue-500"
-            onChange={handleChange}
-            value={price}
-          />
-          <label htmlFor="price"> OFFER </label>
-          <input
-            type="number"
-            id="offer"
-            onWheel={(e) => e.target.blur()}
-            name="offer"
-            placeholder="offer %"
-            className="h-12 rounded border-gray-300 border-2 border-gray-300 px-4 bg-blue-50 outline-blue-500"
-            onChange={handleChange}
-            value={offer}
-          />
-          <label htmlFor="category"> CATEGORY </label>
-          <select
-            id="category"
-            name="Category"
-            className="h-12 rounded border-2 border-gray-300 px-2 bg-blue-50 outline-blue-500"
-            value={category}
-            onChange={handleChange}
-          >
-            <option>Select category</option>
-            {categoryList.length ? (
-              categoryList.map((category) => (
-                <option key={category._id} value={category.category}>
-                  {category.category}
-                </option>
-              ))
-            ) : (
-              <div className="h-[10%] flex items-center rounded border-gray-300 border-2 border-gray-300">
-                No categories found
-              </div>
-            )}
-          </select>
-          <label htmlFor="category"> STYLE </label>
-          <select
-            id="style"
-            name="style"
-            className="h-12 rounded border-2 border-gray-300 px-2 bg-blue-50 outline-blue-500"
-            value={style}
-            onChange={handleChange}
-          >
-            <option>Select Style</option>
-            {isCategory.length > 0 &&
-              isCategory[0].style.map((style) => {
-                return <option key={style.key}>{style.value}</option>;
-              })}
-          </select>
-          <label>SIZES</label>
-          <div className="max-h-max w-full flex flex-wrap gap-4 px-4">
-            <label className="flex items-center space-x-2">
-              <input
-                value="6 month"
-                checked={size.includes("6 month")}
-                type="checkbox"
-                onChange={(e) => {
-                  handlesize(e);
-                }}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
-              />
-              <span className="text-sm font-medium">In Stock</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                value="12 month"
-                checked={size.includes("12 month")}
-                onChange={(e) => {
-                  handlesize(e);
-                }}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
-              />
-              <span className="text-sm font-medium">In Stock</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                value="18 month"
-                checked={size.includes("18 month")}
-                onChange={(e) => {
-                  handlesize(e);
-                }}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
-              />
-              <span className="text-sm font-medium">In Stock</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                value="24 month"
-                checked={size.includes("24 month")}
-                onChange={(e) => {
-                  handlesize(e);
-                }}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
-              />
-              <span className="text-sm font-medium">In Stock</span>
-            </label>
-          </div>
-          <label>STOCK</label>
-          <div className="max-h-max w-full flex flex-wrap gap-4 px-4">
-            <label className="flex items-center space-x-2">
-              <input
-                id="stock"
-                type="checkbox"
-                value="In Stock"
-                checked={stockStatus === "In Stock"}
-                onChange={handleStock}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
-              />
-              <span className="text-sm font-medium">In Stock</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                id="stock 1"
-                type="checkbox"
-                value="Out Of Stock"
-                checked={stockStatus === "Out Of Stock"}
-                onChange={handleStock}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
-              />
-              <span className="text-sm font-medium">Out Of Stock</span>
-            </label>
-          </div>
-
-          <label htmlFor="description"> DESCRIPTION </label>
-          <textarea
-            id="description"
-            name="Description"
-            placeholder="Description"
-            className="h-32 rounded overflow-y-auto border-2 border-gray-300 px-4 py-2 bg-blue-50 outline-blue-500"
-            onChange={handleChange}
-            value={description}
-          />
-          <label htmlFor="image"> IMAGE </label>
-          <div className="flex p-2 h-24 w-full border-2 border-blue-500 rounded bg-blue-50 ">
+            <label htmlFor="name"> NAME </label>
             <input
-              type="file"
-              multiple
-              id="image"
-              name="Image"
-              ref={uploadRef}
-              className="opacity-0 ml-hidebuttons "
-              onChange={handleImageUpload}
+              type="text"
+              id="name"
+              name="Name"
+              placeholder="Product Name"
+              className="h-12 rounded border-2 border-gray-300 px-4 bg-blue-50 outline-blue-500"
+              onChange={handleChange}
+              value={name}
             />
-            <TbBookUpload
-              className="h-[100%] w-[10%] cursor-pointer"
-              onClick={handleButtonClick}
+            <label htmlFor="price"> PRICE </label>
+            <input
+              type="number"
+              id="price"
+              name="Price"
+              placeholder="Price"
+              className="h-12 rounded border-gray-300 border-2 border-gray-300 px-4 bg-blue-50 outline-blue-500"
+              onChange={handleChange}
+              value={price}
             />
-            <div className="flex h-[100%] w-[90%] overflow-x-auto  ">
-              {images.length > 0 ? (
-                images.map((image, index) => (
-                  <div className=" relative h-[100%] w-[35%] rounded ml-2 shrink-0 ">
-                    <img
-                      key={index}
-                      src={`data:image/png;base64,${image}`}
-                      alt={`Uploaded ${index}`}
-                      className="h-full w-full rounded"
-                    />
-                    <MdDelete
-                      className="absolute right-1 top-1 text-red-600 text-lg"
-                      onClick={() => handleDel(index)}
-                    />
-                  </div>
+            <label htmlFor="price"> OFFER </label>
+            <input
+              type="number"
+              id="offer"
+              onWheel={(e) => e.target.blur()}
+              name="offer"
+              placeholder="offer %"
+              className="h-12 rounded border-gray-300 border-2 border-gray-300 px-4 bg-blue-50 outline-blue-500"
+              onChange={handleChange}
+              value={offer}
+            />
+            <label htmlFor="category"> CATEGORY </label>
+            <select
+              id="category"
+              name="Category"
+              className="h-12 rounded border-2 border-gray-300 px-2 bg-blue-50 outline-blue-500"
+              value={category}
+              onChange={handleChange}
+            >
+              <option>Select category</option>
+              {categoryList.length ? (
+                categoryList.map((category) => (
+                  <option key={category._id} value={category.category}>
+                    {category.category}
+                  </option>
                 ))
               ) : (
-                <p>No images uploaded</p>
+                <div className="h-[10%] flex items-center rounded border-gray-300 border-2 border-gray-300">
+                  No categories found
+                </div>
               )}
+            </select>
+            <label htmlFor="category"> STYLE </label>
+            <select
+              id="style"
+              name="style"
+              className="h-12 rounded border-2 border-gray-300 px-2 bg-blue-50 outline-blue-500"
+              value={style}
+              onChange={handleChange}
+            >
+              <option>Select Style</option>
+              {isCategory.length > 0 &&
+                isCategory[0].style.map((style) => {
+                  return <option key={style.key}>{style.value}</option>;
+                })}
+            </select>
+            <label>SIZES</label>
+            <div className="max-h-max w-full flex flex-wrap gap-4 px-4">
+              <label className="flex items-center space-x-2">
+                <input
+                  value="6 month"
+                  checked={size.includes("6 month")}
+                  type="checkbox"
+                  onChange={(e) => {
+                    handlesize(e);
+                  }}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
+                />
+                <span className="text-sm font-medium">In Stock</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  value="12 month"
+                  checked={size.includes("12 month")}
+                  onChange={(e) => {
+                    handlesize(e);
+                  }}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
+                />
+                <span className="text-sm font-medium">In Stock</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  value="18 month"
+                  checked={size.includes("18 month")}
+                  onChange={(e) => {
+                    handlesize(e);
+                  }}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
+                />
+                <span className="text-sm font-medium">In Stock</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  value="24 month"
+                  checked={size.includes("24 month")}
+                  onChange={(e) => {
+                    handlesize(e);
+                  }}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
+                />
+                <span className="text-sm font-medium">In Stock</span>
+              </label>
             </div>
-          </div>
-          <button
-            className="h-12 w-24 lg:font-medium text-sm items-bottom  rounded border-2 mx-auto"
-            type="submit"
-          >
-            SAVE
-          </button>
+            <label>STOCK</label>
+            <div className="max-h-max w-full flex flex-wrap gap-4 px-4">
+              <label className="flex items-center space-x-2">
+                <input
+                  id="stock"
+                  type="checkbox"
+                  value="In Stock"
+                  checked={stockStatus === "In Stock"}
+                  onChange={handleStock}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
+                />
+                <span className="text-sm font-medium">In Stock</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  id="stock 1"
+                  type="checkbox"
+                  value="Out Of Stock"
+                  checked={stockStatus === "Out Of Stock"}
+                  onChange={handleStock}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
+                />
+                <span className="text-sm font-medium">Out Of Stock</span>
+              </label>
+            </div>
+
+            <label htmlFor="description"> DESCRIPTION </label>
+            <textarea
+              id="description"
+              name="Description"
+              placeholder="Description"
+              className="h-32 rounded overflow-y-auto border-2 border-gray-300 px-4 py-2 bg-blue-50 outline-blue-500"
+              onChange={handleChange}
+              value={description}
+            />
+            <label htmlFor="image"> IMAGE </label>
+            <div className="flex p-2 h-24 w-full border-2 border-blue-500 rounded bg-blue-50 ">
+              <input
+                type="file"
+                multiple
+                id="image"
+                name="Image"
+                ref={uploadRef}
+                className="opacity-0 ml-hidebuttons "
+                onChange={handleImageUpload}
+              />
+              <TbBookUpload
+                className="h-[100%] w-[10%] cursor-pointer"
+                onClick={handleButtonClick}
+              />
+              <div className="flex h-[100%] w-[90%] overflow-x-auto  ">
+                {images.length > 0 ? (
+                  images.map((image, index) => (
+                    <div className=" relative h-[100%] aspect-[1/1] rounded ml-2 shrink-0 ">
+                      <img
+                        key={index}
+                        src={`data:image/png;base64,${image}`}
+                        alt={`Uploaded ${index}`}
+                        className="h-full aspect-[1/1] rounded"
+                      />
+                      <MdDelete
+                        className="absolute right-1 top-1 text-red-600 text-lg"
+                        onClick={() => handleDel(index)}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <p>No images uploaded</p>
+                )}
+              </div>
+            </div>
+            <button
+              className="h-12 w-24 lg:font-medium text-sm items-bottom  rounded border-2 mx-auto"
+              type="submit"
+            >
+              SAVE
+            </button>
           </form>
         </main>
       </div>

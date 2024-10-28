@@ -23,6 +23,7 @@ const ShopByAge = () => {
     const bannerFetch = async () => {
       try {
         const response = await axios.get(`${URI}/banners/fetchage`);
+        console.log(response)
         if (response.status === 200 || response.status === 201) {
           setBanner(response.data.banner);
           setAgeBanner(response.data.banner.slice(0, 5));

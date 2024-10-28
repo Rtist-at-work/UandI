@@ -102,55 +102,59 @@ const Whishlist = () => {
                     No Images Found
                   </div>
                 )}
-                <div className="flex-grow flex flex-col gap-2  ">
-                  <p className="xsm:text-xsm md:text-base  font-semibold">
-                    {product && product.name.length > 30
-                      ? `${product.name.slice(0, 30)}...`
-                      : product
-                      ? product.name
-                      : "Unknown"}
-                  </p>
-                  <div className="flex gap-2 items-center">
-                    {product && product.offer > 0 && (
-                      <>
-                        <p className="text-base font-semibold">
-                          {product
-                            ? `₹${(
-                                product.price -
-                                (product.price / 100) * product.offer
-                              ).toFixed(2)}/-`
-                            : "Price Unavailable"}
-                        </p>
-                        <p
-                          className={`${
-                            product.offer > 0
-                              ? "line-through text-sm text-gray-500"
-                              : "text-base font-semibold"
-                          }`}
-                        >
-                          {product
-                            ? `₹${product.price}/-`
-                            : "Price Unavailable"}
-                        </p>
-                        <p className="text-sm text-green-700 font-semibold">
-                          {product.offer}% Off
-                        </p>
-                      </>
-                    )}
-                  </div>
-                  {product && product.review.stars ? (
-                    <div className="px-2 py-1 max-w-max bg-green-700 gap-2 flex items-center gap-1 rounded">
-                      <p className="font-semibold text-sm text-white">
-                        {product.review.stars}
+                <div className="flex-grow min-h-24 flex flexwrap flex-col gap-2  ">
+                      <p className="xsm:text-xsm md:text-base  font-semibold">
+                        {product && product.name.length > 30
+                          ? `${product.name.slice(0, 30)}...`
+                          : product
+                          ? product.name
+                          : "Unknown"}
                       </p>
-                      <FaStar className="xsm:h-3 xsm:w-3 md:h-2 xsm:w-2 text-white" />
+                      <div className="flex gap-2 items-center">
+                        {product && (
+                          <>
+                          {product && product.offer > 0 &&
+                            <p className="text-base font-semibold">
+                              
+                                {`₹${(
+                                    product.price -
+                                    (product.price / 100) * product.offer
+                                  ).toFixed(2)}/-`}
+                                
+                            </p>}
+                            <p
+                              className={`${
+                                product.offer > 0
+                                  ? "line-through text-sm text-gray-500"
+                                  : "text-base font-semibold"
+                              }`}
+                            >
+                              {product.price 
+                                ? `₹${product.price}/-`
+                                : "Price Unavailable"}
+                            </p>
+                            {
+                              product.offer > 0 && 
+                              <p className="text-sm text-green-700 font-semibold">
+                              {product.offer}% Off
+                            </p>
+                            }
+                          </>
+                        )}
+                      </div>
+                      {product && product.review.stars ? (
+                        <div className="px-2 py-1 max-w-max bg-green-700 gap-2 flex items-center gap-1 rounded">
+                          <p className="font-semibold text-sm text-white">
+                            {product.review.stars}
+                          </p>
+                          <FaStar className="xsm:h-3 xsm:w-3 md:h-2 xsm:w-2 text-white" />
+                        </div>
+                      ) : (
+                        <div className="text-gray-500 md:text-base xsm:text-xs">
+                          no reviews
+                        </div>
+                      )}
                     </div>
-                  ): 
-                  (
-                    <div className="text-gray-500 md:text-base xsm:text-xs">no reviews</div>
-                  )
-                  }
-                </div>
                 <MdDelete
                   id={product ? product.id : null}
                   className="absolute top-2 right-2 h-6 w-4 bg-white text-red-500 cursor-pointer"

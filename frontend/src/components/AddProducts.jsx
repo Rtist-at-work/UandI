@@ -10,7 +10,7 @@ const AddProducts = ({ URI }) => {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
-  const [offer, setOffer] = useState(0);
+  const [offer, setOffer] = useState("");
   const [style, setStyle] = useState("");
   const [size, setSize] = useState([]);
   const [stockStatus, setStockStatus] = useState("");
@@ -44,7 +44,6 @@ const AddProducts = ({ URI }) => {
     }
     if (id === "style") setStyle(value);
     if (id === "description") setDescription(value);
-    console.log(offer);
   };
 
   const handleStock = (e) => {
@@ -95,23 +94,18 @@ const AddProducts = ({ URI }) => {
     }
   };
 
-  const handleDel = (index) => {
-    const filteredimages = images.filter((_, ind) => ind !== index);
+  const handleDel = (e,index) => {
+    console.log(index)
+    console.log(e.currentTarget.id)
+    if(e.currentTarget.id==="image"){
+      const filteredimages = images.filter((_, ind) => ind !== index);
     setImages(filteredimages);
+    }
 
-    // if(id==="color"){
-    //   const filteredcolors = colors.filter((_, ind) => ind !== index);
-    //   setColors(filteredcolors); // Updated to use colors state
-    // }
-  };
-  const handleDelColors = (index) => {
-    const filteredColors = colors.filter((_, ind) => ind !== index);
-    setColors(filteredColors);
-
-    // if(id==="color"){
-    //   const filteredcolors = colors.filter((_, ind) => ind !== index);
-    //   setColors(filteredcolors); // Updated to use colors state
-    // }
+    if(e.currentTarget.id==="color"){
+      const filteredcolors = colors.filter((_, ind) => ind !== index);
+      setColors(filteredcolors); // Updated to use colors state
+    }
   };
 
   const validateForm = () => {
@@ -182,7 +176,6 @@ const AddProducts = ({ URI }) => {
       }
     }
   };
-
   return (
     <div className="absolute  h-[90%] w-full rounded-md shadow-md">
       <div className="relative xsm:h-[95%] md:h-full w-[100%]  overflow-hidden scrollbar-hidden p-2">
@@ -220,7 +213,7 @@ const AddProducts = ({ URI }) => {
               id="offer"
               onWheel={(e) => e.target.blur()}
               name="offer"
-              placeholder="offer %"
+              placeholder="Enter discount % (e.g., 10)"
               className="h-12 rounded border-gray-300 border-2 border-gray-300 px-4"
               onChange={handleChange}
               value={offer}
@@ -266,6 +259,7 @@ const AddProducts = ({ URI }) => {
                 <input
                   value="6 month"
                   type="checkbox"
+                  checked = {size.includes("6 month")}
                   onChange={(e) => {
                     handlesize(e);
                   }}
@@ -277,6 +271,7 @@ const AddProducts = ({ URI }) => {
                 <input
                   type="checkbox"
                   value="12 month"
+                  checked = {size.includes("12 month")}
                   onChange={(e) => {
                     handlesize(e);
                   }}
@@ -288,6 +283,7 @@ const AddProducts = ({ URI }) => {
                 <input
                   type="checkbox"
                   value="18 month"
+                  checked = {size.includes("18 month")}
                   onChange={(e) => {
                     handlesize(e);
                   }}
@@ -299,6 +295,7 @@ const AddProducts = ({ URI }) => {
                 <input
                   type="checkbox"
                   value="24 month"
+                  checked = {size.includes("24 month")}
                   onChange={(e) => {
                     handlesize(e);
                   }}
@@ -365,18 +362,18 @@ const AddProducts = ({ URI }) => {
               <div className="flex h-[100%] w-[90%] overflow-x-auto">
                 {images.length > 0 ? (
                   images.map((image, index) => (
-                    <div className=" relative h-[100%] w-[35%] rounded ml-2 shrink-0 ">
+                    <div className=" relative h-[100%] aspect-[1/1] rounded ml-2 shrink-0 ">
                       <img
                         key={index}
                         src={image}
                         alt={`Uploaded ${index}`}
-                        className="h-full w-full rounded"
+                        className="h-full aspect-[1/1] rounded"
                       />
                       <MdDelete
                         id="image"
                         className="absolute right-1 top-1 text-red-600 text-lg"
-                        onClick={() => {
-                          handleDel(index);
+                        onClick={(e) => {
+                          handleDel(e,index);
                         }}
                       />
                     </div>
@@ -388,7 +385,7 @@ const AddProducts = ({ URI }) => {
             </div>
             <label htmlFor="color"> COLORS </label>
 
-            <div className="flex p-2 h-24 w-full border-2 border-gray-300 rounded">
+            <div className="flex p-2 h-24 gap-4 w-full border-2 border-gray-300 rounded">
               <input
                 type="file"
                 multiple
@@ -407,28 +404,26 @@ const AddProducts = ({ URI }) => {
                   handleButtonClick(e);
                 }}
               />
-              <div className="flex h-[100%] w-[90%] overflow-x-auto">
-                {colors.length > 0 ? (
-                  colors.map((color, index) => (
-                    <div className=" relative h-[100%] w-[35%] rounded ml-2 shrink-0 ">
+              <div className="relative h-full w-[90%] overflow-auto flex items-center gap-1">
+              {colors.length > 0 &&
+                  colors.map((image,index) => (
+                    <div
+                      key={index}
+                      className="relative max-h-max w-16 flex-shrink-0 flex flex-col gap-1"
+                    >
                       <img
-                        key={index}
-                        src={color}
-                        alt={`Uploaded ${index}`}
-                        className="h-full w-full rounded"
+                        src={image}
+                        className="h-16 w-16 rounded border-2 border-gray-500 p-0.5"
                       />
                       <MdDelete
-                        id="color"
-                        className="absolute right-1 top-1 text-red-600 text-lg"
-                        onClick={() => {
-                          handleDelColors(index);
+                      id='color'
+                        className="absolute top-1 right-1 text-red-500 cursor-pointer"
+                        onClick={(e) => {
+                          handleDel(e,index);
                         }}
                       />
                     </div>
-                  ))
-                ) : (
-                  <p>No colors uploaded</p>
-                )}
+                  ))}
               </div>
             </div>
             <button

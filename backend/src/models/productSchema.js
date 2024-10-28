@@ -51,6 +51,7 @@ const productSchema = new mongoose.Schema({
         type: String
     },
     images: [String],
+    colors : Object,
     review : review,
 
     reviewPoints : {

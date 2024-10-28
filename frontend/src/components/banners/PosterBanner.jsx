@@ -187,7 +187,7 @@ const PosterBanner = () => {
   };
 
   return (
-    <div className="h-[30%] xxsm:h-[50%] sm:h-[70%] md:h-[90%] w-full mt-6">
+    <div className="w-full aspect-[16/9] mt-6">
       <div className="flex justify-between p-2 items-center">
         <label>Poster</label>
         <button

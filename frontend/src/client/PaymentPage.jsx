@@ -9,14 +9,14 @@ import axios from 'axios';
 
 const PaymentPage = () => {
   const URI = "http://localhost:5000";
-  const location = useLocation();
   const navigate = useNavigate(); // Use navigate from React Router v6
-  
+  const order = JSON.parse(localStorage.getItem('order'))
   // Extracting data passed via location.state
-  const orderSummary = location.state.orderSummarySend;
-  const deliveryAddress = location.state.address;
-  const subTotal = location.state.subTotal;
-  const coupon = location.state.coupon;
+  const orderSummary = order.orderSummarySend;
+  const deliveryAddress = order.address;
+  const subTotal = order.subTotal;
+  const coupon = order.coupon;
+  console.log(order)
 
   const [OrderId, setOrderId] = useState();
   const [ispaymentMethod, setIsPaymentMethod] = useState(false);
@@ -100,15 +100,15 @@ const PaymentPage = () => {
         subTotal: subTotal,
         paymentMethod: paymentMethod,
       };
+      console.log(data)
+
 
       const response = await axios.post(`${URI}/placeOrder`, data);
+      console.log(response)
       if (response.status === 200 || response.status === 201) {
         alert(response.data.message);
-
-        navigate('/userorders', { replace: true }); // Replaces the current history entry with OrderListPage
-
-        // Step 2: Push HomePage to the history stack
-        navigate('/');
+        localStorage.clear()
+        navigate('/userorders', { replace: true });
       }
 
     } catch (err) {

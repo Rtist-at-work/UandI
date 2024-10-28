@@ -156,7 +156,7 @@ const Cart = ({ handleCart }) => {
 
                           {/* Product Color */}
                           <p className="text-sm text-gray-600">
-                            Color: {cartProduct.color}
+                            Color: {cartProduct.selectedColor}
                           </p>
 
                           {/* Quantity Controls (Visible above xxsm, hidden below) */}
@@ -219,6 +219,7 @@ const Cart = ({ handleCart }) => {
                                 e,
                                 filteredProduct,
                                 cartProduct.selectedSize,
+                                cartProduct.selectedColor,
                                 cartProduct.count
                               );
                               countop(e, index, cartProduct.count);
@@ -235,6 +236,7 @@ const Cart = ({ handleCart }) => {
                                 e,
                                 filteredProduct,
                                 cartProduct.selectedSize,
+                                cartProduct.selectedColor,
                                 cartProduct.count
                               );
                               countop(e, index, cartProduct.count);

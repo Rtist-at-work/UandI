@@ -114,7 +114,7 @@ function App() {
   //     console.log(err);
   //   }
   // };
-  const handleCart = (e, productDetails, selectedSize, count) => {
+  const handleCart = (e, productDetails, selectedSize, selectedColor, count) => {
     if (e && e.target) {
       if (e.target.id === "plus") {
         count = count + 1;
@@ -127,11 +127,12 @@ function App() {
       count = count || 1;
     }
 
-    if (selectedSize && productDetails) {
+    if (selectedSize && selectedColor && productDetails) {
       const formdata = {
         productDetails: productDetails.id,
         count: count,
         selectedSize: selectedSize,
+        selectedColor:selectedColor
       };
 
       const addCart = async () => {

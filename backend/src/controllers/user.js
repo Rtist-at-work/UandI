@@ -172,7 +172,7 @@ router.post('/:userId/order', async (req, res) => {
 });
 router.post('/cart', upload.none(), async (req, res) => {
     const token = req.cookies.token;
-    const { productDetails, count, selectedSize } = req.body;
+    const { productDetails, count, selectedSize,selectedColor } = req.body;
     const parsedCount = count ? Number(count) : 1;     
 
     if (!token) {
@@ -203,7 +203,8 @@ router.post('/cart', upload.none(), async (req, res) => {
                 id: uuidv4(),
                 product: productDetails,
                 count: parsedCount,
-                selectedSize: selectedSize
+                selectedSize: selectedSize,
+                selectedColor,selectedColor
             });
             console.log("Added new product to cart");
         }

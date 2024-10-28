@@ -10,6 +10,7 @@ const AllBanners = (URI) => {
   const uploadRef = useRef();
   const [images, setImages] = useState([]);
   const [imageUpload, setImageUpload] = useState(false);
+  const [apparel,setApparel] = useState([]);
   const [container1, setContainer1] = useState([]);
   const imageRef_1 = useRef(null);
   const imageRef_2 = useRef(null);
@@ -33,8 +34,8 @@ const AllBanners = (URI) => {
 
   return (
     <div className="absolute  h-[90%] w-full rounded-md shadow-md  z-20">
-      <main className="relative h-[95%] w-[100%] overflow-auto scrollbar-hidden p-2">
-      {imageUpload && (
+      <main className="relative xsm:h-[95%] md:h-full w-[100%] overflow-auto scrollbar-hidden p-2">
+        {imageUpload && (
           <div className="absolute h-full w-full flex items-center justify-center z-50 bg-gray-700 bg-opacity-50">
             <div className="relative max-h-max w-[70%] flex flex-col gap-2 border-2 p-4 border-blue-500 bg-white rounded">
               <MdCancel
@@ -50,6 +51,13 @@ const AllBanners = (URI) => {
                   className="opacity-0 ml-hidebuttons"
                   onChange={(e) => handleImageDisplay(e)}
                 />
+                <input
+                  type="file"
+                  ref={imageRef_2}
+                  multiple
+                  className="opacity-0 ml-hidebuttons"
+                  onChange={(e) => handleImageDisplay(e)}
+                />
                 <FiUpload
                   className="sm:w-12 xsm:h-8 sm:h-12 xsm:w-8 cursor-pointer"
                   onClick={() => imageRef_1.current.click()}
@@ -57,19 +65,33 @@ const AllBanners = (URI) => {
                 <div className="relative h-full w-[90%] overflow-auto flex items-center gap-1">
                   {container1.length > 0 &&
                     container1.map((image, index) => (
-                      <div
-                        key={index}
-                        className="relative h-16 w-16 flex-shrink-0"
-                      >
-                        <img
-                          src={image}
-                          className="h-full w-full rounded border-2 border-gray-500 p-0.5"
-                        />
-                        <MdDelete
-                          className="absolute top-1 right-1 text-red-500 cursor-pointer"
-                          onClick={() => handleDelete(index)}
-                        />
-                      </div>
+                      <>
+                        <div
+                          key={index}
+                          className="relative h-16 w-16 flex-shrink-0"
+                        >
+                          <img
+                            src={image}
+                            className="h-full w-full rounded border-2 border-gray-500 p-0.5"
+                          />
+                          <MdDelete
+                            className="absolute top-1 right-1 text-red-500 cursor-pointer"
+                            onClick={() => handleDelete(index)}
+                          />
+                        </div>
+                        <div
+                          key={index}
+                          className="relative h-16 w-16 flex-shrink-0 rounded border-2 border-gray-500 flex items-center justify-center"
+                        >
+                          <p className="absolute text-xs font-bold text-red-500 text-center">
+                            Select apparel
+                          </p>
+                          <FiUpload
+                            className="absolute h-[50%] w-[50%] p-0.5 opacity-0 cursor-pointer"
+                            onClick={() => imageRef_2.current.click()}
+                          />
+                        </div>
+                      </>
                     ))}
                 </div>
               </div>
@@ -92,24 +114,21 @@ const AllBanners = (URI) => {
           />
         </form>
         <h1 className="m-2">Main Container</h1>
-        <div className="h-[40%] w-full">
-          <div className="relative h-[100%] xxsm:h-[60%] sm:h-[80%] md:h-[100%] lg:h-[120%] w-full z-0 p-4 flex">
-            <div className="relative h-full w-[70%] overflow-y-auto">
-              <div className="h-[75%] w-[75%] bg-blue-200"></div>
-              <div className="absolute bottom-0 right-0 h-[50%] w-[50%] bg-green-300"></div>
-            </div>
-            <div className="absolute right-0 w-[48%] h-[43%] flex items-center justify-center">
-              <button
-                className="max-h-max min-w-max p-2 rounded border-2 border-gray-200 bg-blue-500 text-white text-sm"
-                onClick={() => setImageUpload(!imageUpload)}
-              >
-                Add Images
-              </button>
-            </div>
+        <div className="w-full flex p-2 aspect-[4/2] bg-green-200 overflow-auto w-full">
+          <div className="relative h-full aspect-[1/1] bg-pink-200 overflow-y-auto">
+            <div className=" w-[80%] aspect-[1/1] bg-blue-200"></div>
+            <div className="absolute bottom-0 right-0 w-[50%] aspect-[1/1] bg-green-300"></div>
+          </div>
+          <div className=" right-0 w-[48%] h-[43%] flex items-center justify-center">
+            <button
+              className="max-h-max min-w-max p-2 rounded border-2 border-gray-200 bg-blue-500 text-white text-sm"
+              onClick={() => setImageUpload(!imageUpload)}
+            >
+              Add Images
+            </button>
           </div>
         </div>
 
-        
         <ShopByAge />
         <PosterBanner />
       </main>

@@ -12,8 +12,23 @@ const Homepage = () => {
   const [categoryList, setCategoryList] = useState();
   const [banner, setBanner] = useState([]); // fetched banners
   const [ageBanner, setAgeBanner] = useState([]);
+  const [slideshowIndex, setSlideshowIndex] = useState(0);
 
   const navigate = useNavigate();
+  const interval = 3000;
+
+  const [serverImages, setServerImages] = useState([]);
+
+  // Fetch posters from server
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSlideshowIndex((prevIndex) => (prevIndex + 1) % serverImages.length);
+    }, interval);
+
+    return () => clearInterval(timer); // Clear the interval when component unmounts
+  }, [serverImages.length, interval]);
+
+
 
   useEffect(() => {
     const getCategory = async () => {
@@ -39,6 +54,22 @@ const Homepage = () => {
       }
     };
     bannerFetch();
+
+    const getPoster = async () => {
+      try {
+        const response = await axios.get(`${URI}/banners/getposter`);
+        if (response.status === 200 || response.status === 201) {
+          const posters = response.data.banner;
+          const fetchedImages = posters.flatMap((poster) => poster.images);
+          const fetchedIds = posters.flatMap((poster) => poster._id);
+          setServerImages(fetchedImages);
+          // setImageId(fetchedIds);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    getPoster();
   }, []);
 
   const handleStyleNav = (c, s) => {
@@ -57,7 +88,7 @@ const Homepage = () => {
                 <a className="cursor-pointer text-gray-900">
                   {category.category}
                 </a>
-                <ul className="absolute left-0 hidden group-hover:block bg-white border z-50 min-w-max rounded shadow-lg">
+                <ul className="absolute left-0 hidden group-hover:block bg-white border z-50 min-w-max transition duration-3000 ease-out hover:ease-in rounded shadow-lg">
                   {category.style.length > 0 ? (
                     category.style.map((style) => (
                       <li
@@ -169,9 +200,20 @@ const Homepage = () => {
           <div className="h-[90%] w-full bg-gray-300"></div>
         </div>
         {/* posters */}
-        <div className="h-[30%] xxsm:h-[50%] sm:h-[70%] md:h-[90%] w-full p-2">
-          <div className="h-full w-full bg-green-200"></div>
+        <div className="aspect-[16/9] w-full p-2">
+        <div className="relative h-full w-full  flex justify-center items-center">
+          {serverImages.length > 0 ? (
+            <img
+              src={`data:image/png;base64,${serverImages[slideshowIndex]}`}
+              className="h-full w-full object-cover"
+              alt="slideshow"
+            />
+          ) : (
+            <p>No images to display</p>
+          )}          
         </div>
+      </div>
+
         {/* top rated */}
         {/* <div className="relative h-[80%] w-full bg-pink-200"> */}
         <h1 className="h-[10%] w-full xsm:text-sm p-2">Top Rated</h1>

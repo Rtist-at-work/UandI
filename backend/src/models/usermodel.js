@@ -60,7 +60,8 @@ const orderSchema = new mongoose.Schema({
 const cartSchema = new mongoose.Schema({
     product:String,
     count : {type:Number,default:1},
-    selectedSize : {type:String}  
+    selectedSize : {type:String} , 
+    selectedColor : {type:String}  
 })
 
 const whishlistSchema = new mongoose.Schema({

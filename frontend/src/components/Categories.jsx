@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { MdEdit } from "react-icons/md";
 import { MdDelete } from "react-icons/md";
 
-const Categories = ({  URI }) => {
+const Categories = ({ URI }) => {
   const [popup, setPopup] = useState(false);
   const [editpopup, setEditPopup] = useState(false);
   const [category, setCategory] = useState("");
@@ -96,7 +96,7 @@ const Categories = ({  URI }) => {
         setRecall(!recall);
       }
     } catch (err) {
-      if(err.data.message) alert(err.data.message);
+      if (err.data.message) alert(err.data.message);
     }
   };
 
@@ -106,45 +106,43 @@ const Categories = ({  URI }) => {
     setStyle(updatedValue);
   };
 
-
   const handleDel = async (e, index) => {
-      const delItem = e.currentTarget.id === "sty" ? "style" : "category";
-      const delId = e.currentTarget.id === "sty" ? style[index]._id : editId;
-      
-      if (!delId) {
-          alert("Error occurred. Please try again later.");
-          return;
+    const delItem = e.currentTarget.id === "sty" ? "style" : "category";
+    const delId = e.currentTarget.id === "sty" ? style[index]._id : editId;
+
+    if (!delId) {
+      alert("Error occurred. Please try again later.");
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`${URI}/createcategory/delete/`, {
+        params: { delItem, delId },
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        alert(response.data.message);
+
+        // Remove the item from the array only if the deletion was successful
+        if (delItem === "style") {
+          const updatedStyles = [...style]; // Create a shallow copy of the style array
+          updatedStyles.splice(index, 1); // Remove the specific item from the array
+          setStyle(updatedStyles); // Update the state with the modified array
+        } else {
+          setEditPopup(!editpopup);
+          setRecall(!recall);
+        }
       }
-      
-      try {
-          const response = await axios.delete(`${URI}/createcategory/delete/`, {
-              params: { delItem, delId },
-          });
-          
-          if (response.status === 200 || response.status === 201) {
-              alert(response.data.message);
-              
-              // Remove the item from the array only if the deletion was successful
-              if (delItem === "style") {
-                  const updatedStyles = [...style]; // Create a shallow copy of the style array
-                  updatedStyles.splice(index, 1); // Remove the specific item from the array
-                  setStyle(updatedStyles); // Update the state with the modified array
-              }
-              else {
-                setEditPopup(!editpopup);
-                setRecall(!recall);
-              }
-          }
-      } catch (err) {
-          console.error(err.response ? err.response.data.message : err.message);
-          if(err) alert(" Error occured please try again later")
-      }
+    } catch (err) {
+      console.error(err.response ? err.response.data.message : err.message);
+      if (err) alert(" Error occured please try again later");
+    }
   };
-  console.log(categoryList)
-  
+  console.log(categoryList);
+
   return (
-    <div className="absolute  h-[90%] w-full bg-white-800 rounded-md shadow-md">
-      <main className="absolute h-[95%] w-[100%]  overflow-auto">
+    <div className="relative  h-[90%] w-full bg-white-800 rounded-md shadow-md">
+      <main className="relative xsm:h-[95%] md:h-full w-[100%]  overflow-auto">
         <div className=" h-[10%] flex items-center  justify-between mb-8 mt-2 mx-auto">
           <h1 className="ml-2 text-xl font-bold ">CATEGORIES</h1>
           <button
@@ -167,43 +165,47 @@ const Categories = ({  URI }) => {
 
             return (
               <div
-  id={capitalizedCategory}
-  className="w-full sm:w-[75%] md:w-[50%] mx-auto mb-4 px-6 py-2 cursor-pointer rounded-lg bg-blue-300 shadow-md hover:bg-blue-400 transition-all duration-200"
->
-  <div className="flex justify-between items-center">
-    <div
-      className="text-lg sm:text-xl md:text-2xl font-semibold break-words text-gray-700"
-      onClick={() => {
-        navigate(`/admin/stylespage/?category=${capitalizedCategory}`);
-      }}
-    >
-      {capitalizedCategory}
-    </div>
-    <MdEdit
-      className="h-6 w-6 text-gray-600 hover:text-gray-800 transition-colors duration-150 cursor-pointer"
-      onClick={(e) => {
-        e.stopPropagation();
-        const st = categoryList.find(
-          (data) => data.category === category.category
-        );
-        if (st) {
-          setStyle(st.style);
-        }
-        let cl = [...categoryList];
-        cl.splice(index, 1);
-        cl = cl.flatMap((category) => [category.category]);
-        setCategoryExistance(cl);
-        setEditId(category._id);
-        setCategory(category.category);
-        setEditPopup(!editpopup);
-      }}
-    />
-  </div>
-</div>
-
+                id={capitalizedCategory}
+                className="w-full sm:w-[75%] md:w-[50%] mx-auto mb-4 px-6 py-2 cursor-pointer rounded-lg bg-blue-300 shadow-md hover:bg-blue-400 transition-all duration-200"
+              >
+                <div className="flex justify-between items-center">
+                  <div
+                    className="text-lg sm:text-xl md:text-2xl font-semibold break-words text-gray-700"
+                    onClick={() => {
+                      navigate(
+                        `/admin/stylespage/?category=${capitalizedCategory}`
+                      );
+                    }}
+                  >
+                    {capitalizedCategory}
+                  </div>
+                  <MdEdit
+                    className="h-6 w-6 text-gray-600 hover:text-gray-800 transition-colors duration-150 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const st = categoryList.find(
+                        (data) => data.category === category.category
+                      );
+                      if (st) {
+                        setStyle(st.style);
+                      }
+                      let cl = [...categoryList];
+                      cl.splice(index, 1);
+                      cl = cl.flatMap((category) => [category.category]);
+                      setCategoryExistance(cl);
+                      setEditId(category._id);
+                      setCategory(category.category);
+                      setEditPopup(!editpopup);
+                    }}
+                  />
+                </div>
+              </div>
             );
           })}
       </main>
+      <footer className="h-[5%] w-full md:hidden xsm:block">
+        <Footer />
+      </footer>
       {popup && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-[70%] w-[80%] max-w-lg max-h-[500px] border-2 border-gray-300 bg-red-200 p-4 rounded-lg">
           <form
@@ -319,7 +321,7 @@ const Categories = ({  URI }) => {
                 setExistanceAlert(false);
                 setCategory(" ");
                 setStyle([]);
-                setEditPopup(!editpopup);                
+                setEditPopup(!editpopup);
               }}
             />
           </div>
@@ -334,8 +336,8 @@ const Categories = ({  URI }) => {
               type="text"
               value={category}
               onChange={(e) => {
-                setCategory(e.target.value); 
-                if (categoryExistance.includes(e.target.value.toLowerCase())){
+                setCategory(e.target.value);
+                if (categoryExistance.includes(e.target.value.toLowerCase())) {
                   setExistanceAlert(!existanceAlert);
                 } else {
                   setExistanceAlert(false);
@@ -346,7 +348,9 @@ const Categories = ({  URI }) => {
             <MdDelete
               id="catg"
               className="h-6 w-[20%] right-4 top-1 text-red-600 cursor-pointer"
-              onClick={(e) => {handleDel(e,category)}}
+              onClick={(e) => {
+                handleDel(e, category);
+              }}
             />
           </div>
 
@@ -376,7 +380,9 @@ const Categories = ({  URI }) => {
                 <MdDelete
                   id="sty"
                   className="h-6 w-[20%] right-4 top-1 text-red-600 cursor-pointer"
-                  onClick={(e) => {handleDel(e,index)}}
+                  onClick={(e) => {
+                    handleDel(e, index);
+                  }}
                 />
               </div>
             );
@@ -396,10 +402,6 @@ const Categories = ({  URI }) => {
           </button>
         </div>
       )}
-
-      <footer className="absolute bottom-0 flex items-center justify- gap-2 p-2  lg:h-[0] xsm:h-[5%] w-[100%] bg-red-100 lg:hidden">
-        <Footer />
-      </footer>
     </div>
   );
 };

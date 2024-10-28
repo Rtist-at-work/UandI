@@ -14,6 +14,7 @@ import { ImCross } from "react-icons/im";
 import { MdEdit } from "react-icons/md";
 import axios from "axios";
 import Header from "./Header";
+import DeliveryAddress from "./DeliveryAddress";
 
 const OrderPage = ({ handleAddAddress }) => {
   const [address, setAddress] = useState({});
@@ -34,9 +35,8 @@ const OrderPage = ({ handleAddAddress }) => {
   const navigate = useNavigate();
 
   const handleexit = () => {
-    navigate("/paymentpage", {
-      state: { orderSummarySend, address, coupon, subTotal },
-    });
+    navigate("/paymentpage");
+    localStorage.setItem('order',JSON.stringify({orderSummarySend,address,coupon,subTotal}));
   };
 
   const handle = (e) => {

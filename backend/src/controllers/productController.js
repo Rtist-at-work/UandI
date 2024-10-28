@@ -9,7 +9,10 @@ const upload = require('../../uploadProduct')
 
 // Route for handling product upload
 router.post('/', (req, res, next) => {
-    upload.array('images', 10)(req, res, (err) => {
+    upload.fields([
+        { name: 'images', maxCount: 10 },
+        { name: 'colors', maxCount: 10 }
+    ])(req, res, (err) => {
         // Handle multer errors for file upload
         if (err) {
             if (err.message === 'Give proper file format to upload') {
@@ -31,7 +34,16 @@ router.post('/', (req, res, next) => {
         }
 
         // Map file buffers to base64
-        const images = req.files.map((file) => file.buffer.toString('base64'));
+        const images = req.files.images.map((file) => file.buffer.toString('base64'));
+        let colors ;
+        if (req.files.colors) {
+            colors= req.files.colors.map(file => {
+                const colorKey = file.originalname.split('.')[0]; // Assumes the color is in the filename, e.g., red.jpg
+                return {
+                    [colorKey]: file.buffer.toString('base64')
+                };
+            });
+        }
 
         // Create a new product with the provided data and images
         const product = new productForm({
@@ -44,7 +56,8 @@ router.post('/', (req, res, next) => {
             category,
             style,
             description,
-            images
+            images,
+            colors
         });
 
         // Save the product to the database

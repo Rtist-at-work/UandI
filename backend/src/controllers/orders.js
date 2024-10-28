@@ -44,7 +44,7 @@ router.post('/', async (req, res) => {
             deliveryaddress: deliveryAddress,
             coupon: coupon || '', // Default to empty string if no coupon
             orderDate: Date.now(),
-            status: "order placed",
+            status: "orderplaced",
         });
 
         await order.save();
@@ -104,7 +104,6 @@ router.get('/orderId', async (req, res) => {
         return res.status(500).json({ status: false, message: "An error occurred", error: err.message });
     }
 });
-
 router.get('/orderDetails',async(req,res)=>{
     const orderId = req.query.orderId;
     const token = req.cookies.token;
@@ -137,18 +136,20 @@ router.get('/orderDetails',async(req,res)=>{
                 productDetail.product = products.find(
                     (prod) => prod.id.toString()=== productDetail.product// Use toString() for comparison
                 );
+
                 return productDetail;
                 
             });
             
-            order.product = productDetails;
+            order.productDetails = productDetails;
             return(order);
         });
         if(orderId){
             const filteredOrder = orders.find((order)=>(order.orderId===orderId));
             return res.status(200).json({ status: true, filteredOrder });
         }
-    
+        const pd = orders.flatMap(order=>order.productDetails)
+        console.log(pd);
         // Send the response with orders or further processing
         return res.status(200).json({ status: true, orders });
     

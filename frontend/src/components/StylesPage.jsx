@@ -67,11 +67,12 @@ const StylesPage = () => {
   const categoryForm = (e) => {
     e.target.id === "formopen" ? setPopup(true) : setPopup(false);
   };
+  console.log(filteredStyles);
 
   return (
     <div className=" h-[90%] w-full  rounded-md shadow-md p-4">
       <main className="xsm:h-[95%] md:h-full w-[100%]  overflow-auto scrollbar-hidden">
-          <h1 className=" h-[10%] ml-2 text-xl font-bold ">STYLES</h1>
+        <h1 className=" h-[10%] ml-2 text-xl font-bold ">STYLES</h1>
         {filteredStyles.length > 0 && filteredStyles[0].style.length > 0 ? (
           filteredStyles[0].style.map((s) => {
             console.log(s);
@@ -79,7 +80,8 @@ const StylesPage = () => {
               (product) => product.style === s.value
             );
             return (
-              <div
+              cat.length >0 && (
+                <div
                 id="container"
                 key={s.key}
                 className="h-[20%] w-[100%] xxsm:h-[35%] xsm:h-[25%] sm:h-[40%] px-4 mt-4"
@@ -88,7 +90,9 @@ const StylesPage = () => {
                   id="headerContainer"
                   className="h-[30%] sm:h-[20%] w-[100%] py-2 flex items-center justify-between"
                 >
-                  <p className="font-semibold md:text-md xsm:text-base">{s.value}</p>
+                  <p className="font-semibold md:text-md xsm:text-base">
+                    {s.value}
+                  </p>
                   <p
                     id={s.value}
                     onClick={(e) => {
@@ -104,7 +108,7 @@ const StylesPage = () => {
                   id="imageContainer"
                   className=" flex gap-2 p-2 h-[70%] w-[100%]  overflow-x-auto   scrollbar-hidden"
                 >
-                  {cat.length > 0 ? (
+                  {cat.length > 0 &&
                     cat.map((catItem, imgIndex) => {
                       if (catItem.images.length > 0) {
                         let base64Img = catItem.images[0];
@@ -130,13 +134,11 @@ const StylesPage = () => {
                           </div>
                         );
                       }
-                    })
-                  ) : (
-                    <div>No Data Found</div>
-                  )}
+                    })}
                 </div>
                 <hr></hr>
               </div>
+              )
             );
           })
         ) : (

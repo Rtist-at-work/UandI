@@ -4,31 +4,54 @@ const Category = require('../models/category');
 
 router.post('/', async (req, res) => {
     try {
-        const { category, style } = req.body;
-        console.log(category)
+        const { category, posters, style } = req.body;
+
+        if (!Array.isArray(style) || !style.every(item => Array.isArray(item) && item.length === 2)) {
+            return res.json({
+                status: false,
+                message: "Invalid style data format. Expected an array of arrays."
+            });
+        }
+        const formattedStyle = style.map(item => ({
+            style: item[0],      // Style name (e.g., "a")
+            sizes: item[1]       // Sizes array (e.g., ["A", "B"])
+        }));
+        
 
         const updatedCategory = await Category.findOneAndUpdate(
             { category },
-            { $addToSet: {style } },
+            {
+                $addToSet: {
+                    posters: { $each: posters }, // Adds multiple posters without duplicates
+                    style: { $each: formattedStyle }       // Adds multiple styles without duplicates
+                }
+            },
             { new: true, upsert: true }
         );
-        if (!updatedCategory) {
-            return res.json({ status: false, message: "Category not found" });
-        }
-        return res.json({ status: true, message: "Category created successfully"});
+
+        return res.json({
+            status: true,
+            message: "Category created or updated successfully",
+            data: updatedCategory
+        });
     } catch (err) {
         console.log(err);
-        return res.json({ status: false, message: "Error creating category Please try again later" });
+        return res.json({
+            status: false,
+            message: "Error creating category. Please try again later"
+        });
     }
 });
+
 router.put('/update/:editId',async(req,res)=>{
     try {
-        const { category, style } = req.body;
+        const { category,posters, style } = req.body;
         const {editId} = req.params;
       
         const updatedCategory = await Category.findByIdAndUpdate(
             editId,
            { category,
+            posters,
             style}
         );
         if (!updatedCategory) {

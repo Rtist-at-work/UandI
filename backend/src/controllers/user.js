@@ -39,17 +39,14 @@ router.post('/register', registerValidation, async (req, res) => {
 
     const { username, emailOrMobile, password, name, gender } = req.body;
 
-    console.log(username + "before")
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrMobile);
     const existingUser = await usermodel.findOne(isEmail ? { 'personalInfo.email': emailOrMobile } : { 'personalInfo.mobile': emailOrMobile });
     const existingUsername = await usermodel.findOne({'personalInfo.username':username});
-    console.log(existingUsername)
 
     if (existingUser || existingUsername) {
         return res.json({ status: false, message: "User already exists" });
     }
-    console.log(username + "after")
     const hashpassword = await bcrypt.hash(password, 10);
     if(!username){
         return res.status(400).json({ status: false, message: "Username is required" });
@@ -63,6 +60,9 @@ router.post('/register', registerValidation, async (req, res) => {
             mobile: isEmail ? undefined : emailOrMobile,
             name,
             gender
+        },
+        coupons:{
+            trynew : true
         }
     });
 
@@ -105,7 +105,6 @@ router.post('/:userId/personalInfo', async (req, res) => {
 
 
 router.post('/address', async (req, res) => {
-   console.log("add")
     const {name,
         mobile,
         locality,
@@ -119,16 +118,13 @@ router.post('/address', async (req, res) => {
 
     try{
         const token = req.cookies.token;
-        console.log(token)
         if (!token) {
             return res.status(401).json({ message: 'Token missing or invalid' });
         }
         const decoded = await jwt.verify(token, process.env.KEY);
         const { id } = decoded;
-        console.log(id)
 
         const user = await usermodel.findById(id);
-        console.log(user    )
     
         if (!user) {
             return res.status(404).json({ status: false, message: 'User not found' });
@@ -188,15 +184,13 @@ router.post('/cart', upload.none(), async (req, res) => {
             return res.status(401).json({ status: false, message: "User not found. Please log in again." });
         }
 
-        user.cartProducts.map(product => console.log(product.product));
 
-        const existingProduct = user.cartProducts.find(product => product.product === productDetails && product.selectedSize === selectedSize);
+        const existingProduct = user.cartProducts.find(product => product.product === productDetails && product.selectedSize === selectedSize && product.selectedColor === selectedColor);
         if (existingProduct) {
             if(isNaN(parsedCount)||parsedCount<=0){
                 return ( res.json({status:false,message:"error updating count"}))
             }
-            console.log(count)
-            console.log(parsedCount)
+            
             existingProduct.count = parsedCount; 
         } else {
             user.cartProducts.push({
@@ -206,32 +200,37 @@ router.post('/cart', upload.none(), async (req, res) => {
                 selectedSize: selectedSize,
                 selectedColor,selectedColor
             });
-            console.log("Added new product to cart");
         }
 
         await user.save();
         return res.json({ status: true, message: "Cart product updated successfully" });
     } catch (err) {
-        console.error('Error verifying token:', err.message);
-        res.status(401).json({ message: 'Token verification failed' });
+        res.status(401).json({ message: 'Token verification failed',err });
     }
 });
 
-router.get('/getCart',async(req,res)=>{
-    try{
+router.get('/getCart', async (req, res) => {
+    try {
         const token = req.cookies.token;
+        if (!token) {
+            return res.status(401).json({ status: false, message: "Please login" });
+        }
+
         const decoded = await jwt.verify(token, process.env.KEY);
         const { id } = decoded;
-        const user = await usermodel.findById(id);
-        const cart = user.cartProducts;
-        return res.json({status:true,message:"cart successfully fetched",cart})
-        
+
+        if (id) {
+            const user = await usermodel.findById(id);
+            const cart = user.cartProducts;
+            return res.status(200).json({ status: true, message: "Cart successfully fetched", cart });
+        } else {
+            return res.status(401).json({ status: false, message: "Please login" });
+        }
+    } catch (err) {
+        return res.status(500).json({ status: false, message: err.message });
     }
-    catch(err){
-        return res.json({status:true,message:err.message})
-    }
-    
-})
+});
+
 router.put('/deleteCartProduct/:productId', async(req,res)=>{
     const {productId} = req.params;
     try{
@@ -258,7 +257,6 @@ router.post('/whishlist', async (req, res) => {
     if (!token) {
         return res.status(401).json({ status: false, message: "Please Log In" });
     }
-    console.log(token)
 
     try {
         const decoded = await jwt.verify(token, process.env.KEY);
@@ -268,13 +266,18 @@ router.post('/whishlist', async (req, res) => {
             return res.status(404).json({ status: false, message: "User not found Please Log In" });
         }
         const existingProduct = user.whishlist.find((wishlistItem) => wishlistItem.productId === productId);
+        
         if (existingProduct) {
-            return res.status(400).json({ status: false, message: "Product already exists in wishlist" });
+            user.whishlist = user.whishlist.filter((p)=>p.productId!=productId)
+            await user.save();
+            return res.status(200).json({ status: true, message: "Product removed successfully" });
         }
-        user.whishlist.push({ productId });
-        await user.save();
+        else{
+            user.whishlist.push({ productId });
+            await user.save();
 
-        return res.status(200).json({ status: true, message: "Product added to wishlist successfully" });
+            return res.status(200).json({ status: true, message: "Product added to wishlist successfully" });
+        }
     } catch (err) {
         console.log(err);
         return res.status(500).json({ status: false, message: "An error occurred", error: err.message });
@@ -343,7 +346,6 @@ router.post('/review', (req, res, next) => {
 
     try {
         const { rating, orderId, review, productId } = req.body;
-        console.log(productId);
         const token = req.cookies.token;
         if (!token) {
             return res.status(401).json({ status: false, message: "Token is not valid" });
@@ -368,7 +370,6 @@ router.post('/review', (req, res, next) => {
 
         // Update logic for ratings and reviews
         if (rating) {
-            console.log(rating)
             product.review = {
                 ...product.review,
                 stars: rating

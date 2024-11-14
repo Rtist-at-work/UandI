@@ -19,13 +19,16 @@ const AddProducts = ({ URI }) => {
   const [colors, setColors] = useState([]);
   const [isCategory, setIsCategory] = useState({});
   const [categoryList, setCategoryList] = useState([]);
+  const [colorGroup, setColorGroup] = useState([]);
+  const [colorIndex, setColorIndex] = useState(0);
+  const [uploadedColor, setUploadedColor] = useState([]);
 
   useEffect(() => {
     const getCategory = async () => {
       try {
         const response = await axios.get(`${URI}/category`);
         if (response.status === 200 || response.status === 201) {
-          setCategoryList(response.data);
+          setCategoryList(response.data.category);
         }
       } catch (err) {
         console.log(err);
@@ -83,26 +86,44 @@ const AddProducts = ({ URI }) => {
 
   const handleImageUpload = (e) => {
     let files = Array.from(e.target.files);
+    const updated = [...colorGroup];
+
     if (files.length > 0) {
-      const imageUrls = files.map((file) => URL.createObjectURL(file));
+      const imageUrls = files.map((file) => {
+        // Ensure colorGroup[colorIndex] is defined
+        if (!updated[colorIndex]) {
+          updated[colorIndex] = [[], []]; // Initialize as two empty arrays
+        }
+        if (e.target.id === "image") {
+          // Push file to images array
+          updated[colorIndex][0] = [...updated[colorIndex][0], file];
+        }
+        if (e.target.id === "color") {
+          // Push file to colors array
+          updated[colorIndex][1] = [file];
+        }
+        return URL.createObjectURL(file);
+      });
+
+      // Update the image or color URLs for display
       if (e.target.id === "image") {
         setImages([...images, ...imageUrls]);
       }
       if (e.target.id === "color") {
-        setColors([...colors, ...imageUrls]); // Updated to use colors state
+        setColors([...imageUrls]); // Updated to use colors state
       }
+
+      setColorGroup(updated); // Update colorGroup state
     }
   };
 
-  const handleDel = (e,index) => {
-    console.log(index)
-    console.log(e.currentTarget.id)
-    if(e.currentTarget.id==="image"){
+  const handleDel = (e, index) => {
+    if (e.currentTarget.id === "image") {
       const filteredimages = images.filter((_, ind) => ind !== index);
-    setImages(filteredimages);
+      setImages(filteredimages);
     }
 
-    if(e.currentTarget.id==="color"){
+    if (e.currentTarget.id === "color") {
       const filteredcolors = colors.filter((_, ind) => ind !== index);
       setColors(filteredcolors); // Updated to use colors state
     }
@@ -116,8 +137,8 @@ const AddProducts = ({ URI }) => {
       !offer ||
       !stockStatus ||
       size.length === 0 ||
-      !description ||
-      images.length === 0
+      !description 
+      // images.length === 0
     ) {
       alert("Please fill out all fields and upload at least one image.");
       return false;
@@ -125,6 +146,7 @@ const AddProducts = ({ URI }) => {
     return true;
   };
   const handleFormSubmission = async (e) => {
+    console.log(colorGroup)
     e.preventDefault();
     if (!validateForm()) return;
 
@@ -137,16 +159,33 @@ const AddProducts = ({ URI }) => {
     formData.append("category", category);
     formData.append("style", style);
     formData.append("description", description);
-    Array.from(imageRef.current.files).forEach((file) =>
-      formData.append("images", file)
-    );
-    Array.from(colorRef.current.files).forEach((file) =>
-      formData.append("colors", file)
-    );
-
+    colorGroup.forEach((group, index) => {
+      // Append product images to 'productImages'
+      group[0].forEach((file) => {
+        formData.append('productImages', file); // Append the file
+      });
+      formData.append(`productImageslength`, `${group[0].length}`); // Append the metadata
+    
+      // Append color images to 'colorImages'
+      group[1].forEach((file) => {
+        formData.append('colorImages', file);
+        
+      });
+    
+      // Append metadata corresponding to the entire group
+    });
+    
+    // Array.from(imageRef.current.files).forEach((file) =>
+    //   formData.append("images", file)
+    // );
+    // Array.from(colorRef.current.files).forEach((file) =>
+    //   formData.append("colors", file)
+    // );
+    
     try {
       const config = { headers: { "Content-Type": "multipart/form-data" } };
       const response = await axios.post(`${URI}/addproducts`, formData, config);
+      console.log(response)
 
       // Clear form fields after success
       if (response.status === 200 || response.status === 201) {
@@ -160,6 +199,7 @@ const AddProducts = ({ URI }) => {
         setStyle("");
         setDescription("");
         setImages([]);
+        setColors([]);
         alert("Product added successfully");
       }
     } catch (err) {
@@ -176,6 +216,7 @@ const AddProducts = ({ URI }) => {
       }
     }
   };
+  
   return (
     <div className="absolute  h-[90%] w-full rounded-md shadow-md">
       <div className="relative xsm:h-[95%] md:h-full w-[100%]  overflow-hidden scrollbar-hidden p-2">
@@ -249,60 +290,32 @@ const AddProducts = ({ URI }) => {
             >
               <option>Select Style</option>
               {isCategory.length > 0 &&
-                isCategory[0].style.map((style) => {
-                  return <option key={style.key}>{style.value}</option>;
+                isCategory[0].style.map((style, index) => {
+                  return <option key={index}>{style.style}</option>;
                 })}
             </select>
             <label>SIZES</label>
             <div className="max-h-max w-full flex flex-wrap gap-4 px-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  value="6 month"
-                  type="checkbox"
-                  checked = {size.includes("6 month")}
-                  onChange={(e) => {
-                    handlesize(e);
-                  }}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm font-medium">In Stock</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  value="12 month"
-                  checked = {size.includes("12 month")}
-                  onChange={(e) => {
-                    handlesize(e);
-                  }}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm font-medium">In Stock</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  value="18 month"
-                  checked = {size.includes("18 month")}
-                  onChange={(e) => {
-                    handlesize(e);
-                  }}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm font-medium">In Stock</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  value="24 month"
-                  checked = {size.includes("24 month")}
-                  onChange={(e) => {
-                    handlesize(e);
-                  }}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm font-medium">In Stock</span>
-              </label>
+              {isCategory.length > 0 &&
+                isCategory[0].style.map((styl, index) => {
+                  return (
+                    styl.style === style &&
+                    styl.sizes.map((sty, ind) => (
+                      <label className="flex items-center space-x-2">
+                        <input
+                          value={sty}
+                          type="checkbox"
+                          checked={size.includes(sty)}
+                          onChange={(e) => {
+                            handlesize(e);
+                          }}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium">{sty}</span>
+                      </label>
+                    ))
+                  );
+                })}
             </div>
             <label>STOCK</label>
             <div className="max-h-max w-full flex flex-wrap gap-4 px-4">
@@ -373,7 +386,7 @@ const AddProducts = ({ URI }) => {
                         id="image"
                         className="absolute right-1 top-1 text-red-600 text-lg"
                         onClick={(e) => {
-                          handleDel(e,index);
+                          handleDel(e, index);
                         }}
                       />
                     </div>
@@ -405,8 +418,8 @@ const AddProducts = ({ URI }) => {
                 }}
               />
               <div className="relative h-full w-[90%] overflow-auto flex items-center gap-1">
-              {colors.length > 0 &&
-                  colors.map((image,index) => (
+                {colors.length > 0 &&
+                  colors.map((image, index) => (
                     <div
                       key={index}
                       className="relative max-h-max w-16 flex-shrink-0 flex flex-col gap-1"
@@ -416,10 +429,39 @@ const AddProducts = ({ URI }) => {
                         className="h-16 w-16 rounded border-2 border-gray-500 p-0.5"
                       />
                       <MdDelete
-                      id='color'
+                        id="color"
                         className="absolute top-1 right-1 text-red-500 cursor-pointer"
                         onClick={(e) => {
-                          handleDel(e,index);
+                          handleDel(e, index);
+                        }}
+                      />
+                    </div>
+                  ))}
+              </div>
+            </div>
+            <label htmlFor="color"> PRODUCT COLORS UPLOADED</label>
+            <div className="flex p-2 h-24 gap-4 w-full border-2 border-gray-300 rounded">
+              <div className="relative h-full w-[90%] overflow-auto flex items-center gap-1">
+                {uploadedColor.length > 0 &&
+                  uploadedColor.map((image, index) => (
+                    <div
+                      key={index}
+                      className="relative max-h-max w-16 flex-shrink-0 flex flex-col gap-1"
+                    >
+                      <img
+                        src={image}
+                        className="h-16 w-16 rounded border-2 border-gray-500 p-0.5"
+                      />
+                      <MdDelete
+                        id="color"
+                        className="absolute top-1 right-1 text-red-500 cursor-pointer"
+                        onClick={(e) => {
+                          setColorGroup(() =>
+                            colorGroup.filter((_, ind) => ind != index)
+                          );
+                          setUploadedColor(() =>
+                            uploadedColor.filter((_, ind) => ind != index)
+                          );
                         }}
                       />
                     </div>
@@ -427,10 +469,22 @@ const AddProducts = ({ URI }) => {
               </div>
             </div>
             <button
-              className="h-12 w-24 lg:font-medium text-sm items-bottomrounded border-2  mx-auto"
+              className="max-h-max max-w-max py-2 px-4 rounded bg-blue-500 text-white lg:font-medium text-sm items-bottomrounded border-2  "
+              type="button"
+              onClick={() => {
+                setColorIndex(() => colorIndex + 1);
+                setUploadedColor([...uploadedColor,colors[colors.length-1]]);
+                setImages([]);
+                setColors([]);
+              }}
+            >
+              ADD COLORS
+            </button>
+            <button
+              className="max-h-max max-w-max py-2 px-4 rounded bg-blue-500 text-white lg:font-medium text-sm items-bottomrounded border-2  mx-auto"
               type="submit"
             >
-              SAVE
+              SAVE PRODUCT
             </button>
           </form>
         </main>

@@ -8,7 +8,6 @@ const router = express.Router();
 
 router.post('/', async (req, res) => {
     const { emailOrMobile, password } = req.body;
-    console.log(emailOrMobile  +  password);
 
     // Determine if input is an email or mobile number
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrMobile);

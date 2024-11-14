@@ -22,7 +22,9 @@ const OrderPage = ({ handleAddAddress }) => {
   const [bgSelected, setBgSelected] = useState("");
   const [changeAddress, setChangeAddress] = useState(false);
   const [orderSummary, setOrderSummary] = useState([]);
+  const [coupons, setCoupons] = useState([]);
   const [coupon, setCoupon] = useState("");
+  const [couponPopup, setCouponPopup] = useState(false);
   const [subTotal, setSubTotal] = useState();
   const [addressOpen, setAddressOpen] = useState(true);
   const [orderSummarySend, setOrderSummarySend] = useState();
@@ -30,13 +32,16 @@ const OrderPage = ({ handleAddAddress }) => {
   const [total, setTotal] = useState(0);
   const [discount, setDiscount] = useState(0);
   const index = "";
-
+console.log(coupons)
   const URI = "http://localhost:5000";
   const navigate = useNavigate();
 
   const handleexit = () => {
     navigate("/paymentpage");
-    localStorage.setItem('order',JSON.stringify({orderSummarySend,address,coupon,subTotal}));
+    localStorage.setItem(
+      "order",
+      JSON.stringify({ orderSummarySend, address, coupon, subTotal })
+    );
   };
 
   const handle = (e) => {
@@ -49,7 +54,9 @@ const OrderPage = ({ handleAddAddress }) => {
     const fetchAddress = async () => {
       try {
         const response = await axios.get(`${URI}/orderpage/address`);
-        setAddresses(response.data);
+        console.log(response);
+        setAddresses(response.data.address);
+        setCoupons(response.data.coupons);
         if (response.data.length > 0) {
           setAddress(response.data[0]); // Set default address if exists
         }
@@ -67,7 +74,6 @@ const OrderPage = ({ handleAddAddress }) => {
         console.log(err);
       }
     };
-
     fetchAddress();
     fetchProductDetails();
   }, []);
@@ -93,9 +99,56 @@ const OrderPage = ({ handleAddAddress }) => {
     setTotal(parseFloat(newTotal.toFixed(2)));
     setDiscount(parseFloat(newDiscount.toFixed(2)));
   }, [orderSummary]);
-
+console.log(coupons)
   return (
-    <div className="h-screen w-screen ">
+    <div className="relative h-screen w-screen ">
+      {couponPopup && (
+        <div className="absolute inset-0 h-[50%] lg:w-[50%] xsm:w-[90%] z-50 py-4 rounded bg-gray-300 shadow-md border-gray-300 border-2 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <div className="relative xsm:w-[100%] max-h-max bg-blue-300 rounded  mx-auto mb-8">
+            <ImCross className="absolute right-2 xsm:text-xs md:text-base text-red-500 cursor-pointer" 
+            onClick={()=>{
+              setCouponPopup(false)
+            }}
+            />
+          </div>
+          {coupons?.map((coupon) => {
+            return (
+              Object.entries(coupon)[0][1] && (
+                <div className="xsm:w-[90%] max-h-max bg-gray-50 shadow-md rounded-lg mx-auto flex justify-between items-center overflow-hidden p-3 mt-3 md:text-lg xsm:text-sm transition-transform duration-150 hover:scale-105">
+                  {/* Coupon Details */}
+                  <div className="flex flex-col items-start font-semibold">
+                    <div className="flex items-center space-x-2">
+                      <BiSolidOffer className="text-yellow-500 h-6 w-6" />
+                      <span className="text-gray-700">
+                        {String(Object.entries(coupon)[0][0]).toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="text-green-700 mt-1 text-sm md:text-lg">
+                      25% Off on this order
+                    </p>
+                  </div>
+
+                  {/* Apply Button */}
+                  <button
+                    className="px-4 py-2 bg-orange-100 text-orange-500 font-semibold rounded-lg hover:bg-orange-200 transition-colors duration-150 md:text-base xsm:text-sm"
+                    onClick={() => {
+                      if (
+                        String(Object.entries(coupon)[0][0]).toLowerCase() ===
+                        "trynew"
+                      ) {
+                        setCoupon({ trynew: 25 });
+                        setCouponPopup(false);
+                      }
+                    }}
+                  >
+                    Apply
+                  </button>
+                </div>
+              )
+            );
+          })}
+        </div>
+      )}
       <Header />
 
       <main className="relative h-[85%] max-w-full overflow-y-auto scrollbar-hidden md:px-8 xsm:px-4">
@@ -188,7 +241,7 @@ const OrderPage = ({ handleAddAddress }) => {
         )}
 
         {addressOpen && addresses && addresses.length > 0 ? (
-          <div className="max-h-max lg:w-[90%] xsm:w-full xsm:p-2 rounded border-2 border-gray-400 lg:px-8 lg:py-4">
+          <div className="max-h-max lg:w-[90%] xsm:w-full xsm:p-2 hover:shadow-md cursor-pointer rounded border-2 border-gray-400 lg:px-8 lg:py-4">
             <div className="flex justify-between words-break">
               <h1 className="font-semibold text-lg my-2 text-blue-500">
                 Delivery Address
@@ -231,18 +284,6 @@ const OrderPage = ({ handleAddAddress }) => {
 
         {addressOpen ? "" : <hr />}
 
-        <div className="h-16 mt-4 lg:w-[90%] xsm:w-full border-2 border-gray-300 rounded flex items-center">
-          <BiSolidOffer className="h-[75%] w-[25%]  text-green-800" />
-          <div className="w-[60%]">
-            <div>Welcome Coupon....</div>
-            <div className="text-sm underline flex items-center">
-              3 coupons available <MdOutlineKeyboardArrowRight />
-            </div>
-          </div>
-          <div className="w-[20%]">
-            <button>Apply</button>
-          </div>
-        </div>
         <div>
           <div
             id="ordersummary"
@@ -290,20 +331,20 @@ const OrderPage = ({ handleAddAddress }) => {
 
                             {/* Product Details */}
                             <td className="p-2">
-                              <div className="font-semibold text-sm break-words">
+                              <div className="font-semibold  md:text-base xsm:text-sm  break-words">
                                 {product.name.length > 30
                                   ? `${product.name.substring(0, 30)}...`
                                   : product.name}
                               </div>
                               {product.offer > 0 && (
-                                <p className="text-xs text-red-600 mt-1 flex items-center">
+                                <p className=" md:text-base xsm:text-sm  text-red-600 mt-1 flex items-center">
                                   {product.offer}% Off
                                 </p>
                               )}
                             </td>
 
                             {/* Quantity - Left aligned */}
-                            <td className="p-2 text-left text-gray-500 text-xs">
+                            <td className="p-2 text-left text-gray-500  md:text-base xsm:text-sm ">
                               Qty {p.count}
                             </td>
 
@@ -312,14 +353,14 @@ const OrderPage = ({ handleAddAddress }) => {
                               <p
                                 className={`${
                                   product.offer > 0
-                                    ? "line-through text-xs"
-                                    : ""
+                                    ? "line-through  md:text-sm xsm:text-xs "
+                                    : " md:text-base xsm:text-sm "
                                 }`}
                               >
                                 ₹{(product.price * p.count).toFixed(2)}
                               </p>
                               {product.offer > 0 && (
-                                <div className="font-semibold text-xs text-green-800 mt-1">
+                                <div className="font-semibold  md:text-base xsm:text-sm  text-green-800 mt-1">
                                   ₹
                                   {(
                                     product.price * p.count -
@@ -347,29 +388,81 @@ const OrderPage = ({ handleAddAddress }) => {
 
             {/* Summary Section */}
             <div className="max-h-max w-full lg:w-full lg:col-start-3 lg:col-span-1 ">
-              <div className="max-h-max max-w-max shadow-md rounded ml-auto p-8 lg:mt-8">
-                <div className="w-full p-4 h-12 flex gap-4 items-center justify-end">
-                  <p className="text-base">
+              {coupons.length > 0 && (
+                <div
+                  onClick={() => {
+                    setCouponPopup(true);
+                  }}
+                  className="h-16 mt-4 mb-8 ml-auto cursor-pointer hover:shadow-md lg:w-[90%] xsm:w-full border-2 border-gray-300 rounded flex items-center"
+                >
+                  <BiSolidOffer className="h-[75%] w-[25%]  text-green-800" />
+                  <div className="w-[60%]">
+                    <div className="md:text-base xsm:text-xs">
+                      {coupon
+                        ? Object.entries(coupon)[0][0].toUpperCase()
+                        : "Apply Coupon"}
+                    </div>
+                    {coupons.length > 1 && (
+                      <div className="text-sm underline flex items-center">
+                        {coupons.length} coupons available{" "}
+                        <MdOutlineKeyboardArrowRight />
+                      </div>
+                    )}
+                  </div>
+                  {coupon && (
+                    <div className="w-[20%]">
+                      <button
+                        className={`md:text-base xsm:text-xs font-semibold text-red-500 `}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCoupon();
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="max-h-max max-w-max shadow-md rounded ml-auto lg:mt-8">
+                <div className="w-full p-4 h-12 flex gap-20 items-center justify-between">
+                  <p className="md:text-base xsm:text-sm ">
                     Price({orderSummary.length}{" "}
                     {orderSummary.length > 1 ? " items" : " item"})
                   </p>
-                  <p className="text-base"> {total}</p>
+                  <p className="md:text-base xsm:text-sm "> ₹ {total.toFixed(2)} /-</p>
                 </div>
-                <div className="w-full p-4 h-12 flex gap-4 items-center justify-end">
-                  <p className="text-base">Delivery Charge</p>
-                  <p className="text-base"> free</p>
+                <div className="w-full p-4 h-12 flex gap-4 items-center justify-between">
+                  <p className="md:text-base xsm:text-sm ">Delivery Charge</p>
+                  <p className="md:text-base xsm:text-sm "> free</p>
                 </div>
                 {discount > 0 ? (
-                  <div className="w-full p-4 h-12 flex gap-4 items-center justify-end">
-                    <p className="text-base">Discount</p>
-                    <p className="text-base">{discount}</p>
+                  <div className="w-full p-4 h-12 flex gap-4 items-center justify-between">
+                    <p className="md:text-base xsm:text-sm ">Discount</p>
+                    <p className="md:text-base xsm:text-sm ">₹ {discount?.toFixed(2)} /-</p>
                   </div>
                 ) : (
                   ""
                 )}
-                <div className="w-full p-4 h-12 flex gap-4 items-center justify-end">
-                  <p className="font-bold text-lg">Total</p>
-                  <p className="font-bold text-lg"> {subTotal}</p>
+                <div className="w-full p-4 h-12 flex gap-4 items-center justify-between">
+                  <p className="font-bold md:text-lg xsm:text-xl">Total</p>
+                  <div>
+                    <p
+                      className={`font-bold  flex justify-end ${
+                        coupon && "line-through xsm:text-sm md:text-base"
+                      }`}
+                    >
+                      {" "}
+                      ₹ {(subTotal)?.toFixed(2)} /-
+                    </p>
+                    {coupon && (
+                      <p className="font-bold md:text-lg xsm:text-xl">
+                        {" "}
+                        ₹ {((subTotal * Object.values(coupon)[0]) / 100)?.toFixed(2)} /-
+                      </p>
+                    )}
+                  </div>
                 </div>
                 {isOrderSummary ? "" : <hr />}
               </div>
@@ -378,7 +471,7 @@ const OrderPage = ({ handleAddAddress }) => {
                   className="max-w-max aspect-[4/1] border-2 border-gray-300 bg-orange-500 rounded text-white p-4"
                   onClick={handleexit}
                 >
-                  Continue
+                  Continue to pay
                 </button>
               </div>
             </div>

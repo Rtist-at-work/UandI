@@ -14,6 +14,7 @@ import ProductPage from "./ProductPage";
 import StylesPage from "./StylesPage";
 
 
+
 const Container = ({ handleMenuBarToggle, isSidebarOpen }) => {
   const URI = "http://localhost:5000";
 
@@ -26,14 +27,14 @@ const Container = ({ handleMenuBarToggle, isSidebarOpen }) => {
   const [categoryList,setCategoryList] = useState([]);
   const [productList,setProductList] = useState([]);
 
-  useEffect(()=>{
-    const cl = localStorage.getItem('categoryList');
-    const pl = localStorage.getItem('productList');
-    console.log(JSON.parse(pl));
-    const cat = JSON.parse(cl)
-    setCategoryList(cat)
-    setProductList(JSON.parse(pl))
-     },[]);
+  // useEffect(()=>{
+  //   const cl = localStorage.getItem('categoryList');
+  //   const pl = localStorage.getItem('productList');
+  //   console.log(JSON.parse(pl));
+  //   const cat = JSON.parse(cl)
+  //   setCategoryList(cat)
+  //   setProductList(JSON.parse(pl))
+  //    },[]);
   
 
   // const handleStyles = (e) => {
@@ -61,6 +62,8 @@ const Container = ({ handleMenuBarToggle, isSidebarOpen }) => {
     navigate(`/admin/editproducts/?editId=${p}`);
     // setEditId(p);
   };
+
+  
 
   return (
     <div className="h-full w-full flex p-4 gap-4 ">

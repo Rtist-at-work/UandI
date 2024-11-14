@@ -1,27 +1,53 @@
+const mongoose = require('mongoose');
+const { GridFSBucket } = require('mongodb');
 const multer = require('multer');
+const { GridFsStorage } = require('multer-gridfs-storage');
 const path = require('path');
+require('dotenv').config(); 
 
-const storage = multer.memoryStorage();
+// Reuse or create MongoDB connection
+let conn;
+if (!conn) {
+  conn = mongoose.createConnection(process.env.URL, {
+    maxPoolSize: 10 // You can keep this option for connection pooling if needed
+  });
+}
 
-// Set up the multer upload with file filter to accept only specific file types
-const upload = multer({
-    storage: storage,
-    fileFilter: (req, file, callback) => {
-        // Define allowed file types
-        const fileType = /jpeg|jpg|png|webp/;
-        const mimeType = fileType.test(file.mimetype);
-        const extname = fileType.test(path.extname(file.originalname).toLowerCase());
-
-        // Check file types, reject if not proper format
-        if (mimeType && extname) {
-            callback(null, true);
-        } else {
-            callback(new Error('Give proper file format to upload'));
-        }
-    },
-    limits: { fileSize: 1024 * 1024 * 5 } // Limit file size to 5MB
+let gfs;
+conn.once('open', () => {
+  gfs = require('gridfs-stream')(conn.db, mongoose.mongo);
+  gfs.collection('uploads');
 });
 
-//lfenjlfndojv
+const storage = new GridFsStorage({
+  url: process.env.URL,
+  file: (req, file) => {
+    console.log(file)
+    const filename = `${Date.now()}-${file.originalname}`;
+    const metadata = req.body[`metadata[${file.fieldname}]`] || null;
 
+    return {
+      filename: filename,
+      bucketName: 'uploads',
+      metadata: { description: metadata },
+    };
+  }
+});
+
+// Set up multer with GridFS storage and file size limit
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, callback) => {
+    const fileType = /jpeg|jpg|png|webp/;
+    const mimeType = fileType.test(file.mimetype);
+    const extname = fileType.test(path.extname(file.originalname).toLowerCase());
+
+    if (mimeType && extname) {
+      callback(null, true);
+    } else {
+      callback(new Error('Invalid file format!'));
+    }
+  },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB file size limit
+});
 module.exports = upload;

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const mainBannerSchema = new mongoose.Schema({
-    images: [String]
+    images: [[String]]
 });
 
 const bannersSchema = mongoose.model('Banner', mainBannerSchema);

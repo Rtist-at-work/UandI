@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
-const Login = ({handleCart,handleWhishlist}) => {
+const Login = ({handleCart}) => {
   axios.defaults.withCredentials = true;
 
   const [emailOrMobile, setEmailOrMobile] = useState('');
@@ -12,8 +12,10 @@ const Login = ({handleCart,handleWhishlist}) => {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const {productDetails,selectedSize,navigation} = location.state || {}  ;
-
+  const params = new URLSearchParams(location.search);
+  const categorynav = params.get('categorynav');
+  const stylenav = params.get('stylenav');
+  const navigation = params.get('pagetype');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,14 +32,13 @@ const Login = ({handleCart,handleWhishlist}) => {
   
       if (res.status===200 || res.status===201) {
         if(navigation==="cart"){
+
           alert(res.data.message); 
           handleCart(e,productDetails,selectedSize)
         }
-        else if(navigation==="whishlist"){
+        else if(navigation==="productpage"){
           alert(res.data.message); 
-          handleWhishlist(productDetails)
-          navigate('/productDetails',{state:{product:productDetails}})
-          
+          navigate(`/productpage?categorynav=${categorynav}&stylenav=${stylenav}`);     
         }
         else{
           alert(res.data.message); 

@@ -24,6 +24,7 @@ router.post('/', async (req, res) => {
         if (!id) {
             return res.status(401).json({ status: false, message: "User not found. Please login to place order" });
         }
+       
 
         const user = await User.findById(id);
         if (!user) {
@@ -31,6 +32,16 @@ router.post('/', async (req, res) => {
         }
 
         const { orderId, deliveryAddress, orderSummary, coupon, subTotal,paymentMethod } = req.body;
+       // Collect all product IDs from orderSummary
+        const productIds = orderSummary.map(order => order.product);
+
+        // Use updateMany to increment SalesPoints by 1 for each product in the list
+        await product.updateMany(
+        { id: { $in: productIds } },  // Match products with the IDs in productIds
+        { $inc: { SalesPoints: 1 } }    // Increment SalesPoints by 1
+        );
+
+        
 
         if (!deliveryAddress || !Array.isArray(orderSummary) || orderSummary.length === 0) {
             return res.status(400).json({ status: false, message: "Invalid order data" });
@@ -62,7 +73,7 @@ router.post('/', async (req, res) => {
             price: subTotal,
             paymentMethod: paymentMethod,
             deliveryaddress: deliveryAddress,
-            coupon: coupon || '',
+            // coupon: coupon || '',
             orderDate: Date.now(),
             status: "order placed"
         });
@@ -70,6 +81,7 @@ router.post('/', async (req, res) => {
 
         // // Clear user's cart products
         user.cartProducts = []; // Assuming cartProducts is an array
+        
 
         await user.save(); // Save the user instance
 
@@ -136,9 +148,7 @@ router.get('/orderDetails',async(req,res)=>{
                 productDetail.product = products.find(
                     (prod) => prod.id.toString()=== productDetail.product// Use toString() for comparison
                 );
-
-                return productDetail;
-                
+                return productDetail;                
             });
             
             order.productDetails = productDetails;
@@ -148,8 +158,6 @@ router.get('/orderDetails',async(req,res)=>{
             const filteredOrder = orders.find((order)=>(order.orderId===orderId));
             return res.status(200).json({ status: true, filteredOrder });
         }
-        const pd = orders.flatMap(order=>order.productDetails)
-        console.log(pd);
         // Send the response with orders or further processing
         return res.status(200).json({ status: true, orders });
     

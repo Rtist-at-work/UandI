@@ -20,7 +20,7 @@ const ProductPage = () => {
           URI + `/productList/?stylenav=${stylenav}`
         );
         if (response.status === 200 || response.status === 201) {
-          setFilteredProduct(response.data);
+          setFilteredProduct(response.data.products);
         }
       } catch (err) {
         console.log(err);
@@ -58,7 +58,7 @@ const ProductPage = () => {
                       id={product.id}
                       className="absolute right-0 top-0 h-8 w-[15%] bg-white text-gray-500 cursor-pointer"
                       onClick={() => {
-                        navigate(`/admin/editproducts`, { state: { product } });
+                        navigate(`/admin/editproducts/?id=${product.id}`,);
                       }}
                     />
                     {product.images.length > 0 ? (

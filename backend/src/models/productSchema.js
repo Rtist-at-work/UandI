@@ -15,6 +15,11 @@ const review = new mongoose.Schema({
         default : 0
     }
 })
+
+// const productImages = new mongoose.Schema({
+//     images: [String],
+//     colors: [String]
+// });
 const productSchema = new mongoose.Schema({
     id: {
         type: String,
@@ -50,20 +55,13 @@ const productSchema = new mongoose.Schema({
     description: {
         type: String
     },
-    images: [String],
-    colors : Object,
+    images : [Array],
     review : review,
-
-    reviewPoints : {
+    SalesPoints : {
         type : Number,
         default : 0,
         saprse:true
     },
-    totalPoints : {
-        type : Number,
-        default : 0,
-        saprse:true
-    }
 });
 
 const productForm = mongoose.model('products', productSchema);

@@ -11,7 +11,6 @@ const Orderlist = () => {
   const [socketInstance, setSocketInstance] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("orderPlaced"); // Default status
   const navigate = useNavigate();
-
   useEffect(() => {
     const socketInstance = io(URI, {
       withCredentials: true,
@@ -40,8 +39,9 @@ const Orderlist = () => {
       console.log(response);
       setOrders(response.data.orders); // Assuming response.data contains the orders
       const filtered = response.data.orders.filter(
-        (order) => order.status === "orderplaced"
+        (order) => order.status === "orderplaced" || order.status === "orderPlaced"
       );
+      
       console.log(filtered)
       setFilteredOrders(filtered);
     } catch (err) {
@@ -88,19 +88,18 @@ const Orderlist = () => {
       console.log("Error in handleStatusChange:", err);
     }
   };
-  console.log(filteredOrders);
 
   return (
     <div className="absolute h-[90%] w-full bg-white-800 rounded-md shadow-md">
       <main className="p-1 overflow-y-auto xsm:h-[95%] md:h-full w-full scrollbar-hidden">
-        <div className="h-[10%] w-full bg-pink-300 flex gap-4 overflow-x-auto items-center justify-around p-2 ">
+        <div className="max-h-max w-full bg-pink-300 flex gap-4 overflow-x-auto items-center justify-around p-2 ">
           <div
             className={`max-h-max w-auto text-sm lg:w-[15%] hover:shadow-md rounded-s-full rounded-e-full cursor-pointer hover:bg-blue-500 hover:text-white  ${
               selectedStatus === "orderPlaced"
                 ? "bg-blue-500 text-white"
                 : " bg-gray-300 text-gray-700"
             } font-semibold flex-shrink-0 px-4 py-2 flex items-center justify-center whitespace-nowrap`}
-            onClick={() => filterOrdersByStatus("orderPlaced")}
+            onClick={() => filterOrdersByStatus("orderplaced")}
           >
             Order Placed
           </div>
@@ -189,7 +188,7 @@ const Orderlist = () => {
                         {order.product.map((product, idx) => (
                           <div key={idx} className="mb-1 truncate">
                             <span className="font-semibold">
-                              {product.product.name}
+                              {product.product.name||"Details not available"}
                             </span><br></br>
                             <span className="text-xs text-gray-500">
                             [{product.selectedSize},color]

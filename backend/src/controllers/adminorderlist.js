@@ -12,16 +12,17 @@ router.get('/', async (req, res) => {
         if (orders) {
             if (orders) {
                 const updatedOrders = await Promise.all(orders.map(async (order) => {
-            
-                    const updatedProducts = await Promise.all(order.product.map(async (productId, index) => {
-                        const pro = await products.findOne({ id: productId.product });
+                    const updatedProducts = await Promise.all(order.product.map(async (productId, index) =>{
+                        console.log(productId.product)
+                        const pro = await products.findOne({ id:productId.product });
                         if (pro) {
+                            console.log(pro.id)
                             order.product[index].product = pro;
                         }
                         return order.product[index];
                     }));
  
-                    return { ...order.toObject(), product: updatedProducts };
+                    return{...order.toObject(), product: updatedProducts };
                 }));
             
                 return res.json({ status: true, message: "Order list successfully fetched", orders: updatedOrders });

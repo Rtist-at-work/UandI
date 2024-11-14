@@ -8,8 +8,10 @@ router.get('/', async (req, res) => {
         const products = await productForm.find();
         const users = await user.find();
         const productId = req.query.productDetails;
+        const stylenav = req.query.stylenav;
         let reviews = [];
 
+       
         products.map((product) => {
             let count = 0;
 
@@ -59,12 +61,15 @@ router.get('/', async (req, res) => {
                 product.review.stars = total / count;
             }
         });
+        if(stylenav){
+            const pro = products.filter((product)=>product.style===stylenav)
+            return res.json({products:pro})
+        }
 
         // If productId exists, return that product and its reviews, else return all products
         if (productId) {
             const filteredProduct = products.find(p => p.id === productId);
-            console.log(reviews)
-            return res.json({ product: filteredProduct, reviews });
+            return res.json({ product: filteredProduct, reviews,otherProducts:products.slice(0,7) });
         }
 
         return res.json(products);

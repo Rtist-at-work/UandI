@@ -4,7 +4,6 @@ require('dotenv').config();
 
 const connect = ()=>{
     const url = process.env.URL;
-    console.log(url)
     try{
         mongoose.connect(url);
     }

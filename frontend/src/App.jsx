@@ -19,6 +19,8 @@ import DeliveryAddress from "./client/DeliveryAddress";
 import Whishlist from "./client/Whishlist";
 import UserOrders from "./client/UserOrders";
 import OrderTracking from "./client/OrderTracking";
+import ApparelColorPicker from "./client/ColorPicker"
+
 const URI = "http://localhost:5000";
 
 function App() {
@@ -66,7 +68,7 @@ function App() {
   }, []);
 
   const handleMenuBarToggle = () => {
-    console.log("ok")
+    console.log("ok");
     setIsSidebarOpen(!isSidebarOpen);
   };
 
@@ -75,30 +77,6 @@ function App() {
       navigate(`/addressform/?pageType=${pageType}`);
     } else {
       navigate(`/addressform/?index=${index}&pageType=${pageType}`);
-    }
-  };
-
-  const handleWhishlist = async (productDetails) => {
-    const product = { productId: productDetails.id };
-    console.log(product);
-    try {
-      const response = await axios.post(`${URI}/auth/whishlist`, product);
-      if (response.status === 200 || response.status === 201) {
-        alert("product successfully added to wishlist");
-      } else if (response.status(400)) alert(response.data.message);
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-        navigate("/login", {
-          state: { productDetails, selectedSize: "", navigation: "whishlist" },
-        });
-      } else if (error.response && error.response.status === 404) {
-        alert(error.response.data.message);
-        navigate("/login", {
-          state: { productDetails, selectedSize: "", navigation: "whishlist" },
-        });
-      } else {
-        console.error("An unexpected error occurred:", error);
-      }
     }
   };
 
@@ -114,7 +92,14 @@ function App() {
   //     console.log(err);
   //   }
   // };
-  const handleCart = (e, productDetails, selectedSize, selectedColor, count) => {
+
+  const handleCart = (
+    e,
+    productDetails,
+    selectedSize,
+    selectedColor,
+    count
+  ) => {
     if (e && e.target) {
       if (e.target.id === "plus") {
         count = count + 1;
@@ -132,7 +117,7 @@ function App() {
         productDetails: productDetails.id,
         count: count,
         selectedSize: selectedSize,
-        selectedColor:selectedColor
+        selectedColor: selectedColor,
       };
 
       const addCart = async () => {
@@ -144,7 +129,8 @@ function App() {
             config
           );
           if (response.status === 200 || response.status === 201) {
-            navigate("/cart");
+            if (e.target.id === "buy") navigate("/cart");
+            else alert("product added to cart successfully");
           }
         } catch (error) {
           if (axios.isAxiosError(error)) {
@@ -201,15 +187,9 @@ function App() {
             }
           />
           <Route path="/signup" element={<Signup />} />
-          <Route
-            path="/login"
-            element={
-              <Login
-                handleCart={handleCart}
-                handleWhishlist={handleWhishlist}
-              />
-            }
-          />
+          <Route path="/login" element={<Login handleCart={handleCart} />} />
+          <Route path="/color" element={<ApparelColorPicker />} />
+
           <Route path="/forgotpassword" element={<Forgotpassword />} />
           <Route
             path="/auth/resetpassword/:token"
@@ -218,7 +198,11 @@ function App() {
           <Route
             path="/"
             element={
-              <Homepage categoryList={categoryList} stylenav={stylenav} />
+              <Homepage
+                categoryList={categoryList}
+                stylenav={stylenav}
+                handleCart={handleCart}
+              />
             }
           />
           <Route
@@ -229,6 +213,7 @@ function App() {
                 stylenav={stylenav}
                 categorynav={categorynav}
                 filteredProduct={filteredProduct}
+                // handleWhishlist={handleWhishlist}
               />
             }
           />
@@ -237,7 +222,7 @@ function App() {
             element={
               <ProductDetails
                 handleCart={handleCart}
-                handleWhishlist={handleWhishlist}
+
                 // countop={countop}
                 // count={count}
               />
@@ -256,9 +241,8 @@ function App() {
             path="/deliveryaddress"
             element={<DeliveryAddress handleAddAddress={handleAddAddress} />}
           />
-          <Route path="/userorders" element={<UserOrders />}/> 
-          <Route path="/ordertracking/:orderId" element={<OrderTracking />}/> 
-
+          <Route path="/userorders" element={<UserOrders />} />
+          <Route path="/ordertracking/:orderId" element={<OrderTracking />} />
         </Routes>
       </div>
     </>

@@ -10,16 +10,22 @@ import axios from "axios";
 import { FaStar } from "react-icons/fa6";
 import Header from "./Header";
 import { FaRegStarHalfStroke } from "react-icons/fa6";
+import { useNavigate } from "react-router-dom";
+import { useRef } from "react";
 
-const ProductDetails = ({ handleCart, handleWhishlist }) => {
+const ProductDetails = ({ handleCart }) => {
   const [index, setIndex] = useState(0);
-  const [isDescription, setIsDescription] = useState(false);
-  const [isProductDetails, setIsProductDetails] = useState(false);
-  const [isReturnPolicy, setIsReturnPolicy] = useState(false);
+  // const [isDescription, setIsDescription] = useState(false);
+  // const [isProductDetails, setIsProductDetails] = useState(false);
+  // const [isReturnPolicy, setIsReturnPolicy] = useState(false);
   const [selectedSize, setSelectedSize] = useState();
   const [selectedColor, setSelectedColor] = useState();
   const [productDetails, setProductDetails] = useState(null); // To store product details
+  const [otherProducts, setOtherProducts] = useState([]);
   const [review, setReview] = useState([]); // To store product details
+  const containerRef = useRef(null);
+
+  const navigate = useNavigate();
   const URI = "http://localhost:5000";
 
   // Call useLocation at the top level of the component
@@ -39,7 +45,12 @@ const ProductDetails = ({ handleCart, handleWhishlist }) => {
             productDetails: productId,
           },
         });
-        console.log(response);
+        setOtherProducts(() => {
+          const op = response.data.otherProducts.filter(
+            (product) => product != response.data.product
+          );
+          return op;
+        });
         setProductDetails(response.data.product); // Assuming your API returns product details
         setReview(response.data.reviews);
       } catch (err) {
@@ -52,28 +63,40 @@ const ProductDetails = ({ handleCart, handleWhishlist }) => {
     }
   }, [productId]); // Include productId as a dependency for useEffect
 
-  const toggleAnswer = (e) => {
-    const { id } = e.target;
-    console.log(id);
-    if (id === "description") setIsDescription(!isDescription);
-    if (id === "productdetails") setIsProductDetails(!isProductDetails);
-    if (id === "returnpolicy") setIsReturnPolicy(!isReturnPolicy);
-  };
+  // const toggleAnswer = (e) => {
+  //   const { id } = e.target;
+  //   console.log(id);
+  //   if (id === "description") setIsDescription(!isDescription);
+  //   if (id === "productdetails") setIsProductDetails(!isProductDetails);
+  //   if (id === "returnpolicy") setIsReturnPolicy(!isReturnPolicy);
+  // };
 
   return (
-    <div className="h-screen w-screen overflow-auto scrollbar-hidden">
+    <div
+      className="h-screen w-screen overflow-auto scrollbar-hidden"
+      ref={containerRef}
+    >
       <Header />
-      <main className="md:max-h-max md:min-h-full w-full md:grid md:grid-cols-2">
+      <main className="md:max-h-max md:min-h-full w-full md:grid md:grid-cols-2 ">
         {/* Product Image */}
         <div className="md:h-full md:col-start-1 md:col-span-1  flex flex-col gap-4 mt-4">
           {productDetails &&
           productDetails.images &&
           productDetails.images.length > 0 ? (
-            <img
-              src={`data:image/png;base64,${productDetails.images[index]}`}
-              className="md:w-[60%] xsm:w-[90%] aspect-[1/1] mx-auto object-cover rounded-md shadow-lg"
-              alt="Product"
-            />
+            <div className="relative">
+              {/* Product Image */}
+              <img
+                src={`data:image/png;base64,${productDetails.images[index]}`}
+                alt="Product"
+                className="md:w-[60%] xsm:w-[90%] aspect-[1/1] mx-auto object-cover rounded-md shadow-lg"
+              />
+
+              {/* Color Overlay */}
+              <div
+                className="absolute inset-0 bg-[selectedColor]"
+                style={{ mixBlendMode: "multiply" }}
+              />
+            </div>
           ) : (
             <p className="text-center text-red-500">Image not available</p>
           )}
@@ -97,20 +120,21 @@ const ProductDetails = ({ handleCart, handleWhishlist }) => {
         </div>
 
         {/* Product Details */}
-        <div className="h-full w-full flex flex-col gap-2 p-4 bg-white rounded-md mt-4">
+        <div className="h-full w-full flex flex-col gap-2 p-4 bg-white rounded-md mt-4 mb-8">
           <div className="flex-grow min-h-24 flex flexwrap mt-4 flex-col gap-4  ">
-            <p className="xsm:text-xl sm:text-3xl  font-semibold">
-              {productDetails && productDetails.name.length > 30
+            <p className="xsm:text-xl sm:text-4xl leading-loose font-semibold text-customRed font-fredoka">
+              {productDetails?.name}
+              {/* {productDetails && productDetails.name.length > 30
                 ? `${productDetails.name.slice(0, 30)}...`
                 : productDetails
                 ? productDetails.name
-                : "Unknown"}
+                : "Unknown"} */}
             </p>
             <div className="flex gap-2 items-center">
               {productDetails && (
                 <>
                   {productDetails && productDetails.offer > 0 && (
-                    <p className="xsm:text-base sm:text-xl font-semibold">
+                    <p className="xsm:text-base sm:text-xl font-semibold text-customRed">
                       {`₹${(
                         productDetails.price -
                         (productDetails.price / 100) * productDetails.offer
@@ -195,20 +219,21 @@ const ProductDetails = ({ handleCart, handleWhishlist }) => {
               )}
             </div>
             <h4 className="my-4">colors</h4>
-            <div className="flex flex-wrap gap-2 max-h-max w-full">
+            <div className="flex flex-wrap gap-2 max-h-max w-full cursor-pointer">
               {productDetails ? (
                 productDetails.colors.map((color, index) => {
-                  const colorname = Object.keys(color)[0]; // Get the first key, e.g., 'blue'
-                  const base64Image = color[colorname]; // Access the Base64 string using the color name
+                  const colorname = color.color; // Get the first key, e.g., 'blue'
+                  const base64Image = color.image; // Access the Base64 string using the color name
 
                   return (
                     <img
-                    className={`h-16 aspect-[1/1] border-2 rounded ${
-                      selectedColor === colorname ? "border-blue-500" : " border-gray-300"
-                    }`}
-                      onClick={
-                        ()=>{
-                          setSelectedColor(colorname);
+                      className={`h-16 aspect-[1/1] border-2 rounded ${
+                        selectedColor === colorname
+                          ? "border-black"
+                          : " border-gray-300"
+                      }`}
+                      onClick={() => {
+                        setSelectedColor(colorname);
                       }}
                       key={index} // Added key for each image element
                       src={`data:image/png;base64,${base64Image}`} // Use the Base64 string for the image source
@@ -226,19 +251,19 @@ const ProductDetails = ({ handleCart, handleWhishlist }) => {
                 id="addcart"
                 className="h-12 w-full flex items-center justify-center bg-gray-400 text-white rounded-md hover:bg-gray-500 transition-colors duration-300"
                 onClick={(e) => {
-                  handleCart(e, productDetails, selectedSize,selectedColor);
+                  handleCart(e, productDetails, selectedSize, selectedColor);
                 }}
               >
                 ADD TO CART
               </button>
               <button
-                id="addwishlist"
+                id="buy"
                 className="h-12 w-full flex items-center justify-center bg-gray-400 text-white rounded-md hover:bg-gray-500 transition-colors duration-300"
-                onClick={() => {
-                  handleWhishlist(productDetails);
+                onClick={(e) => {
+                  handleCart(e, productDetails, selectedSize, selectedColor);
                 }}
               >
-                ADD TO WISHLIST
+                BUY NOW
               </button>
             </div>
             <div className="mt-4 rounded-md shadow-sm">
@@ -262,15 +287,104 @@ const ProductDetails = ({ handleCart, handleWhishlist }) => {
             </div>
           </div>
         </div>
+        <h2 className="text-lg font-semibold ">You may like this also</h2>
 
         {/* Other Products */}
-        <div className="w-full md:aspect-[3/1] aspect-[4/3] mt-8 md:col-start-1 md:col-span-2 p-4 bg-pink-200 rounded-md shadow-md">
-          <h2 className="text-lg font-semibold">You may like this also</h2>
-          <div className="h-full aspect-[1/2] bg-red-300 p-2 mt-4">
-            <div className="h-[50%] w-full bg-blue-300"></div>
-            <div className="h-[35%] w-full bg-pink-300"></div>
-            <div className="h-[15%] w-full bg-yellow-300"></div>
-          </div>
+        <div className="w-full md:max-h-max overflow-x-auto scrollbar-hidden mt-2 md:col-start-1 flex gap-2  justify-around md:col-span-2 p-4 rounded-md shadow-md">
+          {otherProducts &&
+            otherProducts.map((product, index) => (
+              <div
+                className="md:h-96 xsm-h-64  xsm:w-32 md:w-48 bg-gray-100 rounded p-2 flex flex-col flex-shrink-0 "
+                onClick={() => {
+                  setIndex(0);
+                  navigate(`/productDetails?id=${product.id}`);
+                  if (containerRef.current) {
+                    containerRef.current.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    });
+                  }
+                }}
+              >
+                <img
+                  key={index}
+                  src={`data:image/png;base64,${product.images[0]}`}
+                  alt="Thumbnail"
+                  className="relative w-full aspect-[1/1] rounded-md cursor-pointer border border-gray-300 shadow-md transition-transform duration-300 transform hover:scale-105"
+                  onClick={() => {
+                    setIndex(index);
+                  }}
+                />
+                <div className="max-h-max w-full flex flex-col gap-1 px-2 mt-2">
+                  <p className="line-clamp-1 sm:text-xs md:text-base font-semibold">
+                    {product.name}
+                  </p>
+                  <div className="flex  gap-2">
+                    <p className="line-clamp-1 text-xs min-w-max ">
+                      {product.sizes[0]}
+                    </p>
+                    <p className="line-clamp-1 text-xs ">
+                      {product.colors[0].color}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {product && (
+                      <>
+                        {product.offer > 0 && (
+                          <p className=" sm:text-xs md:text-base font-semibold">
+                            {`₹${(
+                              product.price -
+                              (product.price / 100) * product.offer
+                            ).toFixed(2)}/-`}
+                          </p>
+                        )}
+                        <p
+                          className={`${
+                            product.offer > 0
+                              ? "line-through text-xs text-gray-500"
+                              : "sm:text-xs md:text-base font-semibold"
+                          }`}
+                        >
+                          {product.price
+                            ? `₹${product.price}/-`
+                            : "Price Unavailable"}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  {product && product.review?.stars ? (
+                    <div className="px-2 py-1 max-w-max bg-green-700 gap-2 flex items-center gap-1 rounded">
+                      <p className="font-semibold xsm:text-xs md:text-base text-white">
+                        {product.review.stars}
+                      </p>
+                      <FaStar className="xsm:h-3 xsm:w-3 md:h-2 xsm:w-2 text-white xsm:text-xs md:text-base" />
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 md:text-base xsm:text-xs">
+                      no reviews
+                    </div>
+                  )}
+                </div>
+                <br></br>
+                <div className="mt-auto w-full ">
+                  <button
+                    id="addcart"
+                    className="h-12 w-full xsm:text-xs md:text-base mx-auto flex items-center justify-center bg-gray-400 text-white rounded-md hover:bg-gray-500 transition-colors duration-300"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCart(
+                        e,
+                        product,
+                        product.sizes[0],
+                        product.colors[0].color
+                      );
+                    }}
+                  >
+                    ADD TO CART
+                  </button>
+                </div>
+              </div>
+            ))}
         </div>
 
         {/* Reviews */}

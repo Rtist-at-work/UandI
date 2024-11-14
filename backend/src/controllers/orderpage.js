@@ -18,7 +18,7 @@ router.get('/address',async(req,res)=>{
        
         const user = await usermodel.findById(id);
         if(user){ 
-            return res.json(user.addresses);            
+            return res.json({address : user.addresses,coupons : user.coupons});            
         }
     }
     catch(err){

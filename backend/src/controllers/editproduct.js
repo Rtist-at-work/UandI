@@ -1,20 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
 const productForm = require('../models/productSchema');
 
-const storage = multer.memoryStorage();
-const upload = multer();
 
-// Use multer middleware in the route
-router.put("/:id", upload.none(), async (req, res) => { // Use .none() if you don't expect files
+
+router.put("/:id", async (req, res) => { 
+    console.log("kjnfvjnv")
+
     const { id } = req.params;
-
+    // const get = req.query.get;
+    console.log(id)
+    // console.log(get)
     try {
-        const { name, price, category, description, offer, stock, sizes, style, images } = req.body;
-
-        console.log(req.body); // Check the entire req.body to debug
-        console.log(images); // Log images to see if they come through
+        const { name, price, category, description, offer, stock, sizes, style, images, colors } = req.body;
 
         await productForm.findByIdAndUpdate(id, {
             name,
@@ -25,7 +23,8 @@ router.put("/:id", upload.none(), async (req, res) => { // Use .none() if you do
             category,
             style,
             description,
-            images // Use the Base64 images directly
+            images,
+            colors
         });
 
         return res.json({ status: true, message: "Product updated successfully" });
@@ -34,6 +33,34 @@ router.put("/:id", upload.none(), async (req, res) => { // Use .none() if you do
         return res.json({ status: false, message: err.message });
     }
 });
+router.get('/getProducts',async(req,res)=>{
+    
+    const { editId } = req.query;
+    try{
+        const product = await productForm.findOne({id:editId});
+        if(product){
+            res.json({status:true,message:"product fetched successfully",product})
+        }
+    }
+    catch(err){
+        res.json({status:false,err});
+
+    }
+})
+router.delete('/deleteProducts',async(req,res)=>{
+    
+    const { editId } = req.query;
+    try{
+        const product = await productForm.deleteOne({id:editId});
+        if(product){
+            res.json({status:true,message:"product deleted successfully"})
+        }
+    }
+    catch(err){
+        res.json({status:false,err});
+
+    }
+})
 
 module.exports = router;
     

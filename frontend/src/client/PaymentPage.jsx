@@ -16,15 +16,12 @@ const PaymentPage = () => {
   const deliveryAddress = order.address;
   const subTotal = order.subTotal;
   const coupon = order.coupon;
-  console.log(order)
-
   const [OrderId, setOrderId] = useState();
   const [ispaymentMethod, setIsPaymentMethod] = useState(false);
   const [orderCounter, setOrderCounter] = useState();
   const [isSubmitting, setIsSubmitting] = useState(false); // State to track form submission
   const [paymentMethod, setPaymentMethod] = useState('');
   const [ordersToday, setOrdersToday] = useState(new Set());
-  console.log(ordersToday)
 
   // Handling the back button
   useEffect(() => {
@@ -100,11 +97,8 @@ const PaymentPage = () => {
         subTotal: subTotal,
         paymentMethod: paymentMethod,
       };
-      console.log(data)
-
 
       const response = await axios.post(`${URI}/placeOrder`, data);
-      console.log(response)
       if (response.status === 200 || response.status === 201) {
         alert(response.data.message);
         localStorage.clear()

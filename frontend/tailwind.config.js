@@ -9,6 +9,8 @@ export default {
       colors: {
         'custom-gray': '#f2f2f2', // Custom color name and hex code
         'customDark': '#182628', // Your custom color
+        'customRed': '#B85042', // Custom color similar to "text-red-200"
+        
       },
       
       margin: {

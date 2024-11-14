@@ -37,7 +37,9 @@ const PosterBanner = () => {
   // Handle image display
   const handleImageDisplay = (e) => {
     const files = Array.from(e.target.files);
-
+    let update = [...uploadedImages]
+     update = [...update,files]
+     setUploadedImages(update)
     files.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -47,7 +49,7 @@ const PosterBanner = () => {
         img.onload = () => {
           const aspectRatio = img.width / img.height;
           if (aspectRatio.toFixed(2) === (16 / 9).toFixed(2)) {
-            setUploadedImages((prevImages) => [...prevImages, file]);
+            // setUploadedImages((prevImages) => [...prevImages, file]);
             setPreviewImages((prevPreviews) => [...prevPreviews, reader.result]);
           } else {
             alert("Please upload images with a 16:9 aspect ratio.");
@@ -68,41 +70,15 @@ const PosterBanner = () => {
 
   // Handle form submission for uploaded images
   const handleFormSubmission = async () => {
-    const formdata = [];
-    const updatedImages = [...serverImages];
-  
-    // Function to read image as Base64
-    const readImageAsBase64 = (image) => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64Img = reader.result;
-          const splitImg = base64Img.split(','); // Get the base64 part after the comma
-          resolve(splitImg[1]); // Resolve with the base64 part
-        };
-        reader.onerror = (error) => reject(error);
-        reader.readAsDataURL(image);
-      });
-    };
-  
+    const formdata = new FormData()
+    const config = { headers: { "Content-Type": "multipart/form-data" } };
+    uploadedImages.forEach((i)=>formdata.append('images' , i[0]))
+
     try {
-      // Wait for all images to be processed
-      const base64Images = await Promise.all(uploadedImages.map(readImageAsBase64));
+
+      const response = await axios.post(`${URI}/banners/poster`, formdata,config);
   
-      // Update formdata and updatedImages arrays
-      base64Images.forEach((img) => {
-        formdata.push(img);
-        updatedImages.push(img);
-      });
-  
-      console.log(formdata); // Now this will contain all the base64 strings
-  
-      // Send the formdata to the server
-      const response = await axios.post(`${URI}/banners/poster`, {
-        images: formdata, // Send the base64 images array
-      });
-  
-      if (response.status === 200 || response.status === 201) {
+      if (response.status === 200 || response.status === 201){
         setUploadedImages([]);
         setPreviewImages([]);
         alert("Banner Added Successfully");
@@ -111,8 +87,7 @@ const PosterBanner = () => {
     } catch (err) {
       console.log(err);
     }
-  };
-  
+  }; 
   
 
   // Handle edit of uploaded images
@@ -163,6 +138,7 @@ const PosterBanner = () => {
       }
     }
   };
+ 
   
   
 
@@ -185,7 +161,6 @@ const PosterBanner = () => {
     }
     deleteposter();
   };
-
   return (
     <div className="w-full aspect-[16/9] mt-6">
       <div className="flex justify-between p-2 items-center">
@@ -252,8 +227,9 @@ const PosterBanner = () => {
         <div className="relative h-full w-full  flex justify-center items-center">
           {serverImages.length > 0 ? (
             <img
-              src={`data:image/png;base64,${serverImages[slideshowIndex]}`}
-              className="h-full w-full object-cover"
+            src={`data:image/png;base64,${serverImages[slideshowIndex]}`}
+
+              className="h-full w-full"
               alt="slideshow"
             />
           ) : (
@@ -279,7 +255,9 @@ const PosterBanner = () => {
           />
           <IoIosArrowForward
             className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white cursor-pointer text-3xl"
-            onClick={() => setSlideshowIndex((prev) => (prev === serverImages.length - 1 ? 0 : prev + 1))}
+            onClick={() => 
+              setSlideshowIndex((prev) => (prev === serverImages.length - 1 ? 0 : prev + 1)
+            )}
           />
         </div>
       </div>

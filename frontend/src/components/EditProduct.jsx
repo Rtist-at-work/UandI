@@ -7,6 +7,8 @@ import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const EditProduct = ({ URI }) => {
+  const colorRef = useRef(null);
+
   const uploadRef = useRef(null);
   const [name, setName] = useState("");
   const [price, setPrice] = useState();
@@ -19,38 +21,56 @@ const EditProduct = ({ URI }) => {
   const [stockStatus, setStockStatus] = useState();
   const [categoryList, setCategoryList] = useState([]);
   const [images, setImages] = useState([]);
+  const [colors, setColors] = useState([]);
   const [id, setId] = useState();
+  const pid = new URLSearchParams(useLocation().search).get("id");
+
   const navigate = useNavigate();
   const location = useLocation();
   const [editId, setProductDetails] = useState(location.state?.product);
 
   useEffect(() => {
-    setName(editId.name);
-    setPrice(editId.price);
-    setCategory(editId.category);
-    setDescription(editId.description);
-    setOffer(editId.offer);
-    setStockStatus(editId.stock);
-    setStyle(editId.style);
-    setSize(editId.sizes);
-    setImages(editId.images);
-    console.log(editId.images);
-    setId(editId._id);
-
     const getCategory = async () => {
       try {
         const response = await axios.get(`${URI}/category`);
-        console.log(response);
+        console.log("Category List Response:", response);
         if (response.status === 200 || response.status === 201) {
-          setCategoryList(response.data);
+          setCategoryList(response.data.category);
         }
       } catch (err) {
         console.log(err);
       }
     };
-    getCategory();
-  }, []);
 
+    const getProduct = async () => {
+      try {
+        console.log("Fetching product with ID:", pid);
+        const response = await axios.get(
+          `${URI}/editproducts/getProducts/?editId=${pid}`
+        );
+        if (response.status === 200 || response.status === 201) {
+          setName(response.data.product.name);
+          setPrice(response.data.product.price);
+          setCategory(response.data.product.category); // Set category here
+          setDescription(response.data.product.description);
+          setOffer(response.data.product.offer);
+          setStockStatus(response.data.product.stock);
+          setStyle(response.data.product.style);
+          setSize(response.data.product.sizes);
+          setImages(response.data.product.images);
+          setColors(response.data.product.colors);
+          
+          setId(response.data.product._id);
+        }
+      } catch (err) {
+        console.log(err);
+        alert("An error occurred, please try again later!");
+      }
+    };
+
+    // Load categories first, then the product
+    getCategory().then(getProduct);
+  }, [pid]);
   const handleChange = (e) => {
     const { id, value } = e.target;
     if (id === "name") setName(value);
@@ -59,7 +79,10 @@ const EditProduct = ({ URI }) => {
     if (id === "category") {
       setCategory(value);
     }
-    if (id === "style") setStyle(value);
+    if (id === "style") {
+      setStyle(value);
+      setSize([]);
+    }
     if (id === "description") setDescription(value);
   };
   const handleStock = (e) => {
@@ -77,49 +100,74 @@ const EditProduct = ({ URI }) => {
       setSize(filteredSize);
     }
   };
-
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(
+        `${URI}/editproducts/deleteProducts`,
+        {
+          params: { editId: pid }, // Sending editId as a query parameter
+        }
+      );
+      if (response.status === 200 || response.status === 201) {
+        alert(response.data.message);
+        navigate(`/admin/productpage/?stylenav=${style}`);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
   useEffect(() => {
-    if (category) {
+    if (category && categoryList.length > 0) {
       const filteredCategory = categoryList.filter(
-        (cat) => cat.category === category
+        (cat) => cat.category.toLowerCase().trim(" ") === category.toLowerCase().trim(" ")
       );
       setIsCategory(filteredCategory);
     }
-  }, [category]);
+  }, [category, categoryList]);
 
-  const handleButtonClick = () => {
-    uploadRef.current.click();
+  const handleButtonClick = (e) => {
+    if (e.currentTarget.id === "color") colorRef.current.click();
+    else if (e.currentTarget.id === "image") uploadRef.current.click();
   };
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
+    const isImageUpload = e.currentTarget.id === "image";
+    const isColorUpload = e.currentTarget.id === "color";
+  
     if (files.length > 0) {
       const imageUrlsPromises = files.map((file) => {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onloadend = () => {
-            const base64String = reader.result.split(",")[1]; // Get Base64 string after the comma
-            resolve(base64String); // Resolve the promise with the Base64 string
+            const base64String = reader.result.split(",")[1]; // Get Base64 without prefix
+            const colorKey = file.name.split(".")[0]; // Extract color name from filename
+            resolve({ color: colorKey, image: base64String }); // Return object with color and image
           };
-          reader.onerror = reject; // Reject the promise on error
+          reader.onerror = reject;
           if (file) {
-            reader.readAsDataURL(file); // Read the file as a data URL
+            reader.readAsDataURL(file);
           }
         });
       });
-      // Wait for all promises to resolve
+  
       Promise.all(imageUrlsPromises)
-        .then((base64Strings) => {
-          setImages((prevImages) => [...prevImages, ...base64Strings]);
-          console.log(base64Strings); // All Base64 strings
+        .then((processedImages) => {
+          if (isImageUpload) {
+            // Assuming setImages just stores plain Base64 strings
+            setImages((prevImages) => [...prevImages, ...processedImages.map(img => img.image)]);
+          } else if (isColorUpload) {
+            // For color uploads, set in desired {color, image} format
+            setColors((prevColors) => [...prevColors, ...processedImages]);
+          }
         })
         .catch((error) => {
           console.error("Error reading files:", error);
         });
     }
   };
+  
 
-  console.log(images);
   const validateForm = () => {
     if (
       !name ||
@@ -142,25 +190,24 @@ const EditProduct = ({ URI }) => {
 
     if (!validateForm()) return;
 
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("price", price);
-    formData.append("offer", offer);
-    formData.append("stock", stockStatus);
-    Array.from(size).forEach((size) => formData.append("sizes", size));
-    formData.append("category", category);
-    formData.append("style", style);
-    formData.append("description", description);
-    Array.from(images).forEach((image) => {
-      console.log(image);
-      formData.append("images", image);
-    });
-
+    const productData = {
+      name,
+      price,
+      offer,
+      stock: stockStatus,
+      sizes: size,
+      category,
+      style,
+      description,
+      images, // Send Base64 images directly in the JSON payload
+      colors
+    };
+  
     try {
-      const config = { headers: { "Content-Type": "multipart/form-data" } };
+      const config = { headers: { "Content-Type": "application/json" } };
       const response = await axios.put(
         `${URI}/editproducts/${id}`,
-        formData,
+        productData,
         config
       );
       if (response.status === 200 || response.status === 201) {
@@ -172,19 +219,35 @@ const EditProduct = ({ URI }) => {
         setCategory("");
         setDescription("");
         setImages([]);
-        alert("Product added successfully");
-        navigate(`/admin/productpage?stylenav=${editId.style}`);
+        setColors([])
+        alert("Product Edited successfully");
+        navigate(`/admin/productpage/?stylenav=${style}`);
       }
     } catch (err) {
       console.log("Error adding product:", err);
     }
   };
+  console.log(name,
+    price,
+    offer,
+    stockStatus,
+     size,
+    category,
+    style,
+    description,
+    images, // Send Base64 images directly in the JSON payload
+    colors)
   return (
     <div className="absolute  h-[90%] w-full rounded-md shadow-md">
       <div className="relative xsm:h-[95%] md:h-full w-[100%]  overflow-hidden scrollbar-hidden p-2">
         <header className="flex justify-between items-center px-4">
           <h1 className="text-xl font-bold xsm:text-base">EDIT PRODUCT</h1>
-          <button className="mr-[5%] max-w-max max-h-max px-4 p-2 bg-red-500 hover:shadow-md cursor-pointer rounded-s-full font-semibold text-white rounded-e-full">
+          <button
+            className="mr-[5%] max-w-max max-h-max px-4 p-2 bg-red-500 hover:shadow-md cursor-pointer rounded-s-full font-semibold text-white rounded-e-full"
+            onClick={() => {
+              handleDelete();
+            }}
+          >
             Delete
           </button>
         </header>
@@ -229,18 +292,19 @@ const EditProduct = ({ URI }) => {
             <select
               id="category"
               name="Category"
-              className="h-12 rounded border-2 border-gray-300 px-2 bg-blue-50 outline-blue-500"
+              className="h-12 rounded border-2 border-gray-300 px-2"
               value={category}
               onChange={handleChange}
             >
-              <option>Select category</option>
+              <option value="">Select category</option>
               {categoryList.length ? (
                 categoryList.map((category) => (
                   <option key={category._id} value={category.category}>
                     {category.category}
                   </option>
                 ))
-              ) : (
+              )
+               : (
                 <div className="h-[10%] flex items-center rounded border-gray-300 border-2 border-gray-300">
                   No categories found
                 </div>
@@ -250,66 +314,38 @@ const EditProduct = ({ URI }) => {
             <select
               id="style"
               name="style"
-              className="h-12 rounded border-2 border-gray-300 px-2 bg-blue-50 outline-blue-500"
+              className="h-12 rounded border-2 border-gray-300 px-2"
               value={style}
               onChange={handleChange}
             >
               <option>Select Style</option>
               {isCategory.length > 0 &&
-                isCategory[0].style.map((style) => {
-                  return <option key={style.key}>{style.value}</option>;
+                isCategory[0].style.map((style, index) => {
+                  return <option key={index}>{style.style}</option>;
                 })}
             </select>
             <label>SIZES</label>
             <div className="max-h-max w-full flex flex-wrap gap-4 px-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  value="6 month"
-                  checked={size.includes("6 month")}
-                  type="checkbox"
-                  onChange={(e) => {
-                    handlesize(e);
-                  }}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
-                />
-                <span className="text-sm font-medium">In Stock</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  value="12 month"
-                  checked={size.includes("12 month")}
-                  onChange={(e) => {
-                    handlesize(e);
-                  }}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
-                />
-                <span className="text-sm font-medium">In Stock</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  value="18 month"
-                  checked={size.includes("18 month")}
-                  onChange={(e) => {
-                    handlesize(e);
-                  }}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
-                />
-                <span className="text-sm font-medium">In Stock</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  value="24 month"
-                  checked={size.includes("24 month")}
-                  onChange={(e) => {
-                    handlesize(e);
-                  }}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-blue-50 outline-blue-500"
-                />
-                <span className="text-sm font-medium">In Stock</span>
-              </label>
+              {isCategory.length > 0 &&
+                isCategory[0].style.map((styl, index) => {
+                  return (
+                    styl.style === style &&
+                    styl.sizes.map((sty, ind) => (
+                      <label className="flex items-center space-x-2">
+                        <input
+                          value={sty}
+                          type="checkbox"
+                          checked={size.includes(sty)}
+                          onChange={(e) => {
+                            handlesize(e);
+                          }}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium">{sty}</span>
+                      </label>
+                    ))
+                  );
+                })}
             </div>
             <label>STOCK</label>
             <div className="max-h-max w-full flex flex-wrap gap-4 px-4">
@@ -355,11 +391,14 @@ const EditProduct = ({ URI }) => {
                 name="Image"
                 ref={uploadRef}
                 className="opacity-0 ml-hidebuttons "
-                onChange={handleImageUpload}
+                onChange={(e) => {
+                  handleImageUpload(e);
+                }}
               />
               <TbBookUpload
+                id="image"
                 className="h-[100%] w-[10%] cursor-pointer"
-                onClick={handleButtonClick}
+                onClick={(e) => handleButtonClick(e)}
               />
               <div className="flex h-[100%] w-[90%] overflow-x-auto  ">
                 {images.length > 0 ? (
@@ -373,13 +412,61 @@ const EditProduct = ({ URI }) => {
                       />
                       <MdDelete
                         className="absolute right-1 top-1 text-red-600 text-lg"
-                        onClick={() => handleDel(index)}
+                        onClick={() => {
+                          setImages(() =>
+                            images.filter((_, image) => image != index)
+                          );
+                        }}
                       />
                     </div>
                   ))
                 ) : (
                   <p>No images uploaded</p>
                 )}
+              </div>
+            </div>
+            <label htmlFor="color"> COLORS </label>
+
+            <div className="flex p-2 h-24 w-full border-2 border-blue-500 rounded bg-blue-50">
+              <input
+                type="file"
+                multiple
+                id="color"
+                name="color"
+                ref={colorRef}
+                className="opacity-0 ml-hidebuttons "
+                onChange={(e) => {
+                  handleImageUpload(e);
+                }}
+              />
+              <TbBookUpload
+                id="color"
+                className="h-[100%] w-[10%] cursor-pointer"
+                onClick={(e) => {
+                  handleButtonClick(e);
+                }}
+              />
+              <div className="flex h-[100%] w-[90%] overflow-x-auto ">
+                {colors.length > 0 &&
+                  colors.map((image, index) => (
+                    <div
+                      key={index}
+                      className=" relative h-[100%] aspect-[1/1] rounded ml-2 shrink-0 "
+                    >
+                      <img
+                        src={`data:image/png;base64,${image.image}`}
+                        className="h-full aspect-[1/1] rounded"
+                      />
+                      <MdDelete
+                        className="absolute right-1 top-1 text-red-600 text-lg"
+                        onClick={() => {
+                          setColors(() =>
+                            colors.filter((_, image) => image != index)
+                          );
+                        }}
+                      />
+                    </div>
+                  ))}
               </div>
             </div>
             <button

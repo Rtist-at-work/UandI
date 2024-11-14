@@ -80,6 +80,9 @@ const personalInfoSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
     personalInfo: personalInfoSchema, // Separate schema for personal information
     addresses: [addressSchema], // Multiple addresses
+    coupons:[Object],
+    refferal : {type:String,unique:true},
+    refferalPoints: {type:Number},
     orderHistory: { type: [orderSchema], default: [] }, // Order history
     cartProducts : [cartSchema],
     whishlist : [whishlistSchema]

@@ -27,10 +27,8 @@ const StylesPage = () => {
     const getproducts = async () => {
       try {
         const response = await axios.get(URI + "/productList");
-        console.log(response);
         if (response.status === 200 || response.status === 201) {
           setProductList(response.data);
-          console.log(response.data.images);
         }
       } catch (err) {
         console.log(err);
@@ -41,18 +39,15 @@ const StylesPage = () => {
 
     const getCategory = async () => {
       const category = queryParams.get("category");
-      console.log(category);
       try {
         const response = await axios.get(
           `${URI}/category/?categorynav=${category}`
         );
         if (response.status === 200 || response.status === 201) {
-          setCategoryList(response.data);
-          console.log(response.data);
+          setCategoryList(response.data.category);
           const sl = response.data.category.filter(
-            (c) => c.category === category.toLowerCase()
+            (c) => c.category.toLowerCase().trim(" ") === category.toLowerCase().trim(" ")
           );
-          console.log(sl);
           setFilteredStyles(sl);
           setPopup(false);
         }
@@ -62,22 +57,19 @@ const StylesPage = () => {
     };
     getCategory();
   }, []);
-  console.log(productList);
 
   const categoryForm = (e) => {
     e.target.id === "formopen" ? setPopup(true) : setPopup(false);
   };
-  console.log(filteredStyles);
-
+  console.log(filteredStyles)
   return (
     <div className=" h-[90%] w-full  rounded-md shadow-md p-4">
       <main className="xsm:h-[95%] md:h-full w-[100%]  overflow-auto scrollbar-hidden">
         <h1 className=" h-[10%] ml-2 text-xl font-bold ">STYLES</h1>
         {filteredStyles.length > 0 && filteredStyles[0].style.length > 0 ? (
           filteredStyles[0].style.map((s) => {
-            console.log(s);
             let cat = productList.filter(
-              (product) => product.style === s.value
+              (product) => product.style === s.style
             );
             return (
               cat.length >0 && (
@@ -91,10 +83,10 @@ const StylesPage = () => {
                   className="h-[30%] sm:h-[20%] w-[100%] py-2 flex items-center justify-between"
                 >
                   <p className="font-semibold md:text-md xsm:text-base">
-                    {s.value}
+                    {s.style}
                   </p>
                   <p
-                    id={s.value}
+                    id={s.style}
                     onClick={(e) => {
                       handleproductlist(e);
                     }}
@@ -158,7 +150,7 @@ const StylesPage = () => {
               >
                 <input
                   type="text"
-                  value={s.value}
+                  value={s[0]}
                   // onChange={handleStyleEdit} // Uncomment and implement if needed
                   className="outline-none h-12 w-[80%] px-4 flex items-center justify-between rounded-lg bg-blue-100"
                 />

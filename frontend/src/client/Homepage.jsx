@@ -5,37 +5,50 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Header from "./Header";
 import Footer from "./Footer";
+import { MdOutlineArrowRightAlt } from "react-icons/md";
+import { HiOutlineArrowLeft } from "react-icons/hi";
+import { useRef } from "react";
 
-const Homepage = () => {
+const Homepage = ({ handleCart }) => {
   const URI = "http://localhost:5000";
 
   const [categoryList, setCategoryList] = useState();
   const [banner, setBanner] = useState([]); // fetched banners
   const [ageBanner, setAgeBanner] = useState([]);
+  const [age, setAge] = useState([]);
+  const [mainBanner, setMainBanner] = useState([]);
   const [slideshowIndex, setSlideshowIndex] = useState(0);
-
+  const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
-  const interval = 3000;
-
   const [serverImages, setServerImages] = useState([]);
+  const [catBanner, setCatBanner] = useState([]);
+  const [catIndex, setCatIndex] = useState(0);
+  const [bestSellers, setBestSellers] = useState([]);
+  const [sizeNavigation, setSizeNavigation] = useState([]);
+  const interval = 3000;
+  const containerRef = useRef(null);
 
   // Fetch posters from server
   useEffect(() => {
-    const timer = setInterval(() => {
+    const intervalId = setInterval(() => {
       setSlideshowIndex((prevIndex) => (prevIndex + 1) % serverImages.length);
+
+      setCurrentSlide((prevIndex) => (prevIndex + 2) % mainBanner.length);
     }, interval);
 
-    return () => clearInterval(timer); // Clear the interval when component unmounts
-  }, [serverImages.length, interval]);
-
-
-
+    return () => clearInterval(intervalId);
+  }, [interval, mainBanner.length, serverImages.length]);
   useEffect(() => {
     const getCategory = async () => {
       try {
         const response = await axios.get(`${URI}/category`);
+        console.log(response)
         if (response.status === 200 || response.status === 201) {
-          setCategoryList(response.data);
+          console.log(response)
+          setCategoryList(response.data.category);
+          setCatBanner(response.data.catProducts);
+          setSizeNavigation([response.data.categoryData])
+          setBestSellers(response.data.bestsellers);
         }
       } catch (err) {
         console.log(err);
@@ -46,8 +59,29 @@ const Homepage = () => {
       try {
         const response = await axios.get(`${URI}/banners/fetchage`);
         if (response.status === 200 || response.status === 201) {
-          setBanner(response.data.banner);
-          setAgeBanner(response.data.banner.slice(0, 5));
+          console.log(response);
+          let arr = [];
+          setAge(() =>
+            Object.entries(response.data.agebanner)
+              ?.map((p) => p[1].age)
+              .filter((p) => p != undefined)
+              .flat()
+          );
+          setBanner(response.data.agebanner.imagesData);
+          // setAge(response.data.agebanner.map((p)=>p.age.flat()))
+          console.log(response.data.agebanner.Object);
+
+          setAgeBanner(response.data.agebanner.imagesData.slice(0, 5));
+          // response.data.mainbanner.map((banner) => {
+          //   banner.imagesData.map((images) => {
+          //     arr.push(images);
+          //   });
+          // });
+          setMainBanner(response.data.mainbanner.imagesData);
+          const posters = response.data.poster.imagesData;
+          // const fetchedImages = posters.flatMap((poster) => poster.images);
+          // const fetchedIds = posters.flatMap((poster) => poster._id);
+          setServerImages(posters);
         }
       } catch (err) {
         console.log(err);
@@ -55,27 +89,26 @@ const Homepage = () => {
     };
     bannerFetch();
 
-    const getPoster = async () => {
-      try {
-        const response = await axios.get(`${URI}/banners/getposter`);
-        if (response.status === 200 || response.status === 201) {
-          const posters = response.data.banner;
-          const fetchedImages = posters.flatMap((poster) => poster.images);
-          const fetchedIds = posters.flatMap((poster) => poster._id);
-          setServerImages(fetchedImages);
-          // setImageId(fetchedIds);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    getPoster();
+    // const getPoster = async () => {
+    //   try {
+    //     const response = await axios.get(`${URI}/banners/getposter`);
+    //     if (response.status === 200 || response.status === 201) {
+    //       const posters = response.data.banner;
+    //       const fetchedImages = posters.flatMap((poster) => poster.images);
+    //       const fetchedIds = posters.flatMap((poster) => poster._id);
+    //       setServerImages(fetchedImages);
+    //       // setImageId(fetchedIds);
+    //     }
+    //   } catch (err) {
+    //     console.log(err);
+    //   }
+    // };
+    // getPoster();
   }, []);
-
+  console.log(catBanner);
   const handleStyleNav = (c, s) => {
     navigate(`/productpage?categorynav=${c}&stylenav=${s}`);
   };
-  console.log(ageBanner);
   return (
     <div className="h-screen w-screen">
       <Header />
@@ -90,15 +123,15 @@ const Homepage = () => {
                 </a>
                 <ul className="absolute left-0 hidden group-hover:block bg-white border z-50 min-w-max transition duration-3000 ease-out hover:ease-in rounded shadow-lg">
                   {category.style.length > 0 ? (
-                    category.style.map((style) => (
+                    category.style.map((style, index) => (
                       <li
-                        key={style.key}
+                        key={style.style}
                         className="px-4 py-2 cursor-pointer"
                         onClick={() => {
-                          handleStyleNav(category.category, style.value);
+                          handleStyleNav(category.category, style.style);
                         }}
                       >
-                        {style.value}
+                        {style.style}
                       </li>
                     ))
                   ) : (
@@ -112,13 +145,35 @@ const Homepage = () => {
           )}
         </div>
         {/* div1 */}
-        <div className="bg-pink-300 w-full aspect-[2/1] z-10 p-4 flex">
-          <div className="relative h-full min-w-max overflow-y-auto">
-            <div className="h-[75%] aspect-square bg-blue-200"></div>
-            <div className="absolute bottom-0 right-0 h-[50%] aspect-square bg-green-300"></div>
+        <div className="w-full flex p-2 aspect-[4/2]  overflow-auto w-full">
+          <div className="relative h-full aspect-[1/1] overflow-y-auto">
+            <div className="w-[80%] aspect-[1/1]">
+              <img
+                src={mainBanner[currentSlide]}
+                className="w-full h-full object-cover"
+                alt={`Banner ${currentSlide + 1} - Image 1`}
+              />
+            </div>
+            <div className="absolute bottom-0 right-0 w-[50%] aspect-[1/1] bg-green-300">
+              <img
+                src={mainBanner[(currentSlide + 1) % mainBanner.length]}
+                className="w-full h-full object-cover"
+                alt={`Banner ${currentSlide + 2} - Image 2`}
+              />
+            </div>
+          </div>
+
+          <div className="relative w-1/2 h-full p-4 lg:py-32 flex flex-col justify-start items-start bg-white text-customRed lg:space-y-6   ">
+            <p className="xxsm:text-base sm:text-6xl font-bold leading-snug">
+              Softest Bamboo Clothes for your little one
+            </p>
+            <button className="flex items-center space-x-1 text-customRed xsm:text-xs lg:text-3xl  font-medium">
+              <span>Shop now</span>
+              <MdOutlineArrowRightAlt className="text-xl lg:text-3xl" />
+            </button>
           </div>
         </div>
-        {/* div2 */}
+
         <h1 className="w-full h-12 mx-auto m-4">Shop by Age</h1>
         <div className="w-full aspect-[4/1]  flex items-center   ">
           <FaAngleLeft
@@ -143,16 +198,31 @@ const Homepage = () => {
               ageBanner.map((bannerItem, index) => {
                 return (
                   <div
+                    onClick={() => {
+                      sizeNavigation.map((category) => {
+                        Object.entries(category).map((cat) => {
+                          if (cat[1].sizes.includes(bannerItem.age[index])) {
+                            Object.entries(cat[1].styles).map((sty) => {
+                              if (sty[1].includes(bannerItem.age[index])) {
+                                navigate(
+                                  `/productpage?categorynav=${cat[0]}&stylenav=${sty[0]}&size=${age[index]}`
+                                );
+                              }
+                            });
+                          }
+                        });
+                      });
+                    }}
                     key={index}
                     className="w-[20%] sm:flex xsm:hidden  flex-col gap-2 items-center justify-center aspect-[1/1]"
                   >
                     <img
-                      src={`data:image/png;base64,${bannerItem.images[0]}`}
+                      src={bannerItem}
                       className="w-[70%] aspect-[1/1] rounded-full object-cover"
                       alt={`img-${index}`}
                     />
                     <p className="h-[20%] max-w-max ">
-                      {bannerItem.age[0] || "Age not available"}
+                      {age[index] || "Age not available"}
                     </p>
                   </div>
                 );
@@ -165,12 +235,12 @@ const Homepage = () => {
                     className="h-full sm:hidden  shrink-0 xsm:flex flex-col items-center justify-center aspect-[1/1] scrollbar-hidden"
                   >
                     <img
-                      src={`data:image/png;base64,${bannerItem.images[0]}`}
+                      src={bannerItem}
                       className="h-[70%] aspect-[1/1] rounded-full object-cover"
                       alt={`img-${index}`}
                     />
                     <p className="h-[20%]">
-                      {bannerItem.age[0] || "Age not available"}
+                      {age[index] || "Age not available"}
                     </p>
                   </div>
                 );
@@ -193,44 +263,222 @@ const Homepage = () => {
         </div>
 
         {/* categories */}
-        <div className="h-[70%] xxsm:h-[80%] sm:h-[90%] md:h-[100%] w-full p-2">
+        <div className="max-h-max w-full p-2">
           <div className="h-[10%]">
             <h1 className="xsm:text-sm">Explore by categories</h1>
           </div>
-          <div className="h-[90%] w-full bg-gray-300"></div>
+          <div className="relative xsm:h-[300px] lg:h-[500px] sm:h-[400px] w-full ">
+            {catIndex > 0 && (
+              <HiOutlineArrowLeft
+                className="absolute md:block xsm:hidden left-2 top-1/2 md:text-3xl z-50 bg-white rounded-full"
+                onClick={() => {
+                  setCatIndex(() =>
+                    catIndex + 4 <= catBanner.length - 1 ? catIndex - 4 : 0
+                  );
+                  if (containerRef.current) {
+                    containerRef.current.scrollTo({
+                      left: 0,
+                      behavior: "smooth",
+                    });
+                  }
+                }}
+              />
+            )}
+            {catIndex + 1 < catBanner.length - 1 && (
+              <MdOutlineArrowRightAlt
+                className="absolute md:block xsm:hidden right-2 top-1/2 md:text-3xl z-50 bg-white rounded-full"
+                onClick={() => {
+                  setCatIndex(() =>
+                    catIndex + 4 <= catBanner.length - 1 ? catIndex + 4 : 0
+                  );
+                }}
+              />
+            )}
+            <div
+              ref={containerRef}
+              className="h-full w-full bg-gray-100 flex gap-2 p-2 xsm:overflow-x-auto scrollbar-hidden"
+            >
+              {catIndex > 0 && (
+                <div className="w-[20%] xsm:flex md:hidden h-full  justify-center items-center">
+                  <HiOutlineArrowLeft
+                    className="xsm:text-3xl z-50 bg-white rounded-full"
+                    onClick={() => {
+                      setCatIndex(() =>
+                        catIndex + 4 <= catBanner.length - 1 ? catIndex - 4 : 0
+                      );
+                      if (containerRef.current) {
+                        containerRef.current.scrollTo({
+                          left: 0,
+                          behavior: "smooth",
+                        });
+                      }
+                    }}
+                  />
+                </div>
+              )}
+
+              {catBanner &&
+                catBanner.map((cat, index) => {
+                  // For first case: if catIndex is 0 and index < (catIndex + 4)
+                  if (index >= catIndex && index < catIndex + 4) {
+                    return (
+                      <div
+                        className="relative h-full md:w-[24%] xsm:w-[50%] bg-red-200 flex-shrink-0 cursor-pointer"
+                        onClick={() => {
+                          handleStyleNav(cat.category, cat.style);
+                        }}
+                      >
+                        {cat.offer > 0 && (
+                          <div className="absolute top-2 right-2 bg-green-100 xsm:text-xs md:text-base text-gray-600 font-semibold max-w-max max-h-max p-2 rounded">
+                            sale {cat.offer}%
+                          </div>
+                        )}
+                        <img
+                          src={`data:image/png;base64,${cat.images[0]} `}
+                          className="w-full h-full"
+                        />
+                        <div className="absolute flex justify-right backdrop-blur-sm just bottom-0 w-full h-24 p-2 rounded">
+                          <p className="xsm:text-xl md:text-3xl text-white font-semibold">
+                            {cat.category}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
+                  // Return nothing if the conditions are not met
+                  return null;
+                })}
+              {catIndex + 1 < catBanner.length - 1 && (
+                <div className="w-[20%] xsm:flex md:hidden h-full  justify-center items-center">
+                  <MdOutlineArrowRightAlt
+                    className="xsm:text-3xl z-50 bg-white rounded-full"
+                    onClick={() => {
+                      setCatIndex(() =>
+                        catIndex + 4 <= catBanner.length - 1 ? catIndex + 4 : 0
+                      );
+                      if (containerRef.current) {
+                        containerRef.current.scrollTo({
+                          left: 0,
+                          behavior: "smooth",
+                        });
+                      }
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
         {/* posters */}
         <div className="aspect-[16/9] w-full p-2">
-        <div className="relative h-full w-full  flex justify-center items-center">
-          {serverImages.length > 0 ? (
-            <img
-              src={`data:image/png;base64,${serverImages[slideshowIndex]}`}
-              className="h-full w-full object-cover"
-              alt="slideshow"
-            />
-          ) : (
-            <p>No images to display</p>
-          )}          
+          <div className="relative h-full w-full flex justify-center items-center">
+            {serverImages.length > 0 ? (
+              <img
+                src={serverImages[slideshowIndex]}
+                className="h-full w-full  object-cover"
+                alt="slideshow"
+              />
+            ) : (
+              <p>No images to display</p>
+            )}
+          </div>
         </div>
-      </div>
 
         {/* top rated */}
         {/* <div className="relative h-[80%] w-full bg-pink-200"> */}
         <h1 className="h-[10%] w-full xsm:text-sm p-2">Top Rated</h1>
-        <div className=" w-full lg:aspect-[3/1] xxsm:aspect-[8/6] xsm:aspect-[1/1] p-2 flex gap-2 overflow-x-auto">
-          <div className="h-[90%] aspect-[1/2] p-1 rounded-lg bg-pink-100 shadow-lg hover:shadow-xl transition-shadow duration-300 shrink-0">
-            <div className="h-[50%] aspect-[1/1] w-full rounded-3xl bg-pink-100"></div>
-            <article className="relative flex flex-col gap-2 p-2 h-[40%] w-full overflow-hidden">
-              <p className="break-words xsm:text-sm w-full">
-                bamboo cocoon sleeping pod swaddle for baby
-              </p>
-              <p className="w-full">Rs. 1,500</p>
-            </article>
-          </div>
+        <div className="w-full md:max-h-max overflow-x-auto scrollbar-hidden mt-2 md:col-start-1 flex gap-2  justify-around md:col-span-2 p-4 rounded-md shadow-md">
+          {bestSellers &&
+            bestSellers.map((product, index) => (
+              <div
+                className="md:h-96 xsm-h-64  xsm:w-32 md:w-48 bg-gray-100 rounded p-2 flex flex-col flex-shrink-0 "
+                onClick={() => {
+                  navigate(`/productDetails?id=${product.id}`);
+                }}
+              >
+                <img
+                  key={index}
+                  src={`data:image/png;base64,${product.images[0]}`}
+                  alt="Thumbnail"
+                  className="relative w-full aspect-[1/1] rounded-md cursor-pointer border border-gray-300 shadow-md transition-transform duration-300 transform hover:scale-105"
+                  onClick={() => {
+                    setIndex(index);
+                  }}
+                />
+                <div className="max-h-max w-full flex flex-col gap-1 px-2 mt-2">
+                  <p className="line-clamp-1 sm:text-xs md:text-base font-semibold">
+                    {product.name}
+                  </p>
+                  <div className="flex  gap-2">
+                    <p className="line-clamp-1 text-xs min-w-max ">
+                      {product.sizes[0]}
+                    </p>
+                    <p className="line-clamp-1 text-xs ">
+                      {/* {product?.colors[0]?.color} */}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {product && (
+                      <>
+                        {product.offer > 0 && (
+                          <p className=" sm:text-xs md:text-base font-semibold">
+                            {`₹${(
+                              product.price -
+                              (product.price / 100) * product.offer
+                            ).toFixed(2)}/-`}
+                          </p>
+                        )}
+                        <p
+                          className={`${
+                            product.offer > 0
+                              ? "line-through text-xs text-gray-500"
+                              : "sm:text-xs md:text-base font-semibold"
+                          }`}
+                        >
+                          {product.price
+                            ? `₹${product.price}/-`
+                            : "Price Unavailable"}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  {product && product.review?.stars ? (
+                    <div className="px-2 py-1 max-w-max bg-green-700 gap-2 flex items-center gap-1 rounded">
+                      <p className="font-semibold xsm:text-xs md:text-base text-white">
+                        {product.review.stars}
+                      </p>
+                      <FaStar className="xsm:h-3 xsm:w-3 md:h-2 xsm:w-2 text-white xsm:text-xs md:text-base" />
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 md:text-base xsm:text-xs">
+                      no reviews
+                    </div>
+                  )}
+                </div>
+                <br></br>
+                <div className="mt-auto w-full ">
+                  <button
+                    id="addcart"
+                    className="h-12 w-full xsm:text-xs md:text-base mx-auto flex items-center justify-center bg-gray-400 text-white rounded-md hover:bg-gray-500 transition-colors duration-300"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCart(
+                        e,
+                        product,
+                        product.sizes[0],
+                        product.colors[0].color
+                      );
+                    }}
+                  >
+                    ADD TO CART
+                  </button>
+                </div>
+              </div>
+            ))}
         </div>
         {/* <button className="absolute bottom-2 left-1/2 transform -translate-x-1/2 h-[40px] w-[98px] rounded-md shadow-black bg-blue-300 text-sm">
-            Shop now
-          </button> */}
+      Shop now
+    </button> */}
         {/* </div> */}
         {/* blog */}
         <div className="h-[60%] xxsm:h-[90%] sm:h-[120%] md:h-[150%] w-full gap-2 p-2">

@@ -62,14 +62,16 @@ router.post('/mainBanner', upload.array('images', 20), async (req, res) => {
         for (let i = 0; i < imageBase64Array.length; i += 2) {
             pairedImages.push(imageBase64Array.slice(i, i + 2));
         }
-
-
         // Assuming you want to save `pairedImages` to the database
-        const banner = new bannerSchema({
-            images: pairedImages,
+        const posters = pairedImages.map((img)=>{
+          const banner = new bannerSchema({
+            images: img,
         });
 
-        await banner.save();
+        return banner.save();
+        })
+
+        await Promise.all(posters)
         res.json({
             status: true,
             message: "Banner Added Successfully"
@@ -82,42 +84,79 @@ router.post('/mainBanner', upload.array('images', 20), async (req, res) => {
     }
 });
 router.post('/poster', upload.array('images', 20), async (req, res) => {
-    try {
+  try {
       if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ status: false, message: 'No images uploaded' });
+          return res.status(400).json({
+              status: false,
+              message: 'No images uploaded',
+          });
       }
-  
-      const images = req.files.map(file => file.id); // Get the file ids
 
-    //   Optionally, you can map through and save each image to the database
-      const banner = new posterSchema({
-        images: images, // Store the file ids of the images
+      // Extract the file IDs from uploaded files
+      const images = req.files.map(file => file.id); // Assuming `file.id` is the GridFS file ID
+
+      // Save each image as a separate document
+      const saveImages = images.map(image => {
+          const banner = new posterSchema({ images: image });
+          return banner.save(); // Save returns a promise
       });
-  
-      await banner.save(); // Save the banner document
-      
+
+      // Wait for all save operations to complete
+      await Promise.all(saveImages);
+
       res.json({
-        status: true,
-        message: 'Banners added successfully',
-        results: images, // Optionally return file ids or other details
+          status: true,
+          message: 'Banners added successfully',
+          results: images,
       });
-    } catch (err) {
+  } catch (err) {
       console.log(err);
-      res.json({
-        status: false,
-        message: err.message,
+      res.status(500).json({
+          status: false,
+          message: 'An error occurred while saving the banners',
+          error: err.message,
       });
-    }
-  });
+  }
+});
+
   router.get('/fetchage', async (req, res, next) => {
     try {
       const banner = await ageBanner.find();
       const mainbanner = await bannerSchema.find();
       const poster = await posterSchema.find();
+      
+      const parseAge = (ageString) => {
+        const [minAge, maxAge] = ageString.split('/').map((s) => parseInt(s));
+        const unit = ageString.includes('month') ? 'month' : 'year';
+        return { minAge, unit };
+      };
+      
+      // Function to sort based on age values and unit
+      const sortAgeData = (banner) => {
+        return banner.sort((a, b) => {
+          const ageA = parseAge(a.age[0]);
+          const ageB = parseAge(b.age[0]);
+      
+          // First, compare by unit (months < years)
+          if (ageA.unit === 'month' && ageB.unit === 'year') {
+            return -1; // months comes before years
+          }
+          if (ageA.unit === 'year' && ageB.unit === 'month') {
+            return 1; // years comes after months
+          }
+      
+          // If units are the same, compare by the min age
+          return ageA.minAge - ageB.minAge;
+        });
+      };
+      
+      // Sorting the data
+      const sortedData = sortAgeData(banner);
+      
      
       // Store `mainbanner` on `req` to pass it to the next middleware
       req.mainbanner = mainbanner;
-      req.agebanner = banner;
+      req.agebanner = sortedData;
       req.poster = poster;
   
       // Collect all image IDs to fetch and store them on `req`
@@ -194,22 +233,33 @@ router.get('/delete', async(req,res)=>{
 //     } 
 // })
 
-router.put('/edit/:editId',async (req, res) => {
+router.put('/edit/:editId',upload.array('images',10),async (req, res) => {
+
     const { editId } = req.params;
-    const image = req.body.image
-   
+    const { poster } = req.query;
+    console.log(editId)
+    console.log(poster)
+  const image = req.files.map((file)=>String(file.id));   
     try {
       if (!image) {
         return res.status(400).send({ message: 'No file uploaded' });
       }
-  
+      let updatedPoster;
+      if(poster==="mainbanner"){
+        console.log("kkk")
+       updatedPoster = bannerSchema;
+        
+      }
+      else{
+       updatedPoster = posterSchema;
+      }
       // Find the poster by its object id and update the image
-      const updatedPoster = await posterSchema.findByIdAndUpdate(
+      updatedPoster = await updatedPoster.findByIdAndUpdate(
         editId,
-        { images: image },
+        { images: image},
         { new: true }
       );
-  
+      
       if (!updatedPoster) {
         return res.status(404).send({ message: 'Poster not found' });
       }

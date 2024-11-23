@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/usermodel');
 const Order = require('../models/orderModel');
 const product = require('../models/productSchema')
+const fetchImageData = require('../../fetchImageData');
 
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
@@ -31,52 +32,67 @@ router.post('/', async (req, res) => {
             return res.status(401).json({ status: false, message: "User not found. Please login to place order" });
         }
 
-        const { orderId, deliveryAddress, orderSummary, coupon, subTotal,paymentMethod } = req.body;
-       // Collect all product IDs from orderSummary
-        const productIds = orderSummary.map(order => order.product);
+        const { orderId, deliveryAddress, coupon, subTotal,paymentMethod } = req.body;
+        let appliedKey;
+        let finalPrice;
+        if(coupon){
+           finalPrice = (subTotal-(subTotal*Object.entries(coupon)[0][1])/100).toFixed(2);
+           appliedKey = Object.entries(coupon)[0][0]; // Get the first key from appliedCoupon         
 
+           user.coupons = user.coupons.map((coupon) => {
+               if (coupon.hasOwnProperty(appliedKey)) { 
+                 return { ...coupon, [appliedKey]: false }; // Update the matched key to false
+               }          
+               return coupon; // Return unchanged coupon if condition doesn't match
+             });             
+             
+        }
+       // Collect all product IDs from orderSummary
+        const productIds = user.cartProducts.map(order => order.product.id);
+        // console.log(Object.entries(coupon)[0][0])
+        // console.log(Object.entries(user.coupons)[0][1].trynew)
+        // console.log(typeof(coupon))
+       
+          
         // Use updateMany to increment SalesPoints by 1 for each product in the list
         await product.updateMany(
         { id: { $in: productIds } },  // Match products with the IDs in productIds
         { $inc: { SalesPoints: 1 } }    // Increment SalesPoints by 1
         );
 
-        
-
-        if (!deliveryAddress || !Array.isArray(orderSummary) || orderSummary.length === 0) {
+        if (!deliveryAddress || !Array.isArray(user.cartProducts) || user.cartProducts.length === 0) {
             return res.status(400).json({ status: false, message: "Invalid order data" });
         }
         const order = new Order({
             userId: id,
             orderId: orderId,
-            product: orderSummary,
-            price: subTotal,
+            product:  user.cartProducts,
+            price: finalPrice || subTotal,
             paymentMethod : paymentMethod,
             deliveryaddress: deliveryAddress,
-            coupon: coupon || '', // Default to empty string if no coupon
+            coupon: appliedKey || '', // Default to empty string if no coupon
             orderDate: Date.now(),
             status: "orderplaced",
         });
 
         await order.save();
-        orderSummary.map((order)=>{
-            console.log(order)
-        })
+        
         // Update user order history
         user.orderHistory.push({
             orderId: orderId,
-            productDetails: orderSummary.map((order) => ({
+            productDetails: user.cartProducts.map((order) => ({
                 product: order.product,
                 count: order.count,
                 selectedSize: order.selectedSize
             })),
-            price: subTotal,
+            price: finalPrice,
             paymentMethod: paymentMethod,
             deliveryaddress: deliveryAddress,
-            // coupon: coupon || '',
+            coupon: appliedKey || '',
             orderDate: Date.now(),
             status: "order placed"
         });
+       
         
 
         // // Clear user's cart products
@@ -116,7 +132,7 @@ router.get('/orderId', async (req, res) => {
         return res.status(500).json({ status: false, message: "An error occurred", error: err.message });
     }
 });
-router.get('/orderDetails',async(req,res)=>{
+router.get('/orderDetails',async(req,res,next)=>{
     const orderId = req.query.orderId;
     const token = req.cookies.token;
 
@@ -137,36 +153,84 @@ router.get('/orderDetails',async(req,res)=>{
             return res.status(401).json({ status: false, message: "User not found. Please login to place order" });
         }
     
-        const products = await product.find(); // Ensure you await the product query
+        // const products = await product.find(); // Ensure you await the product query
     
-        const orders = user.orderHistory.map((order) => {
-            // Get product details from each order
-            let productDetails = order.productDetails;
-
-            // Update product details with the full product info
-            productDetails = productDetails.map((productDetail) => {
-                productDetail.product = products.find(
-                    (prod) => prod.id.toString()=== productDetail.product// Use toString() for comparison
-                );
-                return productDetail;                
-            });
-            
-            order.productDetails = productDetails;
-            return(order);
-        });
-        if(orderId){
-            const filteredOrder = orders.find((order)=>(order.orderId===orderId));
-            return res.status(200).json({ status: true, filteredOrder });
-        }
-        // Send the response with orders or further processing
-        return res.status(200).json({ status: true, orders });
+        const extractProductDetails = user.orderHistory.flatMap((order)=>{
+            return order.productDetails.map((p)=>p.product)
+        })
+          
+        const opColor = extractProductDetails.flatMap((prd)=>prd.images.map((img)=>img[1][0].colorImage))
+            const op = extractProductDetails.flatMap((prd)=>prd.images.map((img)=>img[0])).flat()
+            imageIds = [              
+               op,opColor
+              ]
+              if(orderId){
+                req.orderId = orderId
+              }
+              req.orders = user.orderHistory
+                req.imageIds = imageIds
+                next()
+        // if(orderId){
+        //     const filteredOrder = orders.find((order)=>(order.orderId===orderId));
+        //     return res.status(200).json({ status: true, filteredOrder });
+        // }
+        // // Send the response with orders or further processing
+        // return res.status(200).json({ status: true, orders });
     
     } catch (error) {
         console.error("Error verifying token or fetching user:", error);
         return res.status(500).json({ status: false, message: "Internal server error" });
     }
     
-})
+},fetchImageData,async(req,res)=>{
+    try {
+      
+        // let count = 0;
+        // let colorCount = 0;
+      
+        // Process main products
+        const orders = await Promise.all(
+            req.orders.map(async (order) => {
+              let count = 0; // Initialize count for each order
+              let colorCount = 0; // Initialize colorCount for each order
+          
+              // Loop through productDetails and update images
+              order.productDetails = await Promise.all(
+                order.productDetails.map((prd) => {
+                  if (prd.product && prd.product.images) {
+                    prd.product.images = prd.product.images.map((img) => {
+                      // Mapping img[0]
+                      img[0] = img[0].map((prdImg) => req.imagesData[0][count++]);
+          
+                      // Mapping img[1] after img[0]
+                      if (img[1] && img[1][0]) {
+                        img[1][0].colorImage = req.imagesData[1][colorCount++];
+                      }
+          
+                      return img;
+                    });
+                  }
+          
+                  return prd;
+                })
+              );
+          
+              return order;
+            })
+          );
+            if(req.orderId){
+            const filteredOrder = orders.find((order)=>(order.orderId===req.orderId));
+            return res.status(200).json({ status: true, filteredOrder });
+        }
+          // Send response with both products and otherProducts
+        //   return res.json({ products, otherProducts, review: req.review });
+          return res.json({ orders });
+      } catch (err) {
+        console.error("Error processing final response:", err);
+        res.status(500).json({ error: "Failed to process image data" });
+      }
+}
+)
 
 
 

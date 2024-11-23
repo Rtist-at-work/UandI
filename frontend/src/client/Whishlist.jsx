@@ -14,25 +14,25 @@ const Whishlist = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const getproducts = async () => {
-      try {
-        const response = await axios.get(URI + "/productList");
-        if (response.status === 200 || response.status === 201) {
-          setProductList(response.data);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
+    // const getproducts = async () => {
+    //   try {
+    //     const response = await axios.get(URI + "/productList");
+    //     if (response.status === 200 || response.status === 201) {
+    //       setProductList(response.data);
+    //     }
+    //   } catch (err) {
+    //     console.log(err);
+    //   }
+    // };
 
-    getproducts();
+    // getproducts();
 
     const getwhishlist = async () => {
       try {
         const response = await axios.get(`${URI}/auth/getWhishlist`);
+        console.log(response);
         if (response.status === 200 || response.status === 201) {
-          setWhishlist(response.data.cart);
-          console.log(response.data.cart);
+          setWhishlist(response.data.products);
         }
       } catch (err) {
         console.log(err);
@@ -64,25 +64,12 @@ const Whishlist = () => {
     <div className="relative h-screen w-screen">
       <Header />
       <div className="max-h-max w-full p-4 ">
-        <h1 className="h-[10%] flex text-lg p-2 items-center">MY WISHLIST</h1>
+        <h1 className="h-[10%] md:text-xl xsm:text-base font-bold p-2  text-gray-800 mb-4 ">
+          MY WISHLIST
+        </h1>
 
         {whishlist && whishlist.length > 0 ? (
-          whishlist.map((products, index) => {
-            let product = null;
-
-            if (productList) {
-              product = productList.find(
-                (product) => product.id === products.productId
-              );
-            }
-
-            // Ensure 'product' is not null or undefined before accessing its properties
-            let image = null;
-            if (product && product.images && product.images.length > 0) {
-              const imageBuffer = product.images[0];
-              image = `data:image/png;base64,${imageBuffer}`;
-            }
-
+          whishlist.map((product, index) => {
             return (
               <div
                 key={index}
@@ -93,7 +80,7 @@ const Whishlist = () => {
               >
                 {product && product.images ? (
                   <img
-                    src={image}
+                    src={product.images[0][0][0]}
                     className="sm:w-32 xsm:w-24 xsm:h-24 sm:h-32 xsm:w-24 xsm:h-24 aspect-square object-cover mr-4" // Thumbnail size
                     alt={`product-${index}`}
                   />
@@ -103,58 +90,48 @@ const Whishlist = () => {
                   </div>
                 )}
                 <div className="flex-grow min-h-24 flex flexwrap flex-col gap-2  ">
-                      <p className="xsm:text-xsm md:text-base  font-semibold">
-                        {product && product.name.length > 30
-                          ? `${product.name.slice(0, 30)}...`
-                          : product
-                          ? product.name
-                          : "Unknown"}
-                      </p>
-                      <div className="flex gap-2 items-center">
-                        {product && (
-                          <>
-                          {product && product.offer > 0 &&
-                            <p className="text-base font-semibold">
-                              
-                                {`₹${(
-                                    product.price -
-                                    (product.price / 100) * product.offer
-                                  ).toFixed(2)}/-`}
-                                
-                            </p>}
-                            <p
-                              className={`${
-                                product.offer > 0
-                                  ? "line-through text-sm text-gray-500"
-                                  : "text-base font-semibold"
-                              }`}
-                            >
-                              {product.price 
-                                ? `₹${product.price}/-`
-                                : "Price Unavailable"}
-                            </p>
-                            {
-                              product.offer > 0 && 
-                              <p className="text-sm text-green-700 font-semibold">
-                              {product.offer}% Off
-                            </p>
-                            }
-                          </>
-                        )}
-                      </div>
-                      {product && product.review.stars ? (
-                        <div className="px-2 py-1 max-w-max bg-green-700 gap-2 flex items-center gap-1 rounded">
-                          <p className="font-semibold text-sm text-white">
-                            {product.review.stars}
+                  <p className="xsm:text-xsm md:text-base  font-semibold">
+                    {product && product.name.length > 30
+                      ? `${product.name.slice(0, 30)}...`
+                      : product
+                      ? product.name
+                      : "Unknown"}
+                  </p>
+                  <div className="flex gap-2 items-center">
+                    {product && (
+                      <>
+                        {product && product.offer > 0 && (
+                          <p className="text-base font-semibold">
+                            {`₹${(product.offertype === "Flat offer"
+                              ? product.price - product.offer
+                              : product.price -
+                                (product.price / 100) * product.offer
+                            ).toFixed(2)}/-`}
                           </p>
-                          <FaStar className="xsm:h-3 xsm:w-3 md:h-2 xsm:w-2 text-white" />
-                        </div>
-                      ) : (
-                        <div className="text-gray-500 md:text-base xsm:text-xs">
-                          no reviews
-                        </div>
-                      )}
+                        )}
+                        <p
+                          className={`${
+                            product.offer > 0
+                              ? "line-through text-sm text-gray-500"
+                              : "text-base font-semibold"
+                          }`}
+                        >
+                          {product.price
+                            ? `₹${product.price}/-`
+                            : "Price Unavailable"}
+                        </p>
+                        {product.offer > 0 && (
+                    <div className=" text-green-700 font-semibold max-w-max max-h-max p-1 rounded">
+                      {" "}
+                      {product.offertype === "Flat offer"
+                        ? `₹${product.offer} Flatoffer`
+                        : `${product.offer}% Off`}
                     </div>
+                  )}
+                      </>
+                    )}
+                  </div>
+                </div>
                 <MdDelete
                   id={product ? product.id : null}
                   className="absolute top-2 right-2 h-6 w-4 bg-white text-red-500 cursor-pointer"

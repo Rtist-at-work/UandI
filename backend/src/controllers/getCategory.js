@@ -2,12 +2,18 @@ const express = require('express');
 const router = express.Router();
 const categorymodel = require('../models/category');
 const product = require('../models/productSchema')
+const fetchImageData = require('../../fetchImageData')
 
-router.get('/',async(req,res)=>{
+
+router.get('/',async(req,res,next)=>{
+  console.log("ppp")
+  let imageIds = [] ; 
+
     try{
         const category = await categorymodel.find();
         const categorynav = req.query.categorynav || "";
         const products = await product.find();
+
         if(category && categorynav){  
             const styleList = category.filter(                
                 (category) => {  
@@ -27,12 +33,21 @@ router.get('/',async(req,res)=>{
                         return productWithOffer || products.find((product) => product.category === cat.category) || null;
                     })
                     .filter(product => product !== null);
-                    const f = catProducts.flatMap((prd)=>prd.images.flat()).flat()
-                    console.log(f)
+                    
+                    const fColors = catProducts.flatMap((prd)=>prd.images.map((img)=>img[1][0].colorImage))
+                    const f = catProducts.flatMap((prd)=>prd.images.map((img)=>img[0])).flat()
                     const bestsellers = await product
                 .find({})
                 .sort({ SalesPoints: -1 })
                 .limit(7);
+                const bsColor = bestsellers.flatMap((prd)=>prd.images.map((img)=>img[1][0].colorImage))
+                const bs = bestsellers.flatMap((prd)=>prd.images.map((img)=>img[0])).flat()
+                imageIds = [
+                  f,
+                  fColors,
+                  bs,
+                  bsColor
+                ]
 
                 const categories = await categorymodel.aggregate([
                     // Unwind the 'style' array to get individual style documents
@@ -80,16 +95,68 @@ router.get('/',async(req,res)=>{
                     return acc;
                   }, {});
 
-
-
-            return res.json({category,catProducts,bestsellers,categoryData});
+                  req.imageIds = imageIds
+                  req.category =category
+                  req.catProducts = catProducts
+                  req.bestsellers = bestsellers
+                  req.categoryData = categoryData
+                  next()
         }
 
     }
     catch(err){
         console.log(err);
     }
+    
 
-}) 
+},fetchImageData, async(req,res)=>{
+  try{
+    let count = 0 ;
+    const catProducts = await Promise.all(
+      req.catProducts.map((prd,index) => {
+        prd.images = prd.images?.map((img) => {
+  
+          // Mapping img[0]
+          img[0] = img[0].map((prdImg) => {
+            return req.imagesData[0][count++];
+          });
+  
+          // Mapping img[1] after img[0]
+          img[1][0].colorImage = req.imagesData[1][index];
+          
+  
+          return img;
+        });
+        return prd;
+      })
+    );
+    count = 0 ; 
+    const bestsellers = await Promise.all(
+      req.bestsellers.map((prd,index) => {
+        prd.images = prd.images?.map((img) => {
+  
+          // Mapping img[0]
+          img[0] = img[0].map((prdImg) => {
+            return req.imagesData[2][count++];
+          });
+  
+          // Mapping img[1] after img[0]
+          img[1][0].colorImage = req.imagesData[3][index];
+          return img;
+        });
+        return prd;
+      })
+    );
+  
+    
+    res.json({category:req.category,catProducts,bestsellers,categoryData:req.categoryData});
+
+  }
+  catch (err) {
+    console.error("Error processing final response:", err);
+    res.status(500).json({ error: "Failed to process image data" });
+  }
+}
+) 
 
 module.exports = router 

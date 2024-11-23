@@ -1,6 +1,6 @@
-import { useRef, useState, useEffect } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom"; // Added useLocation
+import { Routes, Route, useNavigate } from "react-router-dom"; // Added useLocation
 import axios from "axios";
+import React from "react";
 import Container from "./components/Container";
 import "./index.css";
 import Signup from "./login/SIgnup";
@@ -19,58 +19,15 @@ import DeliveryAddress from "./client/DeliveryAddress";
 import Whishlist from "./client/Whishlist";
 import UserOrders from "./client/UserOrders";
 import OrderTracking from "./client/OrderTracking";
-import ApparelColorPicker from "./client/ColorPicker"
+import PrivacyPolicy from "./client/PrivacyPolicy";
+import Return from "./client/Return";
 
 const URI = "http://localhost:5000";
 
 function App() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [categoryList, setCategoryList] = useState([]);
-  const [stylenav, setStyleNav] = useState("");
-  const [categorynav, setCategoryNav] = useState("");
-  const [productList, setProductList] = useState([]);
-  const [filteredProduct, setFilteredProduct] = useState([]);
-
   axios.defaults.withCredentials = true;
 
   const navigate = useNavigate();
-  const location = useLocation(); // Use useLocation to get current pathname
-
-  // const getproducts = async () => {
-  //   try {
-  //     const response = await axios.get(URI + "/productList");
-  //     if (response) {
-  //       localStorage.setItem('productList',JSON.stringify(response.data));
-  //       setProductList(response.data);
-  //     }
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // };
-
-  const checkAuth = async () => {
-    try {
-      const res = await axios.get(`${URI}/auth/verify`);
-      if (res.data.status) {
-        navigate("/homepage");
-      } else {
-        navigate("/login");
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    // getCategory();
-    // getproducts();
-    // checkAuth();
-  }, []);
-
-  const handleMenuBarToggle = () => {
-    console.log("ok");
-    setIsSidebarOpen(!isSidebarOpen);
-  };
 
   const handleAddAddress = (e, index, pageType) => {
     if (e.target.id === "addAddress") {
@@ -80,19 +37,6 @@ function App() {
     }
   };
 
-  // const getCategory = async () => {
-  //   try {
-  //     const response = await axios.get(URI + "/category");
-  //     if (response) {
-  //       setCategoryList(...categoryList,response.data);
-  //       localStorage.setItem("categoryList", JSON.stringify(...categoryList,response.data));
-  //   }
-  // }
-  //   catch (err) {
-  //     console.log(err);
-  //   }
-  // };
-
   const handleCart = (
     e,
     productDetails,
@@ -100,21 +44,9 @@ function App() {
     selectedColor,
     count
   ) => {
-    if (e && e.target) {
-      if (e.target.id === "plus") {
-        count = count + 1;
-      } else if (e.target.id === "minus") {
-        count = count - 1;
-      } else {
-        count = 1;
-      }
-    } else {
-      count = count || 1;
-    }
-
     if (selectedSize && selectedColor && productDetails) {
       const formdata = {
-        productDetails: productDetails.id,
+        productDetails: productDetails,
         count: count,
         selectedSize: selectedSize,
         selectedColor: selectedColor,
@@ -128,6 +60,7 @@ function App() {
             formdata,
             config
           );
+          console.log(response);
           if (response.status === 200 || response.status === 201) {
             if (e.target.id === "buy") navigate("/cart");
             else alert("product added to cart successfully");
@@ -144,6 +77,8 @@ function App() {
               });
             } else if (statusCode === 400) {
               console.log("Bad request. Please check your input.");
+            } else if (statusCode === 404) {
+              alert("something went wrong please try later");
             }
           } else {
             console.error("Unexpected error:", error);
@@ -159,61 +94,25 @@ function App() {
     }
   };
 
-  // useEffect(() => {
-  //   // if (
-  //   //   // location.pathname === "/admin/addproducts" ||
-  //   //   // location.pathname === "/admin/categories" ||
-  //   //   // location.pathname === "/admin/editproducts" ||
-  //   //   location.pathname === "/homepage"
-  //   //   // location.pathname === "/productpage"
-  //   // ) {
-
-  //   }
-  // }, []);
-
   return (
     <>
       <div className="relative w-screen h-screen">
         <Routes>
-          <Route
-            path="/*"
-            element={
-              <Container
-                handleMenuBarToggle={handleMenuBarToggle}
-                isSidebarOpen={isSidebarOpen}
-                categoryList={categoryList}
-                productList={productList}
-              />
-            }
-          />
+          <Route path="/*" element={<Container />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login handleCart={handleCart} />} />
-          <Route path="/color" element={<ApparelColorPicker />} />
 
           <Route path="/forgotpassword" element={<Forgotpassword />} />
           <Route
             path="/auth/resetpassword/:token"
             element={<Resetpassword />}
           />
-          <Route
-            path="/"
-            element={
-              <Homepage
-                categoryList={categoryList}
-                stylenav={stylenav}
-                handleCart={handleCart}
-              />
-            }
-          />
+          <Route path="/" element={<Homepage handleCart={handleCart} />} />
           <Route
             path="/productpage"
             element={
               <ProductPage
-                categoryList={categoryList}
-                stylenav={stylenav}
-                categorynav={categorynav}
-                filteredProduct={filteredProduct}
-                // handleWhishlist={handleWhishlist}
+              // handleWhishlist={handleWhishlist}
               />
             }
           />
@@ -222,13 +121,10 @@ function App() {
             element={
               <ProductDetails
                 handleCart={handleCart}
-
-                // countop={countop}
-                // count={count}
               />
             }
           />
-          <Route path="/cart" element={<Cart handleCart={handleCart} />} />
+          <Route path="/cart" element={<Cart />} />
           <Route
             path="/orderpage"
             element={<OrderPage handleAddAddress={handleAddAddress} />}
@@ -243,6 +139,11 @@ function App() {
           />
           <Route path="/userorders" element={<UserOrders />} />
           <Route path="/ordertracking/:orderId" element={<OrderTracking />} />
+          <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
+          <Route path="/Terms&Services" element={<PrivacyPolicy />} />
+          <Route path="/shippingpolicy" element={<PrivacyPolicy />} />
+          <Route path="/return" element={<Return />} />
+          <Route path="/faq" element={<PrivacyPolicy />} />
         </Routes>
       </div>
     </>

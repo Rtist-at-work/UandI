@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaChevronRight } from "react-icons/fa";
 import { FaAngleLeft } from "react-icons/fa6";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -42,12 +42,10 @@ const Homepage = ({ handleCart }) => {
     const getCategory = async () => {
       try {
         const response = await axios.get(`${URI}/category`);
-        console.log(response)
         if (response.status === 200 || response.status === 201) {
-          console.log(response)
           setCategoryList(response.data.category);
           setCatBanner(response.data.catProducts);
-          setSizeNavigation([response.data.categoryData])
+          setSizeNavigation([response.data.categoryData]);
           setBestSellers(response.data.bestsellers);
         }
       } catch (err) {
@@ -59,7 +57,7 @@ const Homepage = ({ handleCart }) => {
       try {
         const response = await axios.get(`${URI}/banners/fetchage`);
         if (response.status === 200 || response.status === 201) {
-          console.log(response);
+          console.log(response)
           let arr = [];
           setAge(() =>
             Object.entries(response.data.agebanner)
@@ -68,19 +66,12 @@ const Homepage = ({ handleCart }) => {
               .flat()
           );
           setBanner(response.data.agebanner.imagesData);
-          // setAge(response.data.agebanner.map((p)=>p.age.flat()))
-          console.log(response.data.agebanner.Object);
 
           setAgeBanner(response.data.agebanner.imagesData.slice(0, 5));
-          // response.data.mainbanner.map((banner) => {
-          //   banner.imagesData.map((images) => {
-          //     arr.push(images);
-          //   });
-          // });
+
           setMainBanner(response.data.mainbanner.imagesData);
           const posters = response.data.poster.imagesData;
-          // const fetchedImages = posters.flatMap((poster) => poster.images);
-          // const fetchedIds = posters.flatMap((poster) => poster._id);
+
           setServerImages(posters);
         }
       } catch (err) {
@@ -88,22 +79,6 @@ const Homepage = ({ handleCart }) => {
       }
     };
     bannerFetch();
-
-    // const getPoster = async () => {
-    //   try {
-    //     const response = await axios.get(`${URI}/banners/getposter`);
-    //     if (response.status === 200 || response.status === 201) {
-    //       const posters = response.data.banner;
-    //       const fetchedImages = posters.flatMap((poster) => poster.images);
-    //       const fetchedIds = posters.flatMap((poster) => poster._id);
-    //       setServerImages(fetchedImages);
-    //       // setImageId(fetchedIds);
-    //     }
-    //   } catch (err) {
-    //     console.log(err);
-    //   }
-    // };
-    // getPoster();
   }, []);
   console.log(catBanner);
   const handleStyleNav = (c, s) => {
@@ -201,9 +176,9 @@ const Homepage = ({ handleCart }) => {
                     onClick={() => {
                       sizeNavigation.map((category) => {
                         Object.entries(category).map((cat) => {
-                          if (cat[1].sizes.includes(bannerItem.age[index])) {
+                          if (cat[1].sizes.includes(age[index])) {
                             Object.entries(cat[1].styles).map((sty) => {
-                              if (sty[1].includes(bannerItem.age[index])) {
+                              if (sty[1].includes(age[index])) {
                                 navigate(
                                   `/productpage?categorynav=${cat[0]}&stylenav=${sty[0]}&size=${age[index]}`
                                 );
@@ -330,11 +305,13 @@ const Homepage = ({ handleCart }) => {
                       >
                         {cat.offer > 0 && (
                           <div className="absolute top-2 right-2 bg-green-100 xsm:text-xs md:text-base text-gray-600 font-semibold max-w-max max-h-max p-2 rounded">
-                            sale {cat.offer}%
+                            {cat.offertype === "Flat offer"
+                              ? `₹${cat.offer} Flatoffer`
+                              : `sale ${cat.offer}%`}
                           </div>
                         )}
                         <img
-                          src={`data:image/png;base64,${cat.images[0]} `}
+                          src={cat.images[0][0][0]}
                           className="w-full h-full"
                         />
                         <div className="absolute flex justify-right backdrop-blur-sm just bottom-0 w-full h-24 p-2 rounded">
@@ -385,7 +362,6 @@ const Homepage = ({ handleCart }) => {
         </div>
 
         {/* top rated */}
-        {/* <div className="relative h-[80%] w-full bg-pink-200"> */}
         <h1 className="h-[10%] w-full xsm:text-sm p-2">Top Rated</h1>
         <div className="w-full md:max-h-max overflow-x-auto scrollbar-hidden mt-2 md:col-start-1 flex gap-2  justify-around md:col-span-2 p-4 rounded-md shadow-md">
           {bestSellers &&
@@ -398,7 +374,7 @@ const Homepage = ({ handleCart }) => {
               >
                 <img
                   key={index}
-                  src={`data:image/png;base64,${product.images[0]}`}
+                  src={product.images[0][0][0]}
                   alt="Thumbnail"
                   className="relative w-full aspect-[1/1] rounded-md cursor-pointer border border-gray-300 shadow-md transition-transform duration-300 transform hover:scale-105"
                   onClick={() => {
@@ -414,7 +390,7 @@ const Homepage = ({ handleCart }) => {
                       {product.sizes[0]}
                     </p>
                     <p className="line-clamp-1 text-xs ">
-                      {/* {product?.colors[0]?.color} */}
+                      {product?.images[0][1][0]?.colorname}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 items-center">
@@ -422,9 +398,10 @@ const Homepage = ({ handleCart }) => {
                       <>
                         {product.offer > 0 && (
                           <p className=" sm:text-xs md:text-base font-semibold">
-                            {`₹${(
-                              product.price -
-                              (product.price / 100) * product.offer
+                            {`₹${(product.offertype === "Flat offer"
+                              ? product.price - product.offer
+                              : product.price -
+                                (product.price / 100) * product.offer
                             ).toFixed(2)}/-`}
                           </p>
                         )}
@@ -461,12 +438,13 @@ const Homepage = ({ handleCart }) => {
                     id="addcart"
                     className="h-12 w-full xsm:text-xs md:text-base mx-auto flex items-center justify-center bg-gray-400 text-white rounded-md hover:bg-gray-500 transition-colors duration-300"
                     onClick={(e) => {
+                      console.log(product);
                       e.stopPropagation();
                       handleCart(
                         e,
-                        product,
+                        product.id,
                         product.sizes[0],
-                        product.colors[0].color
+                        product.images[0][1][0].colorname
                       );
                     }}
                   >
@@ -481,7 +459,7 @@ const Homepage = ({ handleCart }) => {
     </button> */}
         {/* </div> */}
         {/* blog */}
-        <div className="h-[60%] xxsm:h-[90%] sm:h-[120%] md:h-[150%] w-full gap-2 p-2">
+        {/* <div className="h-[60%] xxsm:h-[90%] sm:h-[120%] md:h-[150%] w-full gap-2 p-2">
           <div className="h-[10%]">
             <h1 className="xsm:text-sm">Blog posts</h1>
           </div>
@@ -498,7 +476,7 @@ const Homepage = ({ handleCart }) => {
               <div className="bg-pink-200"></div>
             </div>
           </div>
-        </div>
+        </div> */}
         <Footer />
       </main>
     </div>

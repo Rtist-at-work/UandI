@@ -26,43 +26,43 @@ router.get('/address',async(req,res)=>{
     }
 
 }) 
-router.get('/productDetails',async(req,res)=>{
-    const token = req.cookies.token
-    if(!token){
-        return res.status(401).json({ message: 'Access denied. No token provided.' });
-    }
-    const decoded = jwt.verify(token, process.env.KEY);
-    const {id} = decoded;
-    try{
+// router.get('/productDetails',async(req,res)=>{
+//     const token = req.cookies.token
+//     if(!token){
+//         return res.status(401).json({ message: 'Access denied. No token provided.' });
+//     }
+//     const decoded = jwt.verify(token, process.env.KEY);
+//     const {id} = decoded;
+//     try{
        
-        const user = await usermodel.findById(id);
-        if(user){ 
-            const productList = await product.find();
-            const cart = user.cartProducts
-            .map((cp) => {
-                const product = productList.find((product) => cp.product === product.id);
-                if (product) {
-                    c = {
-                        product : product,
-                        count :cp.count,
-                        selectedSize : cp.selectedSize
-                    }                    
-                    return c
-                }
-                return null;
-            }).filter((cp) => cp !== null);
-            
-            return res.json({
-                cart,
-                productDetails: user.cartProducts
-              });
+//         const user = await usermodel.findById(id);
+//         if(user){ 
+//             const productList = await product.find();
+//             const cart = user.cartProducts
+//             .map((cp) => {
+//                 const product = productList.find((product) => cp.product === product.id);
+//                 if (product) {
+//                     c = {
+//                         product : product,
+//                         count :cp.count,
+//                         selectedSize : cp.selectedSize
+//                     }                    
+//                     return c
+//                 }
+//                 return null;
+//             }).filter((cp) => cp !== null);
+//             console.log(cart)
+//             return res.json({
+//                 cart,
+//                 productDetails: user.cartProducts
+//               });
                          
-        }
-    }
-    catch(err){
-        console.log(err);
-    }
+//         }
+//     }
+//     catch(err){
+//         console.log(err);
+//     }
 
-})
+// })
 
 module.exports = router 

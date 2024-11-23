@@ -1,10 +1,6 @@
 import React, { useState } from "react";
-import uandiLogo from "../assets/uandilogo.jpg";
-import { CgProfile } from "react-icons/cg";
-import { MdOutlineShoppingCart } from "react-icons/md";
 import Footer from "./Footer";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { FaStar } from "react-icons/fa6";
@@ -15,19 +11,16 @@ import { useRef } from "react";
 
 const ProductDetails = ({ handleCart }) => {
   const [index, setIndex] = useState(0);
-  // const [isDescription, setIsDescription] = useState(false);
-  // const [isProductDetails, setIsProductDetails] = useState(false);
-  // const [isReturnPolicy, setIsReturnPolicy] = useState(false);
   const [selectedSize, setSelectedSize] = useState();
   const [selectedColor, setSelectedColor] = useState();
   const [productDetails, setProductDetails] = useState(null); // To store product details
   const [otherProducts, setOtherProducts] = useState([]);
   const [review, setReview] = useState([]); // To store product details
+  const [colorIndex, setColorIndex] = useState(0);
   const containerRef = useRef(null);
-
   const navigate = useNavigate();
   const URI = "http://localhost:5000";
-
+  console.log(colorIndex);
   // Call useLocation at the top level of the component
   const location = useLocation();
 
@@ -51,8 +44,9 @@ const ProductDetails = ({ handleCart }) => {
           );
           return op;
         });
-        setProductDetails(response.data.product); // Assuming your API returns product details
-        setReview(response.data.reviews);
+        console.log(response);
+        setProductDetails(response.data.products[0]); // Assuming your API returns product details
+        setReview(response.data.review);
       } catch (err) {
         console.error("Error fetching product:", err);
       }
@@ -62,14 +56,6 @@ const ProductDetails = ({ handleCart }) => {
       fetchProduct(); // Fetch product only if productId is not null
     }
   }, [productId]); // Include productId as a dependency for useEffect
-
-  // const toggleAnswer = (e) => {
-  //   const { id } = e.target;
-  //   console.log(id);
-  //   if (id === "description") setIsDescription(!isDescription);
-  //   if (id === "productdetails") setIsProductDetails(!isProductDetails);
-  //   if (id === "returnpolicy") setIsReturnPolicy(!isReturnPolicy);
-  // };
 
   return (
     <div
@@ -82,11 +68,11 @@ const ProductDetails = ({ handleCart }) => {
         <div className="md:h-full md:col-start-1 md:col-span-1  flex flex-col gap-4 mt-4">
           {productDetails &&
           productDetails.images &&
-          productDetails.images.length > 0 ? (
+          productDetails.images[colorIndex].length > 0 ? (
             <div className="relative">
               {/* Product Image */}
               <img
-                src={`data:image/png;base64,${productDetails.images[index]}`}
+                src={productDetails.images[colorIndex][0][index]}
                 alt="Product"
                 className="md:w-[60%] xsm:w-[90%] aspect-[1/1] mx-auto object-cover rounded-md shadow-lg"
               />
@@ -104,10 +90,10 @@ const ProductDetails = ({ handleCart }) => {
             {productDetails &&
             productDetails.images &&
             productDetails.images.length > 0
-              ? productDetails.images.map((image, index) => (
+              ? productDetails.images[colorIndex][0].map((image, index) => (
                   <img
                     key={index}
-                    src={`data:image/png;base64,${image}`}
+                    src={image}
                     alt="Thumbnail"
                     className="relative h-full aspect-[1/1] rounded-md cursor-pointer border border-gray-300 shadow-md transition-transform duration-300 transform hover:scale-105"
                     onClick={() => {
@@ -124,20 +110,16 @@ const ProductDetails = ({ handleCart }) => {
           <div className="flex-grow min-h-24 flex flexwrap mt-4 flex-col gap-4  ">
             <p className="xsm:text-xl sm:text-4xl leading-loose font-semibold text-customRed font-fredoka">
               {productDetails?.name}
-              {/* {productDetails && productDetails.name.length > 30
-                ? `${productDetails.name.slice(0, 30)}...`
-                : productDetails
-                ? productDetails.name
-                : "Unknown"} */}
             </p>
             <div className="flex gap-2 items-center">
               {productDetails && (
                 <>
                   {productDetails && productDetails.offer > 0 && (
                     <p className="xsm:text-base sm:text-xl font-semibold text-customRed">
-                      {`₹${(
-                        productDetails.price -
-                        (productDetails.price / 100) * productDetails.offer
+                      {`₹${(productDetails.offertype === "Flat offer"
+                        ? productDetails.price - productDetails.offer
+                        : productDetails.price -
+                          (productDetails.price / 100) * productDetails.offer
                       ).toFixed(2)}/-`}
                     </p>
                   )}
@@ -155,7 +137,9 @@ const ProductDetails = ({ handleCart }) => {
                   {productDetails.offer > 0 && (
                     <div className=" text-green-700 font-semibold max-w-max max-h-max p-1 rounded">
                       {" "}
-                      {productDetails.offer}% Off
+                      {productDetails.offertype === "Flat offer"
+                        ? `₹${productDetails.offer} Flatoffer`
+                        : `${productDetails.offer}% Off`}
                     </div>
                   )}
                 </>
@@ -221,23 +205,23 @@ const ProductDetails = ({ handleCart }) => {
             <h4 className="my-4">colors</h4>
             <div className="flex flex-wrap gap-2 max-h-max w-full cursor-pointer">
               {productDetails ? (
-                productDetails.colors.map((color, index) => {
-                  const colorname = color.color; // Get the first key, e.g., 'blue'
-                  const base64Image = color.image; // Access the Base64 string using the color name
-
+                productDetails.images.map((images, index) => {
                   return (
                     <img
-                      className={`h-16 aspect-[1/1] border-2 rounded ${
-                        selectedColor === colorname
-                          ? "border-black"
-                          : " border-gray-300"
-                      }`}
+                      className={`h-16 aspect-[1/1] border-2 rounded 
+                        ${
+                          selectedColor === images[1][0].colorname
+                            ? "border-black"
+                            : " border-gray-300"
+                        }
+                      `}
                       onClick={() => {
-                        setSelectedColor(colorname);
+                        setColorIndex(() => index);
+                        setSelectedColor(images[1][0].colorname);
                       }}
                       key={index} // Added key for each image element
-                      src={`data:image/png;base64,${base64Image}`} // Use the Base64 string for the image source
-                      alt={colorname} // Optional: add an alt attribute for accessibility
+                      src={images[1][0].colorImage} // Use the Base64 string for the image source
+                      alt={images[1][0].colorname} // Optional: add an alt attribute for accessibility
                     />
                   );
                 })
@@ -251,7 +235,7 @@ const ProductDetails = ({ handleCart }) => {
                 id="addcart"
                 className="h-12 w-full flex items-center justify-center bg-gray-400 text-white rounded-md hover:bg-gray-500 transition-colors duration-300"
                 onClick={(e) => {
-                  handleCart(e, productDetails, selectedSize, selectedColor);
+                  handleCart(e, productDetails.id, selectedSize, selectedColor);
                 }}
               >
                 ADD TO CART
@@ -260,7 +244,7 @@ const ProductDetails = ({ handleCart }) => {
                 id="buy"
                 className="h-12 w-full flex items-center justify-center bg-gray-400 text-white rounded-md hover:bg-gray-500 transition-colors duration-300"
                 onClick={(e) => {
-                  handleCart(e, productDetails, selectedSize, selectedColor);
+                  handleCart(e, productDetails.id, selectedSize, selectedColor);
                 }}
               >
                 BUY NOW
@@ -274,16 +258,6 @@ const ProductDetails = ({ handleCart }) => {
                 {productDetails?.description || "No description available"}
               </div>
               <hr className="my-2" />
-              <h3 className="font-semibold cursor-pointer sm:text-xl xsm:text-sm">
-                Product Details
-              </h3>
-
-              <div className="mt-2">Details not available</div>
-              <hr className="my-2" />
-              <h3 className="font-semibold cursor-pointer sm:text-xl xsm:text-sm">
-                Return Policy
-              </h3>
-              <div className="mt-2">Policy details not available</div>
             </div>
           </div>
         </div>
@@ -296,6 +270,7 @@ const ProductDetails = ({ handleCart }) => {
               <div
                 className="md:h-96 xsm-h-64  xsm:w-32 md:w-48 bg-gray-100 rounded p-2 flex flex-col flex-shrink-0 "
                 onClick={() => {
+                  setColorIndex(() => 0);
                   setIndex(0);
                   navigate(`/productDetails?id=${product.id}`);
                   if (containerRef.current) {
@@ -308,7 +283,7 @@ const ProductDetails = ({ handleCart }) => {
               >
                 <img
                   key={index}
-                  src={`data:image/png;base64,${product.images[0]}`}
+                  src={product.images[0][0][0]}
                   alt="Thumbnail"
                   className="relative w-full aspect-[1/1] rounded-md cursor-pointer border border-gray-300 shadow-md transition-transform duration-300 transform hover:scale-105"
                   onClick={() => {
@@ -324,7 +299,7 @@ const ProductDetails = ({ handleCart }) => {
                       {product.sizes[0]}
                     </p>
                     <p className="line-clamp-1 text-xs ">
-                      {product.colors[0].color}
+                      {product?.images[0][1][0]?.colorname}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 items-center">
@@ -332,9 +307,10 @@ const ProductDetails = ({ handleCart }) => {
                       <>
                         {product.offer > 0 && (
                           <p className=" sm:text-xs md:text-base font-semibold">
-                            {`₹${(
-                              product.price -
-                              (product.price / 100) * product.offer
+                            {`₹${(product.offertype === "Flat offer"
+                              ? product.price - product.offer
+                              : product.price -
+                                (product.price / 100) * product.offer
                             ).toFixed(2)}/-`}
                           </p>
                         )}
@@ -374,9 +350,9 @@ const ProductDetails = ({ handleCart }) => {
                       e.stopPropagation();
                       handleCart(
                         e,
-                        product,
+                        product.id,
                         product.sizes[0],
-                        product.colors[0].color
+                        product.images[0][1][0].colorname
                       );
                     }}
                   >
@@ -388,56 +364,65 @@ const ProductDetails = ({ handleCart }) => {
         </div>
 
         {/* Reviews */}
-        <h1 className="text-2xl font-bold mb-4 mt-4 md:col-start-1 md:col-span-2 p-2">
-          Reviews
-        </h1>
-        <div className="min-h-max w-full md:col-start-1 md:col-span-2 grid md:grid-cols-4 xsm:grid-cols-2 gap-4 p-2">
-          {review &&
-            review.map((review, index) => (
-              <div
-                key={index}
-                className="relative bg-white md:w-[90%] xsm:w-[90%] shadow-lg rounded-lg p-4 mb-6 flex flex-col "
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-gray-500 text-xs break-words">
-                    {review.username ? review.username : "Anonymous"}
-                  </p>
-                  <div className="flex gap-1 items-center">
-                    {[1, 2, 3, 4, 5].map((rating) => (
-                      <FaStar
-                        key={rating}
-                        className={`text-sm ${
-                          review.stars >= rating
-                            ? "text-yellow-500"
-                            : "text-gray-300"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-                {review.image && review.image.length > 0 && (
-                  <div className="w-full overflow-x-auto scrollbar-hidden whitespace-nowrap">
-                    <div className="flex">
-                      {review.image.map((image, i) => (
-                        <img
-                          key={i}
-                          src={`data:image/png;base64,${image}`}
-                          className="w-[50%] h-auto aspect-square object-cover mr-2 rounded-lg border-2 border-gray-200"
-                          alt={`Review image ${i + 1}`}
+        {review && review.length > 0 && (
+          <>
+            <h1 className="text-2xl font-bold mb-4 mt-4 md:col-start-1 md:col-span-2 p-2">
+              Reviews
+            </h1>
+            <div className="min-h-max w-full md:col-start-1 md:col-span-2 grid md:grid-cols-4 xsm:grid-cols-2 gap-4 p-2">
+              {review.map((reviewItem, index) => (
+                <div
+                  key={index}
+                  className="relative bg-white md:w-[90%] xsm:w-[90%] shadow-lg rounded-lg p-4 mb-6 flex flex-col"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-gray-500 text-xs break-words">
+                      {reviewItem.username ? reviewItem.username : "Anonymous"}
+                    </p>
+                    <div className="flex gap-1 items-center">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <FaStar
+                          key={rating}
+                          className={`text-sm ${
+                            reviewItem.stars >= rating
+                              ? "text-yellow-500"
+                              : "text-gray-300"
+                          }`}
                         />
                       ))}
                     </div>
                   </div>
-                )}
-                <article className="text-gray-700 text-sm mb-2 break-words mt-2 mb-8">
-                  {review.text ? review.text : ""}
-                </article>
-                <div className="absolute right-2 bottom-2 text-gray-400 text-xs ">
-                  12-10-1000
+
+                  {reviewItem.image && reviewItem.image.length > 0 && (
+                    <div className="w-full overflow-x-auto scrollbar-hidden whitespace-nowrap">
+                      <div className="flex">
+                        {reviewItem.image.map((image, i) => {
+                          console.log(image)
+                        }
+                          // <img
+                          //   key={i}
+                          //   src={image}
+                          //   className="w-[50%] h-auto aspect-square object-cover mr-2 rounded-lg border-2 border-gray-200"
+                          //   alt={`Review image ${i + 1}`}
+                          // />
+                        // )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <article className="text-gray-700 text-sm mb-2 break-words mt-2 mb-8">
+                    {reviewItem.text ? reviewItem.text : ""}
+                  </article>
+                  <div className="absolute right-2 bottom-2 text-gray-400 text-xs">
+                    {/* Assuming you will add a date dynamically */}
+                    {reviewItem.date ? reviewItem.date : "12-10-1000"}
+                  </div>
                 </div>
-              </div>
-            ))}
-        </div>
+              ))}
+            </div>
+          </>
+        )}
 
         <footer className="md:col-start-1 md:col-span-2">
           <Footer />

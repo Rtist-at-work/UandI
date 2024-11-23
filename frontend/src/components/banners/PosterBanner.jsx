@@ -11,35 +11,37 @@ const PosterBanner = () => {
   const [uploadedImages, setUploadedImages] = useState([]);
   const [previewImages, setPreviewImages] = useState([]);
   const [serverImages, setServerImages] = useState([]);
-  const [imageId,setImageId] = useState([]);
+  const [imageId, setImageId] = useState([]);
   const [slideshowIndex, setSlideshowIndex] = useState(0);
+  const [recall, setRecall] = useState(false);
   const imageRef = useRef(null);
 
   // Fetch posters from server
   useEffect(() => {
     const getPoster = async () => {
       try {
-        const response = await axios.get(`${URI}/banners/getposter`);
+        const response = await axios.get(`${URI}/banners/fetchage`);
         if (response.status === 200 || response.status === 201) {
-          const posters = response.data.banner;
-          const fetchedImages = posters.flatMap((poster) => poster.images);
-          const fetchedIds = posters.flatMap((poster) => poster._id);
-          setServerImages(fetchedImages);
-          setImageId(fetchedIds);
+          setServerImages(() => response.data.poster.imagesData);
+          setImageId(() =>
+            Object.entries(response.data.poster)
+              .slice(0, Object.entries(response.data.poster).length - 1)
+              .map((o) => o[1]._id)
+              .filter((p) => p != undefined)
+          );
         }
       } catch (err) {
         console.log(err);
       }
     };
     getPoster();
-  }, []);
-
+  }, [recall]);
   // Handle image display
   const handleImageDisplay = (e) => {
     const files = Array.from(e.target.files);
-    let update = [...uploadedImages]
-     update = [...update,files]
-     setUploadedImages(update)
+    let update = [...uploadedImages];
+    update = [...update, files];
+    setUploadedImages(update);
     files.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -49,8 +51,10 @@ const PosterBanner = () => {
         img.onload = () => {
           const aspectRatio = img.width / img.height;
           if (aspectRatio.toFixed(2) === (16 / 9).toFixed(2)) {
-            // setUploadedImages((prevImages) => [...prevImages, file]);
-            setPreviewImages((prevPreviews) => [...prevPreviews, reader.result]);
+            setPreviewImages((prevPreviews) => [
+              ...prevPreviews,
+              reader.result,
+            ]);
           } else {
             alert("Please upload images with a 16:9 aspect ratio.");
           }
@@ -70,15 +74,21 @@ const PosterBanner = () => {
 
   // Handle form submission for uploaded images
   const handleFormSubmission = async () => {
-    const formdata = new FormData()
+    const formdata = new FormData();
     const config = { headers: { "Content-Type": "multipart/form-data" } };
-    uploadedImages.forEach((i)=>formdata.append('images' , i[0]))
+    console.log(uploadedImages);
+    uploadedImages.forEach((i) =>
+      i.map((img) => formdata.append("images", img))
+    );
 
     try {
+      const response = await axios.post(
+        `${URI}/banners/poster`,
+        formdata,
+        config
+      );
 
-      const response = await axios.post(`${URI}/banners/poster`, formdata,config);
-  
-      if (response.status === 200 || response.status === 201){
+      if (response.status === 200 || response.status === 201) {
         setUploadedImages([]);
         setPreviewImages([]);
         alert("Banner Added Successfully");
@@ -87,8 +97,7 @@ const PosterBanner = () => {
     } catch (err) {
       console.log(err);
     }
-  }; 
-  
+  };
 
   // Handle edit of uploaded images
   const handleEdit = async (index) => {
@@ -102,71 +111,55 @@ const PosterBanner = () => {
       };
       input.click();
     });
-  
+
     if (newImageFile) {
-      // Function to convert the file to base64 using FileReader
-      const updatedImages = (newImageFile) => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            resolve(reader.result); // Return the base64 string
-          };
-          reader.onerror = reject; // Handle errors
-          reader.readAsDataURL(newImageFile); // Start reading the file
-        });
-      };
-  
       try {
-        const base64Image = await updatedImages(newImageFile); // Await the result of the base64 conversion
-        const iq = base64Image.split(',');
-  
         const editId = imageId[index];
-  
-        const response = await axios.put(`${URI}/banners/edit/${editId}`, {
-          'image' : iq[1]
-        });
-        if (response.status === 200) {
-        alert("Banner Edited Successfully");
-        const updatedServerImages = serverImages.map((img, i) =>
-          i === index ? iq[1] : img
+        const formdata = new FormData();
+        const config = { headers: { "Content-Type": "multipart/form-data" } };
+        formdata.append("images", newImageFile);
+        const response = await axios.put(
+          `${URI}/banners/edit/${editId}`,
+          formdata,
+          config
         );
-        console.log(updatedServerImages)
-        setServerImages(updatedServerImages);
+        if (response.status === 200) {
+          alert("Banner Edited Successfully");
+          setRecall(!recall);
         }
       } catch (err) {
         console.error("Error during image update:", err);
       }
     }
   };
- 
-  
-  
 
   // Handle delete request for server images
   const handleServerImageDelete = async (index) => {
-    const deleteposter = async()=>{
+    const deleteposter = async () => {
       const posterId = imageId[index];
-      try{
-        const response = await axios.delete(`${URI}/banners/delete/${posterId}`)
-        if(response.status === 200 || response.status===201){
-          alert(response.data.message)
+      try {
+        const response = await axios.delete(
+          `${URI}/banners/delete/${posterId}`
+        );
+        if (response.status === 200 || response.status === 201) {
+          alert(response.data.message);
           const updatedServerImages = [...serverImages];
-          updatedServerImages.splice(index,1);
+          updatedServerImages.splice(index, 1);
           setServerImages(updatedServerImages);
         }
+      } catch (err) {
+        alert(err.data.message);
       }
-      catch(err){
-        alert(err.data.message)
-      }
-    }
+    };
     deleteposter();
   };
+
   return (
     <div className="w-full aspect-[16/9] mt-6">
       <div className="flex justify-between p-2 items-center">
         <label>Poster</label>
         <button
-          className="max-h-max min-w-max p-2 rounded border-2 border-gray-200 bg-blue-500 text-white text-sm"
+          className="max-h-max min-w-max p-2 rounded border-2 border-gray-200 bg-blue-500 text-white md:text-sm xsm:text-xs"
           onClick={() => setImageUpload(!imageUpload)}
         >
           Add poster
@@ -227,8 +220,7 @@ const PosterBanner = () => {
         <div className="relative h-full w-full  flex justify-center items-center">
           {serverImages.length > 0 ? (
             <img
-            src={`data:image/png;base64,${serverImages[slideshowIndex]}`}
-
+              src={serverImages[slideshowIndex]}
               className="h-full w-full"
               alt="slideshow"
             />
@@ -251,18 +243,23 @@ const PosterBanner = () => {
           {/* Arrow Buttons */}
           <IoIosArrowBack
             className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white cursor-pointer text-3xl"
-            onClick={() => setSlideshowIndex((prev) => (prev === 0 ? serverImages.length - 1 : prev - 1))}
+            onClick={() =>
+              setSlideshowIndex((prev) =>
+                prev === 0 ? serverImages.length - 1 : prev - 1
+              )
+            }
           />
           <IoIosArrowForward
             className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white cursor-pointer text-3xl"
-            onClick={() => 
-              setSlideshowIndex((prev) => (prev === serverImages.length - 1 ? 0 : prev + 1)
-            )}
+            onClick={() => {
+              console.log("Before Update:", slideshowIndex);
+              setSlideshowIndex((prev) =>
+                prev === serverImages.length - 1 ? 0 : prev + 1
+              );
+            }}
           />
         </div>
       </div>
-
-      
     </div>
   );
 };

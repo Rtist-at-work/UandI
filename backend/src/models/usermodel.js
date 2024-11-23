@@ -52,13 +52,13 @@ const orderSchema = new mongoose.Schema({
     price:Number,
     paymentMethod : String,
     deliveryaddress : Object,
-    coupon : String,
+    coupon : Object,
     orderDate: { type: Date, default: Date.now },
     status: String,
 });
 
 const cartSchema = new mongoose.Schema({
-    product:String,
+    product:Object,
     count : {type:Number,default:1},
     selectedSize : {type:String} , 
     selectedColor : {type:String}  

@@ -3,11 +3,10 @@ import axios from "axios";
 import Footer from "./mobile components/Footer";
 import { IoIosClose } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
-import { MdCancel, MdDelete, MdEdit } from "react-icons/md";
+import {  MdDelete, MdEdit } from "react-icons/md";
 import { useRef } from "react";
 import { FiUpload } from "react-icons/fi";
 import { IoIosArrowDown } from "react-icons/io";
-import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io"; // Importing arrow icons
 
 const Categories = ({ URI }) => {
   const [popup, setPopup] = useState(false);
@@ -16,7 +15,6 @@ const Categories = ({ URI }) => {
   const [category, setCategory] = useState("");
   const [editId, setEditId] = useState("");
   const [style, setStyle] = useState([]);
-  const [styletemp, setStyletemp] = useState([]);
   const [newStyle, setNewStyle] = useState("");
   const [categoryList, setCategoryList] = useState([]);
   const [existanceAlert, setExistanceAlert] = useState(false);
@@ -107,7 +105,6 @@ const Categories = ({ URI }) => {
         const response = await axios.get(`${URI}/category`);
         if (response.status === 200 || response.status === 201) {
           setCategoryList(response.data.category);
-          console.log(response);
           setPopup(false);
         }
       } catch (err) {
@@ -265,7 +262,7 @@ const Categories = ({ URI }) => {
             return (
               <div
                 id={capitalizedCategory}
-                className="w-full sm:w-[75%] md:w-[50%] mx-auto mb-4 px-6 py-2 cursor-pointer rounded-lg bg-blue-300 shadow-md hover:bg-blue-400 transition-all duration-200"
+                className="w-full xsm:w-[90%] md:w-[50%] mx-auto mb-4 px-6 py-2 cursor-pointer rounded-lg bg-blue-300 shadow-md hover:bg-blue-400 transition-all duration-200"
               >
                 <div className="flex justify-between items-center">
                   <div
@@ -308,8 +305,8 @@ const Categories = ({ URI }) => {
       </footer>
       {popup && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-full w-full border-2 border-gray-300 bg-red-200 p-4 rounded-lg overflow-x-auto scrollbar-hidden ">
-          <div className="h-[90%] w-full flex gap-2">
-            <form className="relative h-full w-[50%] flex flex-col  overflow-x-auto scrollbar-hidden">
+          <div className="h-[90%] w-full flex md:flex-row xsm:flex-col overflow-auto gap-2">
+            <form className="relative md:h-full xsm:max-h-max md:w-[50%] xsm:w-full flex flex-col  overflow-x-auto scrollbar-hidden">
               <IoIosClose
                 id="formclose"
                 className="absolute top-2 right-2 h-8 w-8 cursor-pointer"
@@ -394,12 +391,6 @@ const Categories = ({ URI }) => {
 
                     setNewStyle(e.target.value.toLowerCase());
                   }}
-                  // onKeyPress={(e) => {
-                  //   if (e.key === 'Enter' && !isMatch) {
-                  //     e.preventDefault(); // Prevent the default Enter action
-                  //     handleStyle(); // Trigger the button action on Enter
-                  //   }
-                  // }}
                   placeholder="Enter Style"
                 />
                 <button
@@ -414,7 +405,7 @@ const Categories = ({ URI }) => {
                 </button>
               </div>
             </form>
-            <div className=" h-full w-[50%] flex-shrink-0 gap-2 rounded-lg  flex flex-col gap-2 py-2 scrollbar-hidden items-center overflow-x-auto ">
+            <div className=" h-full md:w-[50%] xsm:w-full flex-shrink-0 gap-2 rounded-lg  flex flex-col gap-2 py-2 scrollbar-hidden items-center overflow-x-auto ">
               {style.length > 0 &&
                 style.map((item, index) => {
                   console.log(style)
@@ -424,9 +415,7 @@ const Categories = ({ URI }) => {
                       key={index}
                       className={`min-h-80 max-h-max w-full text-sm p-1 overflow-auto scrollbar-hidden flex-shrink-0 bg-yellow-200 items-center gap-2 border-2 ${
                         styles.includes(item[0].toLowerCase())
-                          ? "border-red-500"
-                          : styletemp.includes(item[0].toLowerCase())
-                          ? "border-red-500"
+                          ? "border-red-500"                          
                           : "border-blue-300"
                       } rounded`}
                     >
@@ -725,10 +714,7 @@ const Categories = ({ URI }) => {
                           <input
                             type="text"
                             value={s}
-                            onChange={(e) => {
-                              // s[1].includes(e.target.value.toLowerCase())
-                              //   ? setExistanceAlert(!existanceAlert)
-                              //   : setExistanceAlert(false);
+                            onChange={(e) => {                             
                               handleEditStyles(e, index, sizeIndex);
                             }}
                             className="outline-none h-12 w-[80%] px-4 flex items-center justify-between rounded-lg bg-blue-100"

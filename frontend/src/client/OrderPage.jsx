@@ -6,15 +6,10 @@ import { MdWorkOutline } from "react-icons/md";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { BiSolidOffer } from "react-icons/bi";
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
-import uandiLogo from "../assets/uandilogo.jpg";
-import { MdOutlineShoppingCart } from "react-icons/md";
-import { CgProfile } from "react-icons/cg";
-import { Link } from "react-router-dom";
 import { ImCross } from "react-icons/im";
 import { MdEdit } from "react-icons/md";
 import axios from "axios";
 import Header from "./Header";
-import DeliveryAddress from "./DeliveryAddress";
 
 const OrderPage = ({ handleAddAddress }) => {
   const [address, setAddress] = useState({});
@@ -27,12 +22,10 @@ const OrderPage = ({ handleAddAddress }) => {
   const [couponPopup, setCouponPopup] = useState(false);
   const [subTotal, setSubTotal] = useState();
   const [addressOpen, setAddressOpen] = useState(true);
-  const [orderSummarySend, setOrderSummarySend] = useState();
   const [isOrderSummary, setIsOrderSummary] = useState(true);
   const [total, setTotal] = useState(0);
   const [discount, setDiscount] = useState(0);
   const index = "";
-console.log(coupons)
   const URI = "http://localhost:5000";
   const navigate = useNavigate();
 
@@ -40,7 +33,7 @@ console.log(coupons)
     navigate("/paymentpage");
     localStorage.setItem(
       "order",
-      JSON.stringify({ orderSummarySend, address, coupon, subTotal })
+      JSON.stringify({ orderSummary, address, coupon, subTotal })
     );
   };
 
@@ -51,33 +44,24 @@ console.log(coupons)
   };
 
   useEffect(() => {
-    const fetchAddress = async () => {
-      try {
-        const response = await axios.get(`${URI}/orderpage/address`);
-        console.log(response);
-        setAddresses(response.data.address);
-        setCoupons(response.data.coupons);
-        if (response.data.length > 0) {
-          setAddress(response.data[0]); // Set default address if exists
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
-
     const fetchProductDetails = async () => {
       try {
-        const response = await axios.get(`${URI}/orderpage/productDetails`);
-        setOrderSummary(response.data.cart);
-        setOrderSummarySend(response.data.productDetails);
+        const cartResponse = await axios.get(`${URI}/auth/getCart`);
+        console.log(cartResponse.data.address[0]);
+        setOrderSummary(cartResponse.data.cart);
+        setAddresses(cartResponse.data.address);
+        if (cartResponse.data.address.length > 0) {
+          setAddress(cartResponse.data.address[0]); // Set default address if exists
+        }
+        setCoupons(cartResponse.data.coupons);
+        // setOrderSummarySend(response.data.productDetails);
       } catch (err) {
         console.log(err);
       }
     };
-    fetchAddress();
+    // fetchAddress();
     fetchProductDetails();
   }, []);
-
   useEffect(() => {
     let newTotal = 0;
     let newDiscount = 0;
@@ -87,68 +71,76 @@ console.log(coupons)
         (acc, p) => acc + p.product.price * p.count,
         0
       );
-      newDiscount = orderSummary.reduce(
-        (acc, p) => acc + ((p.product.price * p.product.offer) / 100) * p.count,
-        0
-      );
+      newDiscount = orderSummary.reduce((acc, p) => {
+        if (p.product.offertype === "Flat offer") {
+          return p.product.offer * p.count;
+        } else {
+          return acc + ((p.product.price * p.product.offer) / 100) * p.count;
+        }
+      }, 0);
     }
-
     const subtotal = newTotal - newDiscount;
 
     setSubTotal(parseFloat(subtotal.toFixed(2)));
     setTotal(parseFloat(newTotal.toFixed(2)));
     setDiscount(parseFloat(newDiscount.toFixed(2)));
   }, [orderSummary]);
-console.log(coupons)
   return (
     <div className="relative h-screen w-screen ">
       {couponPopup && (
-        <div className="absolute inset-0 h-[50%] lg:w-[50%] xsm:w-[90%] z-50 py-4 rounded bg-gray-300 shadow-md border-gray-300 border-2 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="relative xsm:w-[100%] max-h-max bg-blue-300 rounded  mx-auto mb-8">
-            <ImCross className="absolute right-2 xsm:text-xs md:text-base text-red-500 cursor-pointer" 
-            onClick={()=>{
-              setCouponPopup(false)
-            }}
-            />
+  <div className="absolute inset-0 h-[50%] lg:w-[50%] xsm:w-[90%] z-50 py-4 rounded bg-gray-300 shadow-md border-gray-300 border-2 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+    <div className="relative xsm:w-[100%] max-h-max bg-blue-300 rounded  mx-auto mb-8">
+      <ImCross
+        className="absolute right-2 xsm:text-xs md:text-base text-red-500 cursor-pointer"
+        onClick={() => {
+          setCouponPopup(false);
+        }}
+      />
+    </div>
+    {coupons?.map((coupon, index) => {
+      return Object.entries(coupon)[0][1] ? (
+        <div
+          key={index}
+          className="xsm:w-[90%] max-h-max bg-gray-50 shadow-md rounded-lg mx-auto flex justify-between items-center overflow-hidden p-3 mt-3 md:text-lg xsm:text-sm transition-transform duration-150 hover:scale-105"
+        >
+          {/* Coupon Details */}
+          <div className="flex flex-col items-start font-semibold">
+            <div className="flex items-center space-x-2">
+              <BiSolidOffer className="text-yellow-500 h-6 w-6" />
+              <span className="text-gray-700">
+                {String(Object.entries(coupon)[0][0]).toUpperCase()}
+              </span>
+            </div>
+            <p className="text-green-700 mt-1 text-sm md:text-lg">
+              25% Off on this order
+            </p>
           </div>
-          {coupons?.map((coupon) => {
-            return (
-              Object.entries(coupon)[0][1] && (
-                <div className="xsm:w-[90%] max-h-max bg-gray-50 shadow-md rounded-lg mx-auto flex justify-between items-center overflow-hidden p-3 mt-3 md:text-lg xsm:text-sm transition-transform duration-150 hover:scale-105">
-                  {/* Coupon Details */}
-                  <div className="flex flex-col items-start font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <BiSolidOffer className="text-yellow-500 h-6 w-6" />
-                      <span className="text-gray-700">
-                        {String(Object.entries(coupon)[0][0]).toUpperCase()}
-                      </span>
-                    </div>
-                    <p className="text-green-700 mt-1 text-sm md:text-lg">
-                      25% Off on this order
-                    </p>
-                  </div>
 
-                  {/* Apply Button */}
-                  <button
-                    className="px-4 py-2 bg-orange-100 text-orange-500 font-semibold rounded-lg hover:bg-orange-200 transition-colors duration-150 md:text-base xsm:text-sm"
-                    onClick={() => {
-                      if (
-                        String(Object.entries(coupon)[0][0]).toLowerCase() ===
-                        "trynew"
-                      ) {
-                        setCoupon({ trynew: 25 });
-                        setCouponPopup(false);
-                      }
-                    }}
-                  >
-                    Apply
-                  </button>
-                </div>
-              )
-            );
-          })}
+          {/* Apply Button */}
+          <button
+            className="px-4 py-2 bg-orange-100 text-orange-500 font-semibold rounded-lg hover:bg-orange-200 transition-colors duration-150 md:text-base xsm:text-sm"
+            onClick={() => {
+              if (
+                String(Object.entries(coupon)[0][0]).toLowerCase() ===
+                "trynew"
+              ) {
+                setCoupon({ trynew: 25 });
+                setCouponPopup(false);
+              }
+            }}
+          >
+            Apply
+          </button>
         </div>
-      )}
+      ) : (
+        <div className="flex justify-center items-center xsm:w-[90%] max-h-max bg-gray-50 shadow-md rounded-lg mx-auto p-3 mt-3">
+          <p className="text-center text-gray-500">OOps! Coupons not available</p>
+        </div>
+      );
+    })}
+  </div>
+)}
+
       <Header />
 
       <main className="relative h-[85%] max-w-full overflow-y-auto scrollbar-hidden md:px-8 xsm:px-4">
@@ -231,7 +223,6 @@ console.log(coupons)
               id="addAddress"
               className="absolute  border-2 rounded bg-blue-500 text-white p-2"
               onClick={(e) => {
-                console.log(e.target.id);
                 handleAddAddress(e, index, "orderpage");
               }}
             >
@@ -255,23 +246,23 @@ console.log(coupons)
             </div>
 
             <div className="flex font-semibold mt-4">
-              <div>{addresses[0].name}</div> {/* Show first address */}
+              <div>{address.name}</div> {/* Show first address */}
               <div className="flex items-center ml-12">
-                {addresses[0].addressType === "Home" ? (
+                {address.addressType === "Home" ? (
                   <CiHome />
                 ) : (
                   <MdWorkOutline />
                 )}
-                {addresses[0].addressType}
+                {address.addressType}
               </div>
             </div>
 
             <div className="mt-2 text-gray-500">
-              {`${addresses[0].address} ${addresses[0].locality} ${addresses[0].landmark} ${addresses[0].city}-${addresses[0].pincode}`}
+              {`${address.address} ${address.locality} ${address.landmark} ${address.city}-${address.pincode}`}
             </div>
 
             <div className="max-h-max min-w-max mt-2 font-bold">
-              {addresses[0].mobile}
+              {address.mobile}
             </div>
           </div>
         ) : (
@@ -322,11 +313,27 @@ console.log(coupons)
                           <tr key={index} className="border-t">
                             {/* Product Image */}
                             <td className="p-2 w-[40%]">
-                              <img
-                                src={`data:image/png;base64,${product.images[0]}`}
-                                alt="img"
-                                className="xsm:w-full xxsm:w-[40%] lg:w-[25%] aspect-square rounded"
-                              />
+                              {product.images && product.images.length > 0 ? (
+                                product.images.map((image, index) => {
+                                  if (
+                                    image[1][0].colorname === p.selectedColor
+                                  ) {
+                                    return (
+                                      <img
+                                        key={index}
+                                        src={
+                                          image[1][0].colorname ===
+                                            p.selectedColor && image[0][0]
+                                        }
+                                        alt="product"
+                                        className="h-20 w-20 border-2 border-gray-300 shadow-md rounded"
+                                      />
+                                    );
+                                  }
+                                })
+                              ) : (
+                                <div>No Image</div>
+                              )}
                             </td>
 
                             {/* Product Details */}
@@ -338,7 +345,9 @@ console.log(coupons)
                               </div>
                               {product.offer > 0 && (
                                 <p className=" md:text-base xsm:text-sm  text-red-600 mt-1 flex items-center">
-                                  {product.offer}% Off
+                                  {product.offertype === "Flat offer"
+                                    ? `₹${product.offer} Flatoffer`
+                                    : `${product.offer}% Off`}
                                 </p>
                               )}
                             </td>
@@ -362,12 +371,14 @@ console.log(coupons)
                               {product.offer > 0 && (
                                 <div className="font-semibold  md:text-base xsm:text-sm  text-green-800 mt-1">
                                   ₹
-                                  {(
-                                    product.price * p.count -
-                                    ((p.product.price * p.product.offer) /
-                                      100) *
-                                      p.count
-                                  ).toFixed(2)}
+                                  {product.offertype === "Flat offer"
+                                    ? (product.price - product.offer) * p.count
+                                    : (
+                                        product.price * p.count -
+                                        ((product.price * product.offer) /
+                                          100) *
+                                          p.count
+                                      ).toFixed(2)}
                                 </div>
                               )}
                             </td>
@@ -431,7 +442,10 @@ console.log(coupons)
                     Price({orderSummary.length}{" "}
                     {orderSummary.length > 1 ? " items" : " item"})
                   </p>
-                  <p className="md:text-base xsm:text-sm "> ₹ {total.toFixed(2)} /-</p>
+                  <p className="md:text-base xsm:text-sm ">
+                    {" "}
+                    ₹ {total.toFixed(2)} /-
+                  </p>
                 </div>
                 <div className="w-full p-4 h-12 flex gap-4 items-center justify-between">
                   <p className="md:text-base xsm:text-sm ">Delivery Charge</p>
@@ -440,7 +454,9 @@ console.log(coupons)
                 {discount > 0 ? (
                   <div className="w-full p-4 h-12 flex gap-4 items-center justify-between">
                     <p className="md:text-base xsm:text-sm ">Discount</p>
-                    <p className="md:text-base xsm:text-sm ">₹ {discount?.toFixed(2)} /-</p>
+                    <p className="md:text-base xsm:text-sm ">
+                      ₹ {discount?.toFixed(2)} /-
+                    </p>
                   </div>
                 ) : (
                   ""
@@ -454,12 +470,17 @@ console.log(coupons)
                       }`}
                     >
                       {" "}
-                      ₹ {(subTotal)?.toFixed(2)} /-
+                      ₹ {subTotal?.toFixed(2)} /-
                     </p>
                     {coupon && (
                       <p className="font-bold md:text-lg xsm:text-xl">
                         {" "}
-                        ₹ {((subTotal * Object.values(coupon)[0]) / 100)?.toFixed(2)} /-
+                        ₹{" "}
+                        {(
+                          subTotal -
+                          (subTotal * Object.values(coupon)[0]) / 100
+                        ).toFixed(2)}{" "}
+                        /-
                       </p>
                     )}
                   </div>

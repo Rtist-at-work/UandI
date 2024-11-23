@@ -10,6 +10,16 @@ const Orderlist = () => {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [socketInstance, setSocketInstance] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("orderPlaced"); // Default status
+  const [searchQuery, setSearchQuery] = useState("");
+  const [returnRequest, setReturnRequest] = useState([]);
+  const filterOrdersBySearch = (query) => {
+    setSearchQuery(query);
+    const filtered = orders.filter((order) => {
+      // Check if the orderId contains the search query
+      return order.orderId.toString().includes(query);
+    });
+    setFilteredOrders(filtered);
+  };
   const navigate = useNavigate();
   useEffect(() => {
     const socketInstance = io(URI, {
@@ -36,13 +46,13 @@ const Orderlist = () => {
   const fetchOrders = async () => {
     try {
       const response = await axios.get(`${URI}/admin/orders`);
-      console.log(response);
-      setOrders(response.data.orders); // Assuming response.data contains the orders
+      setOrders(response.data.orders);
+      setReturnRequest(response.data.rr);
       const filtered = response.data.orders.filter(
-        (order) => order.status === "orderplaced" || order.status === "orderPlaced"
+        (order) =>
+          order.status === "orderplaced" || order.status === "orderPlaced"
       );
-      
-      console.log(filtered)
+
       setFilteredOrders(filtered);
     } catch (err) {
       console.log(err);
@@ -93,58 +103,52 @@ const Orderlist = () => {
     <div className="absolute h-[90%] w-full bg-white-800 rounded-md shadow-md">
       <main className="p-1 overflow-y-auto xsm:h-[95%] md:h-full w-full scrollbar-hidden">
         <div className="max-h-max w-full bg-pink-300 flex gap-4 overflow-x-auto items-center justify-around p-2 ">
-          <div
-            className={`max-h-max w-auto text-sm lg:w-[15%] hover:shadow-md rounded-s-full rounded-e-full cursor-pointer hover:bg-blue-500 hover:text-white  ${
-              selectedStatus === "orderPlaced"
-                ? "bg-blue-500 text-white"
-                : " bg-gray-300 text-gray-700"
-            } font-semibold flex-shrink-0 px-4 py-2 flex items-center justify-center whitespace-nowrap`}
-            onClick={() => filterOrdersByStatus("orderplaced")}
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => filterOrdersBySearch(e.target.value)}
+            placeholder="Search by Order ID"
+            className="w-full max-w-[250px] p-2 mt-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <label
+            htmlFor="order-status"
+            className="text-sm font-semibold text-gray-700"
           >
-            Order Placed
-          </div>
-          <div
-            className={`max-h-max w-auto text-sm lg:w-[15%] hover:shadow-md flex-shrink-0 px-4 py-2  hover:bg-blue-500 hover:text-white  rounded-s-full rounded-e-full cursor-pointer ${
-              selectedStatus === "shipped"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-300 text-gray-700"
-            } font-semibold flex items-center justify-center whitespace-nowrap`}
-            onClick={() => filterOrdersByStatus("shipped")}
+            Order Status
+          </label>
+          <select
+            id="order-status"
+            value={selectedStatus}
+            onChange={(e) => filterOrdersByStatus(e.target.value)}
+            className="w-full max-w-[250px] p-2 mt-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            Shipped
-          </div>
-          <div
-            className={`max-h-max w-auto text-sm lg:w-[15%] hover:shadow-md flex-shrink-0 px-4 py-2  hover:bg-blue-500 hover:text-white  rounded-s-full rounded-e-full cursor-pointer ${
-              selectedStatus === "out for delivery"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-300 text-gray-700"
-            } font-semibold flex items-center justify-center whitespace-nowrap`}
-            onClick={() => filterOrdersByStatus("out for delivery")}
-          >
-            Out for delivery
-          </div>
-          <div
-            className={`max-h-max w-auto text-sm lg:w-[15%] hover:shadow-md flex-shrink-0 px-4 py-2  hover:bg-blue-500 hover:text-white  rounded-s-full rounded-e-full cursor-pointer ${
-              selectedStatus === "delivered"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-300 text-gray-700"
-            } font-semibold flex items-center justify-center whitespace-nowrap`}
-            onClick={() => filterOrdersByStatus("delivered")}
-          >
-            Delivered
-          </div>
-          <div
-            className={`max-h-max w-auto text-sm lg:w-[15%] hover:shadow-md flex-shrink-0 px-4 py-2  hover:bg-blue-500 hover:text-white  rounded-s-full rounded-e-full cursor-pointer ${
-              selectedStatus === "cancelled"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-300 text-gray-700"
-            } font-semibold flex items-center justify-center whitespace-nowrap`}
-            onClick={() => filterOrdersByStatus("cancelled")}
-          >
-            Cancelled
-          </div>
+            <option value="orderPlaced" className="text-sm">
+              Order Placed
+            </option>
+            <option value="shipped" className="text-sm">
+              Shipped
+            </option>
+            <option value="out for delivery" className="text-sm">
+              Out for delivery
+            </option>
+            <option value="delivered" className="text-sm">
+              Delivered
+            </option>
+            <option value="cancelled" className="text-sm">
+              Cancelled
+            </option>
+            <option value="returnRequested" className="text-sm">
+              Return Request
+            </option>
+          </select>
         </div>
-        <div className="w-full h-full p-2 ">
+        {[
+          "orderPlaced",
+          "shipped",
+          "out for delivery",
+          "delivered",
+          "cancelled",
+        ].includes(selectedStatus) && (
           <div className="overflow-x-auto max-w-full">
             <table className="w-full max-h-max bg-white border border-gray-200">
               <thead>
@@ -160,6 +164,9 @@ const Orderlist = () => {
                   </th>
                   <th className="text-left px-4 py-3 bg-blue-200 min-w-[100px]">
                     Price
+                  </th>
+                  <th className="text-left px-4 py-3 bg-blue-200 min-w-[100px]">
+                    Coupon Applied
                   </th>
                   <th className="text-left px-4 py-3 bg-green-200 min-w-[150px]">
                     Payment Method
@@ -183,31 +190,36 @@ const Orderlist = () => {
                         {new Date(order.orderDate).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-4 truncate">{order.orderId}</td>
-
                       <td className="px-4 py-4">
                         {order.product.map((product, idx) => (
                           <div key={idx} className="mb-1 truncate">
                             <span className="font-semibold">
-                              {product.product.name||"Details not available"}
-                            </span><br></br>
+                              {product.product.name || "Details not available"}
+                            </span>
+                            <br />
                             <span className="text-xs text-gray-500">
-                            [{product.selectedSize},color]
+                              [{product.selectedSize}, color]
                             </span>{" "}
-                            {' '}- {product.count} pcs
+                            - {product.count} pcs
                           </div>
                         ))}
                       </td>
                       <td className="px-4 py-4 truncate">{order.price}</td>
                       <td className="px-4 py-4 truncate">
+                        {order.coupon || "None"}
+                      </td>
+                      <td className="px-4 py-4 truncate">
                         {order.paymentMethod || "N/A"}
                       </td>
                       <td className="px-4 py-4 truncate">
-                        {order.deliveryaddress.address}<br></br>
+                        {order.deliveryaddress.address}
+                        <br />
                         {order.deliveryaddress.addressType}{" "}
                         {order.deliveryaddress.landmark}{" "}
                         {order.deliveryaddress.locality}{" "}
-                        {order.deliveryaddress.city}-{" "}
-                        {order.deliveryaddress.pincode}<br></br>
+                        {order.deliveryaddress.city}-
+                        {order.deliveryaddress.pincode}
+                        <br />
                         {order.deliveryaddress.state}
                       </td>
                       <td className="px-4 py-4">
@@ -247,7 +259,67 @@ const Orderlist = () => {
               </tbody>
             </table>
           </div>
-        </div>
+        )}
+        {selectedStatus === "returnRequested" && (
+          <div className="overflow-x-auto max-w-full p-4">
+            <table className="w-full table-auto bg-white border border-gray-200">
+              <thead>
+                <tr className="bg-gray-100 text-sm">
+                  <th className="text-left px-4 py-3 min-w-[150px]">
+                    Order ID
+                  </th>
+                  <th className="text-left px-4 py-3 min-w-[150px]">
+                    Requested Date
+                  </th>
+                  <th className="text-left px-4 py-3 min-w-[200px]">Reason</th>
+                  <th className="text-left px-4 py-3 min-w-[150px]">Email</th>
+                  <th className="text-left px-4 py-3 min-w-[150px]">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Assuming `returnRequest` is the array containing the data */}
+                {returnRequest.length > 0 ? (
+                  returnRequest.map((request, index) => (
+                    <tr key={request._id} className="border-t text-sm">
+                      <td className="px-4 py-3">{request.orderid}</td>
+                      <td className="px-4 py-3">
+                        {new Date(request.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 truncate">{request.reason}</td>
+                      <td className="px-4 py-3">{request.email}</td>
+                      <td className="px-4 py-3 flex space-x-2">
+                        <button
+                          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none"
+                          onClick={() => handleAccept(request._id)}
+                        >
+                          Accept
+                        </button>
+                        <button
+                          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none"
+                          onClick={() => {
+                            setPopup(true)
+                            handleDispute(request._id)
+                          }}
+                        >
+                          Dispute
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="5"
+                      className="px-4 py-4 text-center text-gray-500"
+                    >
+                      No return requests found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </main>
       <footer className="h-[5%] w-full md:hidden xsm:block">
         <Footer />

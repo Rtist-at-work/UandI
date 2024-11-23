@@ -14,6 +14,7 @@ const ShopByAge = () => {
   const [container1Upload, setContainer1Upload] = useState([]); // for uploading images to the backend
   const [age, setAge] = useState([]); // ages corresponding to images
   const [banner, setBanner] = useState([]); // fetched banners
+  const [allDetails,setAllDetails] = useState([])
   const imageRef_1 = useRef(null);
   const [ageBanner, setAgeBanner] = useState([]);
   const [dropdown, setDropDown] = useState([]);
@@ -24,12 +25,11 @@ const ShopByAge = () => {
     const bannerFetch = async () => {
       try {
         const response = await axios.get(`${URI}/banners/fetchage`);
-        console.log(response);
         if (response.status === 200 || response.status === 201) {
           setDropDown(response.data.sizes);
-
-          setBanner(response.data.banner);
-          setAgeBanner(response.data.banner.slice(0, 5));
+          setAllDetails(response.data.agebanner)
+          setBanner(response.data.agebanner.imagesData);
+          setAgeBanner(response.data.agebanner.imagesData.slice(0, 5));
         }
       } catch (err) {
         console.log(err);
@@ -37,7 +37,6 @@ const ShopByAge = () => {
     };
     bannerFetch();
   }, [recall]);
-
   // Handle image upload display
   const handleImageDisplay = (e) => {
     const files = Array.from(e.target.files);
@@ -97,7 +96,6 @@ const ShopByAge = () => {
       alert(errorMessage);
     }
   };
-  console.log(dropdown)
   return (
     <div className="relative h-[30%] xxsm:h-[40%] sm:h-[50%] md:h-[60%] overflow-hidden mt-4 w-full z-0">
       <div className="h-[25%] w-full flex items-center justify-between p-2">
@@ -206,7 +204,7 @@ const ShopByAge = () => {
                           const response = await axios.get(
                             `${URI}/banners/delete`,
                             {
-                              params: { delId: bannerItem._id },
+                              params: { delId: allDetails[index]._id },
                             }
                           );
                           if (
@@ -228,19 +226,18 @@ const ShopByAge = () => {
                     />
                   </div>
                   <img
-                    src={`data:image/png;base64,${bannerItem.images[0]}`}
+                    src={bannerItem}
                     className="w-[70%] aspect-[1/1] rounded-full object-cover"
                     alt={`img-${index}`}
                   />
                   <p className="h-[20%] max-w-max ">
-                    {bannerItem.age[0] || "Age not available"}
+                    {allDetails[index].age || "Age not available"}
                   </p>
                 </div>
               );
             })}
           {banner &&
             banner.map((bannerItem, index) => {
-              console.log(bannerItem)
               return (
                 <div
                   key={index}
@@ -276,12 +273,12 @@ const ShopByAge = () => {
                     />
                   </div>
                   <img
-                    src={`data:image/png;base64,${bannerItem.images[0]}`}
+                    src={bannerItem}
                     className="h-[70%] aspect-[1/1] rounded-full object-cover"
                     alt={`img-${index}`}
                   />
                   <p className="h-[20%]">
-                    {bannerItem.age[0] || "Age not available"}
+                    {allDetails[index].age || "Age not available"}
                   </p>
                 </div>
               );

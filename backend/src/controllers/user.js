@@ -5,9 +5,12 @@ const multer = require('multer')
 const uploadImage = require('../../uploadProduct')
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const product = require('../models/productSchema')
 require('dotenv').config();
 const { body, validationResult } = require('express-validator'); // Import express-validator
 const { v4: uuidv4 } = require('uuid');
+const fetchImageData = require('../../fetchImageData');
+
 
 const storage = multer.memoryStorage();
 
@@ -170,11 +173,10 @@ router.post('/cart', upload.none(), async (req, res) => {
     const token = req.cookies.token;
     const { productDetails, count, selectedSize,selectedColor } = req.body;
     const parsedCount = count ? Number(count) : 1;     
-
     if (!token) {
         return res.status(401).json({ message: 'Token missing or invalid' });
     }
-
+ 
     try {
         const decoded = await jwt.verify(token, process.env.KEY);
         const { id } = decoded;
@@ -183,9 +185,7 @@ router.post('/cart', upload.none(), async (req, res) => {
         if (!user) {
             return res.status(401).json({ status: false, message: "User not found. Please log in again." });
         }
-
-
-        const existingProduct = user.cartProducts.find(product => product.product === productDetails && product.selectedSize === selectedSize && product.selectedColor === selectedColor);
+        const existingProduct = user.cartProducts.find(product => product.product.id === productDetails && product.selectedSize === selectedSize && product.selectedColor === selectedColor);
         if (existingProduct) {
             if(isNaN(parsedCount)||parsedCount<=0){
                 return ( res.json({status:false,message:"error updating count"}))
@@ -193,9 +193,10 @@ router.post('/cart', upload.none(), async (req, res) => {
             
             existingProduct.count = parsedCount; 
         } else {
+            const cartProduct = await product.findOne({ id: productDetails });
             user.cartProducts.push({
                 id: uuidv4(),
-                product: productDetails,
+                product: cartProduct,
                 count: parsedCount,
                 selectedSize: selectedSize,
                 selectedColor,selectedColor
@@ -205,12 +206,14 @@ router.post('/cart', upload.none(), async (req, res) => {
         await user.save();
         return res.json({ status: true, message: "Cart product updated successfully" });
     } catch (err) {
-        res.status(401).json({ message: 'Token verification failed',err });
+        console.log(err)
+        res.status(404).json({ message: 'Token verification failed',err });
     }
 });
 
-router.get('/getCart', async (req, res) => {
+router.get('/getCart', async (req, res, next) => {
     try {
+        console.log("ppp")
         const token = req.cookies.token;
         if (!token) {
             return res.status(401).json({ status: false, message: "Please login" });
@@ -219,18 +222,51 @@ router.get('/getCart', async (req, res) => {
         const decoded = await jwt.verify(token, process.env.KEY);
         const { id } = decoded;
 
-        if (id) {
-            const user = await usermodel.findById(id);
-            const cart = user.cartProducts;
-            return res.status(200).json({ status: true, message: "Cart successfully fetched", cart });
-        } else {
+        if (!id) {
             return res.status(401).json({ status: false, message: "Please login" });
         }
+
+        const user = await usermodel.findById(id);
+        if (!user || !user.cartProducts) {
+            return res.status(404).json({ status: false, message: "Cart not found" });
+        }
+
+        const cart = user.cartProducts;
+        
+        const cartColor = cart.flatMap((prd) => prd.product.images?.map((img) => img[1][0].colorImage));
+        const cartProducts = cart.flatMap((prd) => prd.product.images.map((img) => img[0])).flat();
+        
+        const imageIds = [cartProducts, cartColor];
+        req.cart = cart;
+        req.imageIds = imageIds;
+        req.user = user
+        console.log(imageIds)
+
+        next();
     } catch (err) {
+        console.log(err)
         return res.status(500).json({ status: false, message: err.message });
     }
+}, fetchImageData, async (req, res) => {
+    try {
+        let count = 0;
+        let colorCount = 0;
+        const cart = await Promise.all(
+            req.cart.map((prd, index) => {
+                prd.images = prd.product.images?.map((img) => {
+                    img[0] = img[0].map(() => req.imagesData[0][count++]);
+                    img[1][0].colorImage = req.imagesData[1][colorCount++];
+                    return img;
+                });
+                return prd;
+            })
+        );
+        res.status(200).json({ status: true, message: "Cart successfully fetched", cart,address : req.user.addresses,coupons : req.user.coupons });
+    } catch (err) {
+        console.error("Error processing final response:", err);
+        res.status(500).json({ status: false, message: "Failed to process image data" });
+    }
 });
-
 router.put('/deleteCartProduct/:productId', async(req,res)=>{
     const {productId} = req.params;
     try{
@@ -249,11 +285,49 @@ catch(err){
     console.log(err);
 }
 
-})
+});
+router.put('/editCartProduct/:productId/:editedcount', async(req,res)=>{
+    const {productId} = req.params;
+    const {editedcount} = req.params;
+    console.log(productId)
+    try {
+        const token = req.cookies.token;
+        if (!token) return res.status(401).json({ message: "No token provided" });
+    
+        const decoded = jwt.verify(token, process.env.KEY);
+        const { id } = decoded;
+        
+        const user = await usermodel.findById(id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+    
+    
+        const updatedCart = user.cartProducts.map((product) => {
+            console.log(product.product.id)
+            console.log(productId)
+            console.log(productId===product.product.id )
+            if (product.product.id === productId) {
+                
+                product.count = editedcount;
+            }
+            return product;
+        });
+    
+        user.cartProducts = updatedCart;
+        await user.save();
+    
+        res.status(200).json({ message: "Cart updated successfully", cart: user.cartProducts });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+    }
+    
+
+
+});
 router.post('/whishlist', async (req, res) => {
     const {productId} = req.body;  // Product from request body
     const token = req.cookies.token;
-
+    console.log("plp")
     if (!token) {
         return res.status(401).json({ status: false, message: "Please Log In" });
     }
@@ -283,25 +357,68 @@ router.post('/whishlist', async (req, res) => {
         return res.status(500).json({ status: false, message: "An error occurred", error: err.message });
     }
 });
-
-router.get('/getWhishlist',async(req,res)=>{
-    try{
+router.get(
+    "/getWhishlist",
+    async (req, res, next) => {
+      try {
+        // Verify token
         const token = req.cookies.token;
         if (!token) {
-            return res.status(401).json({ status: false, message: "Token is not valid" });
+          return res.status(401).json({ status: false, message: "Token is not valid" });
         }
-        const decoded = await jwt.verify(token, process.env.KEY);
+        const decoded = jwt.verify(token, process.env.KEY);
         const { id } = decoded;
+  
+        // Fetch user and wishlist products
         const user = await usermodel.findById(id);
-        const cart = user.whishlist;
-        return res.json({status:true,message:"Whishlist successfully fetched",cart})
-        
+        if (!user ) {
+          return res.status(404).json({ status: false, message: "No wishlist items found" });
+        }
+        if (!user.whishlist.length ) {
+            return res.status(200).json({ products: [] });
+        }
+  
+        const productIds = user.whishlist.map((p) => p.productId); // Extract product IDs
+        const products = await product.find({ id: { $in: productIds } }); // Fetch all matching products
+  
+        // Process images
+        const productColors = products.flatMap((prd)=>prd.images.map((img)=>img[1][0].colorImage))
+        const productImages = products.flatMap((prd)=>prd.images.map((img)=>img[0])).flat()
+       
+        // Prepare data for the next middleware
+        req.products = products;
+        req.imageIds = [productImages, productColors];
+
+        next();
+      } catch (err) {
+        console.error("Error fetching wishlist:", err);
+        return res.status(500).json({ status: false, message: err.message });
+      }
+    },
+    fetchImageData,
+    async (req, res) => {
+      try {
+        // Map processed images back to products
+        let count = 0;
+        let colorCount = 0;
+  
+        const updatedProducts = req.products.map((prd) => ({
+          ...prd._doc,
+          images: prd.images.map((img) => ({
+            ...img,
+            0: img[0].map(() => req.imagesData[0][count++]), // Map main images
+            1: [{ ...img[1][0], colorImage: req.imagesData[1][colorCount++] }], // Map color images
+          })),
+        }));
+        // Send response with updated products
+        return res.status(200).json({ products: updatedProducts });
+      } catch (err) {
+        console.error("Error processing final response:", err);
+        return res.status(500).json({ error: "Failed to process image data" });
+      }
     }
-    catch(err){
-        return res.json({status:true,message:err.message})
-    }
-    
-})
+  );
+  
 router.put('/deletewhishlist/:productId', async(req,res)=>{
     try{
         const token = req.cookies.token;
@@ -352,7 +469,7 @@ router.post('/review', (req, res, next) => {
         }
 
         // Ensure files are checked only when they are sent
-        const images = req.files ? req.files.map(file => file.buffer.toString('base64')) : [];
+        const images = req.files ? req.files.map(file => file.id) : [];
 
         const decoded = await jwt.verify(token, process.env.KEY);
         const { id } = decoded;
@@ -366,8 +483,10 @@ router.post('/review', (req, res, next) => {
         if (!order) {
             return res.status(404).json({ status: false, message: "Order not found" });
         }
-        const product = order.productDetails.find((product)=>product.product === productId);
-
+        const product = order.productDetails.find((product)=>
+            (product.product._id).toString() === productId
+        );
+        console.log(productId)
         // Update logic for ratings and reviews
         if (rating) {
             product.review = {
@@ -375,6 +494,7 @@ router.post('/review', (req, res, next) => {
                 stars: rating
             };
         }
+        console.log(product.review)
         if (images.length > 0 || review) {
             product.review = {
                 ...product.review,

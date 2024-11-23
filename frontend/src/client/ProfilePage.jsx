@@ -4,10 +4,6 @@ import { FaBorderAll } from "react-icons/fa";
 import { GoHeart } from "react-icons/go";
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import uandiLogo from "../assets/uandilogo.jpg";
-import { MdOutlineShoppingCart } from "react-icons/md";
-import { CgProfile } from "react-icons/cg";
-import { Link } from "react-router-dom";
 import Header from "./Header";
 
 const ProfilePage = () => {
@@ -123,7 +119,6 @@ const ProfilePage = () => {
         setReset(!reset);
       }
     } catch (err) {
-      console.error("Error:", err.response ? err.response.data : err.message);
       alert(err.response.data.message);
     }
   };
@@ -133,14 +128,11 @@ const ProfilePage = () => {
         `${URI}/auth/resetpassword/update/?newpassword=${newPassword}`,
         { withCredentials: true } // Ensure cookies are sent
       );
-      console.log(response);
       if (response.status === 200 || response.status === 201) {
-        console.log(response);
         setPasswordSuccess(!passwordSuccess);
         setNewPassword("");
       }
     } catch (err) {
-      console.error("Error:", err.response ? err.response.data : err.message);
       alert(err.response.data.message);
     }
   };
@@ -148,7 +140,7 @@ const ProfilePage = () => {
   return (
     <div className="relative h-screen w-screen">
       <Header />
-      <main className="relative h-[85%] w-full overflow-y-auto scrollbar-hidden md:p-8 xsm:p-2 mb-8">
+      <main className="h-[85%] w-full overflow-y-auto scrollbar-hidden md:p-8 xsm:p-2 mb-8">
         {login ? (
           <>
             <div className="h-[30%] w-full p-2 flex flex-wrap items-center justify-around gap-2">
@@ -169,7 +161,7 @@ const ProfilePage = () => {
                 <FaBorderAll /> Orders
               </div>
             </div>
-            <div className="relative w-full max-h-max flex flex-col md:flex-row gap-6 p-4 overflow-auto">
+            <div className=" w-full max-h-max flex flex-col md:flex-row gap-6 p-4 overflow-auto">
               {/* Form Section */}
               <form className="w-full md:w-[50%] flex flex-col gap-6 mb-8 bg-white shadow-md rounded-lg p-6 flex-1">
                 {/* Mobile Number */}
@@ -245,7 +237,12 @@ const ProfilePage = () => {
                       <option value="Transgender">Transgender</option>
                     </select>
                   </div>
-                  <button onClick={handleUpdate} className="mx-auto max-h-max max-w-max px-4 py-2 mt-8 text-white font-semibold bg-blue-500 hover:shadow-md rounded">Update</button>
+                  <button
+                    onClick={handleUpdate}
+                    className="mx-auto max-h-max max-w-max px-4 py-2 mt-8 text-white font-semibold bg-blue-500 hover:shadow-md rounded"
+                  >
+                    Update
+                  </button>
                 </div>
               </form>
 

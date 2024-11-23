@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from "react";
-import uandiLogo from "../assets/uandilogo.jpg";
 import { IoChevronDown } from "react-icons/io5";
-import { MdOutlineShoppingCart } from "react-icons/md";
-import { CgProfile } from "react-icons/cg";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { Buffer } from "buffer";
+import { Link, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { FaRegSadCry } from "react-icons/fa";
 import { IoHeart } from "react-icons/io5";
 import Footer from "./Footer";
 import axios from "axios";
 import { FaStar } from "react-icons/fa6";
+import { FaRegSadCry } from "react-icons/fa";
 import Header from "./Header";
 
 const ProductPage = () => {
@@ -23,77 +19,92 @@ const ProductPage = () => {
   const [faq, setFaq] = useState(false);
   const [styleList, setStyleList] = useState([]);
   const [posters, setPosters] = useState(null);
-  const [filteredProduct, setFilteredProduct] = useState([]);
   const [productList, setProductList] = useState([]);
   const [categoryList, setCategoryList] = useState();
   const [stylenav, setStyleNav] = useState("");
   const [categorynav, setCategoryNav] = useState("");
-  const [sizes, setSizes] = useState();
   const [priceFrom, setPriceFrom] = useState(null);
   const [priceTo, setPriceTo] = useState(null);
   const [color, setColor] = useState(null);
   const [filterColor, setFilterColor] = useState([]);
   const [size, setSize] = useState([]);
-  const [triggerLocalStorage, setTriggerLocalStorage] = useState();
   const [whishlist, setWhishlist] = useState([]);
   const [recall, setRecall] = useState(false);
-
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
-    const cn = queryParams.get("categorynav");
+    // const cn = queryParams.get("categorynav");
     setCategoryNav(queryParams.get("categorynav"));
     setStyleNav(queryParams.get("stylenav"));
     const filterSize = queryParams.get("size");
     if (filterSize) {
       setSize((prev) => [...prev, filterSize]);
     }
+  }, [location.search]); // Only run once when the component mounts
 
+  useEffect(() => {
     const getproducts = async () => {
       try {
-        const response = await axios.get(URI + "/productList");
+        const response = await axios.get(
+          `${URI}/productList/?categorynav=${categorynav}&stylenav=${stylenav}`
+        );
         if (response.status === 200 || response.status === 201) {
-          setProductList(response.data);
+          setProductList(response.data.products);
+          // setColor(()=>response.data.products.map((p)=>p.images.map((img)=>img)))
+          const ff = response.data.products.flatMap((p) => p.images);
+          console.log(ff);
+          const uniqueArray = ff
+            .filter((prd) => prd !== undefined) // Remove undefined entries
+            .reduce((map, prd) => {
+              const key = prd?.[1]?.[0]?.colorname || ""; // Use `colorname` as a key
+              if (key && !map.has(key)) {
+                map.set(key, prd);
+              }
+              return map;
+            }, new Map()) // Accumulate unique objects based on `colorname`
+            .values(); // Extract values from the map
+
+          // Convert MapIterator to an array
+          const resultArray = Array.from(uniqueArray);
+          setColor(resultArray); // Set the unique array
         }
       } catch (err) {
         console.log(err);
       }
-      if (cn) {
-        try {
-          const response = await axios.get(
-            `${URI}/category/?categorynav=${cn}`
-          );
-          if (response.status === 200 || response.status === 201) {
-            setCategoryList(response.data.category);
-            // Assuming response is the response object from your API call
-            if (
-              response.data &&
-              response.data.styleList &&
-              response.data.styleList.length > 0
-            ) {
-              setStyleList(response.data.styleList[0].style); // Accessing the style from the first element in styleList
-              setPosters(response.data.styleList[0].posters); // Accessing the posters from the first element in styleList
-            }
-
-            console.log(response.data.styleList[0].posters);
+    };
+    const getCategory = async () => {
+      try {
+        const response = await axios.get(
+          `${URI}/category/?categorynav=${categorynav}`
+        );
+        if (response.status === 200 || response.status === 201) {
+          setCategoryList(response.data.category);
+          // Assuming response is the response object from your API call
+          if (
+            response.data &&
+            response.data.styleList &&
+            response.data.styleList.length > 0
+          ) {
+            setStyleList(response.data.styleList[0].style); // Accessing the style from the first element in styleList
+            setPosters(response.data.styleList[0].posters); // Accessing the posters from the first element in styleList
           }
-        } catch (err) {
-          console.log(err);
         }
+      } catch (err) {
+        console.log(err);
       }
     };
 
     getproducts();
-  }, [location.search]); // Only run once when the component mounts
+    getCategory();
+  }, [categorynav && stylenav]);
 
   const handleWhishlist = async (productDetails) => {
     const product = { productId: productDetails.id };
     try {
       const response = await axios.post(`${URI}/auth/whishlist`, product);
       if (response.status === 200 || response.status === 201) {
-        console.log(response);
         // alert("product successfully added to wishlist");
         setRecall(!recall);
       } else if (response.status(400)) alert(response.data.message);
@@ -116,13 +127,15 @@ const ProductPage = () => {
     const getwhishlist = async () => {
       try {
         const response = await axios.get(`${URI}/auth/getWhishlist`);
+        console.log(response);
         if (response.status === 200 || response.status === 201) {
           setWhishlist(
             () =>
-              response.data.cart ?
-              response.data.cart
-                .filter((w) => w.productId) // Filter items that have a productId
-                .map((w) => w.productId) : []// Extract only the productId
+              response.data.products
+                ? response.data.products
+                    .filter((w) => w.id) // Filter items that have a productId
+                    .map((w) => w.id)
+                : [] // Extract only the productId
           );
         }
       } catch (err) {
@@ -133,23 +146,9 @@ const ProductPage = () => {
     getwhishlist();
   }, [recall]);
 
-  useEffect(() => {
-    const fp = productList.filter((product) => product.style === stylenav);
-    setFilteredProduct(fp);
-    const ff = fp.flatMap((product) => product.colors).flat();
-    const uniqueArray = Array.from(
-      new Map(
-        ff.map((obj) => [JSON.stringify(obj), obj]) // Using JSON.stringify to create a unique string for each object
-      ).values()
-    );
-    setColor(uniqueArray);
-  }, [productList, stylenav]);
-
   const handleStyleNav = (c, s) => {
     setStyleNav(s);
     setCategoryNav(c);
-    const pl = productList.filter((p) => p.style === s);
-    setFilteredProduct(pl);
     navigate(`/productpage?categorynav=${c}&stylenav=${s}`);
   };
 
@@ -162,18 +161,6 @@ const ProductPage = () => {
     else if (id === "faq") setFaq(!faq);
   };
 
-  const handlePriceFIlter = (e) => {
-    //   const id = e.target.id;
-    //   if (id == "pricefrom") {
-    //     if (priceFrom > 0) {
-    //       const pricefilter = filteredProduct.filter((product) => {
-    //         return product.price > e.target.value;
-    //       });
-    //       setFilteredProduct(pricefilter);
-    //     }
-    //   }
-  };
-  console.log(whishlist);
   return (
     <div className="h-screen w-screen relative ">
       <Header />
@@ -371,16 +358,21 @@ const ProductPage = () => {
                         <img
                           key={index}
                           onClick={() =>
-                            filterColor.includes(color.color)
+                            filterColor.includes(color[1][0].colorname)
                               ? setFilterColor(() =>
-                                  filterColor.filter((s) => s !== color.color)
+                                  filterColor.filter(
+                                    (s) => s !== color[1][0].colorname
+                                  )
                                 )
-                              : setFilterColor((prev) => [...prev, color.color])
+                              : setFilterColor((prev) => [
+                                  ...prev,
+                                  color[1][0].colorname,
+                                ])
                           }
-                          src={`data:image/png;base64,${color.image}`}
+                          src={color[1][0].colorImage}
                           className={`h-12 w-12 object-cover rounded border-4 cursor-pointer ${
-                            filterColor.includes(color.color)
-                              ? "border-green-500 "
+                            filterColor.includes(color[1][0].colorname)
+                              ? "border-blue-500 "
                               : "border-white"
                           }`}
                           alt="Color Image"
@@ -393,26 +385,31 @@ const ProductPage = () => {
             <hr></hr>
           </div>
           <div className="relative min-h-max md:w-[80%] xsm:w-full grid grid-cols-2 lg:grid-cols-4 gap-4 p-2">
-            {filteredProduct.length > 0
-              ? filteredProduct.map((product, index) => {
-                  // console.log(whishlist.includes(product.id))
+            {productList.length > 0
+              ? productList.map((product, index) => {
                   if (
-                    (priceFrom === null ||
+                    ((priceFrom === null ||
                       (product.offer > 0
-                        ? product.price -
-                            (product.price / 100) * product.offer >
-                          priceFrom
+                        ? product.offertype === "Flat offer"
+                          ? product.price - product.offer
+                          : product.price -
+                              (product.price / 100) * product.offer >
+                            priceFrom
                         : product.price > priceFrom)) &&
-                    (priceTo === null ||
-                      (product.offer > 0
-                        ? product.price -
-                            (product.price / 100) * product.offer <
-                          priceTo
-                        : product.price < priceTo)) &&
-                    (size.length === 0 ||
-                      size.some((s) => product.sizes.includes(s))) &&
-                    (filterColor.length === 0 ||
-                      product.colors.some((c) => filterColor.includes(c.color)))
+                      (priceTo === null ||
+                        (product.offer > 0
+                          ? product.offertype === "Flat offer"
+                            ? product.price - product.offer
+                            : product.price -
+                                (product.price / 100) * product.offer <
+                              priceTo
+                          : product.price < priceTo)) &&
+                      (size.length === 0 ||
+                        size.some((s) => product.sizes.includes(s))) &&
+                      filterColor.length === 0) ||
+                    product.images.some((image) =>
+                      filterColor.some((c) => image[1]?.[0]?.colorname === c)
+                    )
                   ) {
                     return (
                       <div
@@ -420,9 +417,7 @@ const ProductPage = () => {
                         className="relative overflow-hidden p-1 cursor-pointer hover:shadow-xl rounded z-0 w-full transition-transform duration-300 ease-in-out"
                         onClick={() => {
                           product.stock === "In Stock" &&
-                            // navigate(`/productDetails?id=${product.id}`);
-                            console.log(product)
-                            navigate('/color', { state: { pro: product } });
+                            navigate(`/productDetails?id=${product.id}`);
                         }}
                       >
                         <div className="w-full h-full">
@@ -432,7 +427,9 @@ const ProductPage = () => {
                             </div>
                           ) : product.offer > 0 ? (
                             <div className="absolute top-2 right-2 bg-green-100 xsm:text-xs md:text-base text-gray-600 font-semibold max-w-max max-h-max p-2 rounded">
-                              sale {product.offer}%
+                              {product.offertype === "Flat offer"
+                                ? `₹${product.offer} Flatoffer`
+                                : `sale ${product.offer}%`}
                             </div>
                           ) : null}
 
@@ -455,7 +452,7 @@ const ProductPage = () => {
 
                           {product.images.length > 0 ? (
                             <img
-                              src={`data:image/png;base64,${product.images[0]}`}
+                              src={product.images[0][0][0]}
                               className="object-cover w-full aspect-[1/1] rounded border-2 border-gray-300"
                               alt={`product-${index}`}
                             />
@@ -478,9 +475,10 @@ const ProductPage = () => {
                                 <>
                                   {product.offer > 0 && (
                                     <p className="text-base font-semibold">
-                                      {`₹${(
-                                        product.price -
-                                        (product.price / 100) * product.offer
+                                      {`₹${(product.offertype === "Flat offer"
+                                        ? product.price - product.offer
+                                        : product.price -
+                                          (product.price / 100) * product.offer
                                       ).toFixed(2)}/-`}
                                     </p>
                                   )}
@@ -515,8 +513,9 @@ const ProductPage = () => {
                         </div>
                       </div>
                     );
-                  }
-                  //  return (<div
+                  } 
+                  // else{
+                  //   return (<div
                   //     key={index}
                   //     className="absolute overflow-hidden p-1 cursor-pointer hover:shadow-xl h-full rounded z-0 w-full transition-transform duration-300 ease-in-out justify-center items-center flex flex-col font-semibold text-lg"
 
@@ -524,43 +523,12 @@ const ProductPage = () => {
                   //     <FaRegSadCry className="text-7xl text-yellow-400"/>
                   //     Products not available please try again later
                   //   </div>)
+                  // }                 
                 })
               : ""}
           </div>
         </div>
-        {/* <div className="min-h-max w-full  overflow-x-auto z-0 px-2">
-          <h1 className="my-4">INSTRUCTIONS</h1>
-          <ul className="ml-6 list-decimal xsm:text-sm flex flex-col gap-2 ">
-            <li>
-              <p>hw was your day?</p>
-            </li>
-            <li>Our Story</li>
-            <li>Blog</li>
-            <li>Privacy</li>
-          </ul>
-        </div> */}
-        <div className="min-h-max w-full overflow-x-auto px-2">
-          <h1 className="py-4">FAQ</h1>
-          <div className="mb-4  w-[90%] flex flex-col px-2">
-            <div className="relative flex w-full border-b-2   border-green-900 ">
-              <button
-                id="faq"
-                onClick={(e) => {
-                  toggleAnswer(e);
-                }}
-                className="text-left w-[90%] px-4 py-2  text-lg text-sm focus:outline-none break-all"
-              >
-                How was your day ?
-              </button>
-              <IoChevronDown className="absolute right-2 top-[25%]" />
-            </div>
-            {faq && (
-              <div className="mt-2 px-4 py-2  text-gray-600 bg-gray-100 border-2 border-t-0 border-gray-300 rounded">
-                kjdndmnnmvldkm
-              </div>
-            )}
-          </div>
-        </div>
+        
         <Footer />
       </main>
     </div>

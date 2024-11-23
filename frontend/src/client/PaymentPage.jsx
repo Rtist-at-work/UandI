@@ -12,7 +12,7 @@ const PaymentPage = () => {
   const navigate = useNavigate(); // Use navigate from React Router v6
   const order = JSON.parse(localStorage.getItem('order'))
   // Extracting data passed via location.state
-  const orderSummary = order.orderSummarySend;
+  const orderSummary = order.orderSummary;
   const deliveryAddress = order.address;
   const subTotal = order.subTotal;
   const coupon = order.coupon;
@@ -22,7 +22,7 @@ const PaymentPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false); // State to track form submission
   const [paymentMethod, setPaymentMethod] = useState('');
   const [ordersToday, setOrdersToday] = useState(new Set());
-
+console.log(coupon)
   // Handling the back button
   useEffect(() => {
     const handleBackButton = (event) => {

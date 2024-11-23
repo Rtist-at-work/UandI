@@ -55,7 +55,6 @@ const UserOrders = () => {
     const getOrders = async () => {
       try {
         const response = await axios.get(`${URI}/placeOrder/orderDetails`);
-        console.log(response);
         if (response.status === 200 || response.status === 201) {
           setOrderDetails(response.data.orders);
         }
@@ -89,8 +88,6 @@ const UserOrders = () => {
         return 0;
     }
   };
-  console.log(orderDetails);
-
   return (
     <div className="relative h-screen w-full scrollbar-hidden">
       <Header />
@@ -104,115 +101,134 @@ const UserOrders = () => {
             const currentStep = getStepIndex(order.status);
 
             return (
-              <div key={order._id}>
-  {order.productDetails && order.productDetails.map((product) => (
-    <div
-      className="relative flex items-center justify-between xxsm:w-[90%] cursor-pointer md:w-[80%] mx-auto shadow-md p-2 mb-8 rounded"
-      key={`${order.orderId}-${product._id}`}
-      onClick={() => navigate(`/ordertracking/${order.orderId}`)}
-    >
-      <img
-        src={`data:image/png;base64,${
-          product.product?.images?.[0] || "default_image_url"
-        }`}
-        alt={product.product?.name || "Image not available"}
-        className="sm:w-32 xsm:w-24 xsm:h-24 sm:h-32 aspect-square object-cover mr-4"
-      />
-      <div className="flex-1 lg:w-[30%] md:w-[40%] xsm:w-full">
-        <div className="xsm:text-xsm md:text-base font-semibold mb-2">
-          {product.product?.name
-            ? product.product.name.length > 20
-              ? product.product.name.slice(0, 20) + "..."
-              : product.product.name
-            : "Name not available"}
-        </div>
-        <div className="text-xs text-gray-500 mb-2">
-          {product.selectedSize || "Size not specified"}
-        </div>
-        <div className="mb-2 font-semibold">
-          ₹ {product.product?.price || "Price not available"}
-        </div>
-        <div className="text-xs text-green-500">
-          Arriving Tomorrow
-        </div>
-      </div>
-
-      {order.status.toLowerCase() !== "delivered" && order.status.toLowerCase() !== "cancelled" ? (
-        <div className="md:flex justify-between items-center lg:w-[70%] md:w-[60%] relative hidden">
-          {steps.map((step, index) => (
-            <div
-              key={index}
-              className="flex flex-col justify-start items-center w-[25%] relative"
-            >
               <div
-                className={`w-[40px] h-[40px] xsm:w-[30px] xsm:h-[30px] aspect-[1/1] rounded-full flex items-center justify-center text-white transition-colors duration-300 ${
-                  index <= currentStep ? "bg-green-500" : "bg-gray-300"
-                }`}
+                key={order._id}
+                className="relative flex flex-col justify-between w-[90%] md:w-[80%] mx-auto shadow-md p-4 mb-8 rounded"
+                onClick={() => navigate(`/ordertracking/${order.orderId}`)}
               >
-                {index < currentStep ? (
-                  <FaCheck className="text-lg" />
+                {/* Order Header */}
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-bold text-lg sm:text-base xsm:text-sm">
+                    Order ID: {order.orderId}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {new Date(order.orderDate).toLocaleDateString()}
+                  </p>
+                </div>
+
+                {/* Product Images */}
+                <div className="flex flex-wrap gap-4 mb-4">
+                  {order.productDetails?.map((product) => (
+                    <div
+                      key={product._id}
+                      className="w-24 h-24 border rounded-md flex-shrink-0 overflow-hidden"
+                    >
+                      <img
+                        src={
+                          product.product?.images?.[0][0][0] ||
+                          "default_image_url"
+                        }
+                        alt={product.product?.name || "Image not available"}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Order Status or Tracking */}
+                {order.status.toLowerCase() !== "delivered" &&
+                order.status.toLowerCase() !== "cancelled" ? (
+                  <div className="flex justify-center items-center w-full md:w-[70%] mx-auto">
+                    <div className="flex justify-between items-center w-full">
+                      {steps.map((step, index) => (
+                        <div
+                          key={index}
+                          className="flex flex-col justify-start items-center w-[25%] relative"
+                        >
+                          {/* Step Circle */}
+                          <div
+                            className={`w-[40px] h-[40px] xsm:w-[30px] xsm:h-[30px] rounded-full flex items-center justify-center text-white transition-colors duration-300 ${
+                              index <= currentStep
+                                ? "bg-green-500"
+                                : "bg-gray-300"
+                            }`}
+                          >
+                            {index < currentStep ? (
+                              <FaCheck className="text-lg" />
+                            ) : (
+                              index + 1
+                            )}
+                          </div>
+
+                          {/* Step Label */}
+                          <p
+                            className={`text-sm mt-2 xsm:text-xs ${
+                              index <= currentStep
+                                ? "text-green-500"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {step}
+                          </p>
+
+                          {/* Step Line */}
+                          {index < steps.length - 1 && (
+                            <div
+                              className={`absolute top-1/2 left-full h-1 w-full transition-all duration-300 ${
+                                index < currentStep
+                                  ? "bg-green-500"
+                                  : "bg-gray-300"
+                              }`}
+                              style={{ transform: "translateX(-50%)" }}
+                            ></div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ) : (
-                  index + 1
+                  <div className="flex flex-col justify-center items-center gap-4 w-full md:w-[70%] mx-auto">
+                    {/* Status Indicator */}
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-4 w-4 rounded-full ${
+                          order.status.toLowerCase() === "delivered"
+                            ? "bg-green-500"
+                            : "bg-red-500"
+                        }`}
+                      ></div>
+                      <p
+                        className={`text-sm sm:text-xs ${
+                          order.status.toLowerCase() === "delivered"
+                            ? "text-green-500"
+                            : "text-red-500"
+                        }`}
+                      >
+                        {order.status} on delivery date
+                      </p>
+                    </div>
+
+                    {/* Additional Info */}
+                    <p className="text-gray-500 text-sm xsm:text-xs text-center">
+                      Item has been delivered on the expected date
+                    </p>
+
+                    {/* Rate & Review */}
+                    {order.status.toLowerCase() === "delivered" && (
+                      <p className="text-sm sm:text-xs text-blue-500 flex items-center gap-2 hover:text-green-500 cursor-pointer">
+                        <FaStar className="text-blue-500 hover:text-green-500" />
+                        Rate & Review Product
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
-              <p
-                className={`text-sm mt-2 xsm:text-xs xsm:mt-3 ${
-                  index <= currentStep ? "text-green-500" : "text-gray-400"
-                }`}
-              >
-                {step}
-              </p>
-              {index < steps.length - 1 && (
-                <div
-                  className={`absolute top-1/2 left-full h-1 w-[100%] transition-all duration-300 ${
-                    index < currentStep ? "bg-green-500" : "bg-gray-300"
-                  }`}
-                  style={{ transform: "translateX(-50%)" }}
-                ></div>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="md:flex flex-col justify-center gap-2 hidden mx-autolg:w-[70%] md:w-[60%] relative">
-          <div className="flex justify-center items-center gap-2">
-            <div
-              className={`h-4 w-4 rounded-full ${
-                order.status.toLowerCase() === "delivered"
-                  ? "bg-green-500"
-                  : "bg-red-500"
-              }`}
-            ></div>
-            <p
-              className={`text-sm ${
-                order.status.toLowerCase() === "delivered"
-                  ? "text-green-500"
-                  : "text-red-500"
-              }`}
-            >
-              {order.status} on delivery date
-            </p>
-          </div>
-          <p className="text-gray-500 text-sm mx-auto">
-            Item has been delivered on delivery date
-          </p>
-          <p className="text-sm text-blue-500 flex items-center gap-2 mx-auto hover:text-green-500">
-            <FaStar className="xsm:h-6 xsm:w-6 md:h-2 xsm:w-2 text-blue-500 hover:text-green-500" /> 
-            Rate & Review Product
-          </p>
-        </div>
-      )}
-      <div className="flex-shrink-0">
-        <FaChevronRight />
-      </div>
-    </div>
-  ))}
-</div>
-
             );
           })
         ) : (
-          <div>No orders available.</div>
+          <div className="text-center text-gray-500 text-lg sm:text-base">
+            No orders available.
+          </div>
         )}
       </main>
     </div>

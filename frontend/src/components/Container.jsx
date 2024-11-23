@@ -9,11 +9,9 @@ import Banners from "./banners/AllBanners";
 import Orderlist from "./Orderlist";
 import { useRef, useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
+import Policy from "./Policy";
 import ProductPage from "./ProductPage";
 import StylesPage from "./StylesPage";
-
-
 
 const Container = ({ handleMenuBarToggle, isSidebarOpen }) => {
   const URI = "http://localhost:5000";
@@ -24,8 +22,8 @@ const Container = ({ handleMenuBarToggle, isSidebarOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const sidebarRef = useRef(null);
-  const [categoryList,setCategoryList] = useState([]);
-  const [productList,setProductList] = useState([]);
+  const [categoryList, setCategoryList] = useState([]);
+  const [productList, setProductList] = useState([]);
 
   // useEffect(()=>{
   //   const cl = localStorage.getItem('categoryList');
@@ -35,7 +33,6 @@ const Container = ({ handleMenuBarToggle, isSidebarOpen }) => {
   //   setCategoryList(cat)
   //   setProductList(JSON.parse(pl))
   //    },[]);
-  
 
   // const handleStyles = (e) => {
   //   console.log(e.target.id)
@@ -43,8 +40,6 @@ const Container = ({ handleMenuBarToggle, isSidebarOpen }) => {
   //   setCatId(id);
   //   hs(id);
   // };
-
-
 
   useEffect(() => {
     if (location.pathname === "/admin/stylespage") {
@@ -63,21 +58,20 @@ const Container = ({ handleMenuBarToggle, isSidebarOpen }) => {
     // setEditId(p);
   };
 
-  
-
   return (
     <div className="h-full w-full flex p-4 gap-4 ">
-       <Sidebar
-          isSidebarOpen={isSidebarOpen}
-          ref={sidebarRef}
-          handleMenuBarToggle={handleMenuBarToggle}
-        />
-         <div className=" relative h-[100%] md:w-[80%] xsm:w-full shadow-md">
+      <Sidebar
+        isSidebarOpen={isSidebarOpen}
+        ref={sidebarRef}
+        handleMenuBarToggle={handleMenuBarToggle}
+      />
+      <div className=" relative h-[100%] md:w-[80%] xsm:w-full shadow-md">
         <Header
           handleMenuBarToggle={handleMenuBarToggle}
           isSidebarOpen={isSidebarOpen}
         />
         <Routes>
+          
           <Route path="/admin/homepage" element={<Homepage />} />
           <Route
             path="/admin/addproducts"
@@ -85,32 +79,15 @@ const Container = ({ handleMenuBarToggle, isSidebarOpen }) => {
           />
           <Route
             path="/admin/editproducts"
-            element={
-              <EditProduct
-                
-                URI={URI}
-              />
-            }
+            element={<EditProduct URI={URI} />}
           />
           <Route path="/admin/banners" element={<Banners />} />
-          <Route
-            path="/admin/categories"
-            element={
-              <Categories
-                URI={URI}
-              />
-            }
-          />
+          <Route path="/admin/categories" element={<Categories URI={URI} />} />
           <Route
             path="/admin/stylespage"
-            element={
-              <StylesPage
-                URI={URI}
-                productList={productList}                
-              />
-            }
-          /> 
-          <Route path="/admin/orderlists" element={<Orderlist/>} />
+            element={<StylesPage URI={URI} productList={productList} />}
+          />
+          <Route path="/admin/orderlists" element={<Orderlist />} />
           <Route
             path="/admin/productpage"
             element={
@@ -120,11 +97,11 @@ const Container = ({ handleMenuBarToggle, isSidebarOpen }) => {
               />
             }
           />
+        <Route path="/admin/policy" element={<Policy />} />
+
         </Routes>
       </div>
-
     </div>
-    
   );
 };
 

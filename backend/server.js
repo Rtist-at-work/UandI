@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('express'); 
 const http = require('http');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -20,11 +20,15 @@ const addresspage = require ('./src/controllers/addresspage')
 const updateUserDetails = require('./src/controllers/updateUserDetails')
 const deleteUserDetails = require('./src/controllers/deleteUserDetails')
 const adminorderlist = require('./src/controllers/adminorderlist')
+const policy = require('./src/controllers/PolicyController')
 const banner = require('./src/controllers/banner')
 const orderpage = require("./src/controllers/orderpage");
-const orders = require('./src/controllers/orders')
+const orders = require('./src/controllers/orders');
+const faq = require('./src/controllers/faq')
 const orderStatusUpdation = require('./src/controllers/orderStatusUpdation')
+const returnRequest = require('./src/controllers/returnRequest')
 const cookieParser = require('cookie-parser');
+const path = require('path'); // Import path module
 
 require('dotenv').config();
 const app = express();
@@ -78,12 +82,12 @@ io.on('connection', (socket) => {
       orderStatusUpdation(socket, data,userSockets,io);
   });
 
-//   Handle disconnection
+  // Handle disconnection
   socket.on('disconnect', () => {
       console.log('Client disconnected');
       // Remove the socket ID from userSockets when the user disconnects
       if (userId) {
-          delete userSockets[userId] ;
+          delete userSockets[userId];
           console.log(userSockets);
       }
   });
@@ -91,6 +95,7 @@ io.on('connection', (socket) => {
 
 // Database connection
 connect();
+
 // Routes
 app.use('/addproducts', productController);
 app.use('/editproducts', editproduct);
@@ -111,10 +116,20 @@ app.use('/orderpage', orderpage);
 app.use('/placeOrder', orders);  
 app.use('/banners', banner);  
 app.use('/admin/orders', adminorderlist);  
+app.use('/admin/policy', policy);  
+app.use('/returnRequest', returnRequest);  
+app.use('/upload-faqs', faq);  
+
+// Serve static files from the React app build directory
+app.use(express.static(path.join(__dirname, 'frontend', 'build')));
+
+// Fallback route to serve index.html for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
+});
 
 // Start the server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-//lfenjlfndojv

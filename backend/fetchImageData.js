@@ -14,8 +14,8 @@ const fetchImageData = async (req, res, next) => {
       const imageDataArray = await Promise.all(
         imageIds[i].map((imageId) => retrieveImageData(gfs, imageId))
       );      
-      // Push the fetched image data array into the `imagesData`
-      imagesData.push(imageDataArray);
+      // Filter out any `null` values (for missing images) and push into `imagesData`
+      imagesData.push(imageDataArray.filter(imageData => imageData !== null));
     }
     // Attach the fetched images data to the request object
     req.imagesData = imagesData;
@@ -38,12 +38,22 @@ const retrieveImageData = (gfs, imageId) => {
     
     readStream.on('data', (chunk) => chunks.push(chunk));  // Collect data chunks
     readStream.on('end', () => {
-      // Concatenate chunks and convert to base64 string
-      const imageData = Buffer.concat(chunks).toString('base64');
-      resolve(`data:image/png;base64,${imageData}`);  // Resolve with base64 image data
+      if (chunks.length > 0) {
+        // Concatenate chunks and convert to base64 string
+        const imageData = Buffer.concat(chunks).toString('base64');
+        resolve(`data:image/png;base64,${imageData}`);  // Resolve with base64 image data
+      } else {
+        resolve(null);  // Resolve with null if image not found
+      }
     });
     
-    readStream.on('error', (err) => reject(err));  // Reject on error
+    readStream.on('error', (err) => {
+      if (err.message.includes('FileNotFound')) {
+        resolve(null);  // Return null if file not found
+      } else {
+        reject(err);  // Reject for any other errors
+      }
+    });
   });
 };
 

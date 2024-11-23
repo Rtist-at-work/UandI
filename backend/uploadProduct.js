@@ -15,6 +15,7 @@ if (!conn) {
 
 let gfs;
 conn.once('open', () => {
+  
   gfs = require('gridfs-stream')(conn.db, mongoose.mongo);
   gfs.collection('uploads');
 });
@@ -22,9 +23,8 @@ conn.once('open', () => {
 const storage = new GridFsStorage({
   url: process.env.URL,
   file: (req, file) => {
-    console.log(file)
     const filename = `${Date.now()}-${file.originalname}`;
-    const metadata = req.body[`metadata[${file.fieldname}]`] || null;
+    const metadata = req.body[`metadata[${file.fieldname}]`] || {};
 
     return {
       filename: filename,

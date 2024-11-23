@@ -10,7 +10,8 @@ router.post('/',async(req,res)=>{
     
     try{
         const {email} = req.body;
-        const user = await userloginmodel.findOne({email})
+        const user = await userloginmodel.findOne({ 'personalInfo.email': email });
+
         if(!user){
             return res.json({status: true , message:"user not found"})
         }        

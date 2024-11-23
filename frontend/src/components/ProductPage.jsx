@@ -14,11 +14,13 @@ const ProductPage = () => {
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const stylenav = queryParams.get("stylenav");
+    const categorynav = queryParams.get("categorynav");
     const getproducts = async () => {
       try {
         const response = await axios.get(
-          URI + `/productList/?stylenav=${stylenav}`
+          `${URI}/productList/?categorynav=${categorynav}&stylenav=${stylenav}`
         );
+        console.log(response);
         if (response.status === 200 || response.status === 201) {
           setFilteredProduct(response.data.products);
         }
@@ -43,11 +45,6 @@ const ProductPage = () => {
         <div className="h-[90%] w-full overflow-y-auto px-2 py-4 grid grid-cols-2 md:grid-cols-4 gap-2 cursor-pointer hover:shadow-inner scrollbar-hidden">
           {filteredProduct && filteredProduct.length > 0 ? (
             filteredProduct.map((product, index) => {
-              let image = null;
-              if (product.images.length > 0) {
-                const imageBuffer = product.images[0];
-                image = `data:image/png;base64,${imageBuffer}`;
-              }
               return (
                 <div
                   key={index}
@@ -58,12 +55,12 @@ const ProductPage = () => {
                       id={product.id}
                       className="absolute right-0 top-0 h-8 w-[15%] bg-white text-gray-500 cursor-pointer"
                       onClick={() => {
-                        navigate(`/admin/editproducts/?id=${product.id}`,);
+                        navigate(`/admin/editproducts/?id=${product.id}`);
                       }}
                     />
                     {product.images.length > 0 ? (
                       <img
-                        src={image}
+                        src={product.images[0][0][0]}
                         className="w-full aspect-[1/1] object-cover rounded"
                         alt={`product-${index}`}
                       />
@@ -80,18 +77,18 @@ const ProductPage = () => {
                           ? product.name
                           : "Unknown"}
                       </p>
-                      <div className="flex gap-2 items-center">
+                      <div className="flex flex-wrap gap-2 items-center">
                         {product && (
                           <>
-                          {product && product.offer > 0 &&
-                            <p className="text-base font-semibold">
-                              
-                                {`₹${(
-                                    product.price -
+                            {product && product.offer > 0 && (
+                              <p className="text-base font-semibold">
+                                {`₹${(product.offertype === "Flat offer"
+                                  ? product.price - product.offer
+                                  : product.price -
                                     (product.price / 100) * product.offer
-                                  ).toFixed(2)}/-`}
-                                
-                            </p>}
+                                ).toFixed(2)}/-`}
+                              </p>
+                            )}
                             <p
                               className={`${
                                 product.offer > 0
@@ -99,16 +96,15 @@ const ProductPage = () => {
                                   : "text-base font-semibold"
                               }`}
                             >
-                              {product.price 
+                              {product.price
                                 ? `₹${product.price}/-`
                                 : "Price Unavailable"}
                             </p>
-                            {
-                              product.offer > 0 && 
+                            {product.offer > 0 && (
                               <p className="text-sm text-green-700 font-semibold">
-                              {product.offer}% Off
-                            </p>
-                            }
+                                {product.offer}% Off
+                              </p>
+                            )}
                           </>
                         )}
                       </div>

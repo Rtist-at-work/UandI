@@ -20,9 +20,7 @@ const Signup = () => {
       alert('Please enter a valid email or mobile number.');
       return;
     }
-    console.log(username)
-    console.log(emailOrMobile)
-    console.log(username)
+    
     try {
       const res = await axios.post("http://localhost:5000/auth/register", {
         username,
@@ -48,60 +46,66 @@ const Signup = () => {
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <form
-        className="xsm:h-[60%] xsm:w-[90%] border-2 border-black-800 p-8 flex flex-col mt-4 gap-2"
-        onSubmit={handleSubmit}
+    <form
+      className=" max-h-max w-[90%] sm:w-[80%] md:w-[70%] lg:w-[50%]  p-8 flex flex-col mt-4 gap-4 rounded-lg shadow-lg bg-white"
+      onSubmit={handleSubmit}
+    >
+      <h2 className="text-xl sm:text-2xl font-semibold text-center">SIGN UP</h2>
+      
+      <label htmlFor="username" className="text-sm sm:text-md font-medium">
+        Username:
+      </label>
+      <input
+        type="text"
+        className="h-12 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent px-4"
+        placeholder="Username"
+        required
+        onChange={(e) => setUsername(e.target.value)}
+        value={username}
+      />
+      
+      <label htmlFor="emailOrMobile" className="text-sm sm:text-md font-medium">
+        Email or Mobile:
+      </label>
+      <input
+        type="text"
+        autoComplete="off"
+        required
+        placeholder="Email or Mobile"
+        onChange={(e) => setEmailOrMobile(e.target.value)}
+        value={emailOrMobile}
+        className="h-12 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent px-4"
+      />
+      
+      <label htmlFor="password" className="text-sm sm:text-md font-medium">
+        Password:
+      </label>
+      <input
+        type="password"
+        className="h-12 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent px-4"
+        autoComplete="off"
+        required
+        placeholder="******"
+        onChange={(e) => setPassword(e.target.value)}
+        value={password}
+      />
+      
+      <button
+        type="submit"
+        className="h-10 w-full sm:w-48 rounded-md mt-6 mx-auto bg-blue-500 text-white font-semibold transition-all hover:bg-blue-600"
       >
-        <h2 className="xsm:text-2xl">SIGN UP</h2>
-        <label htmlFor="username" className="xsm:text-sm">
-          Username:
-        </label>
-        <input
-          type="text"
-          className="xsm:h-8 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Username"
-          required
-          onChange={(e) => setUsername(e.target.value)}
-          value={username}
-        />
-        <label htmlFor="emailOrMobile" className="text-md xsm:text-sm">
-          Email or Mobile:
-        </label>
-        <input
-          type="text"
-          autoComplete="off"
-          required
-          placeholder="Email or Mobile"
-          onChange={(e) => setEmailOrMobile(e.target.value)}
-          value={emailOrMobile}
-          className="xsm:h-8 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-        <label htmlFor="password" className="xsm:text-sm">
-          Password:
-        </label>
-        <input
-          type="password"
-          className="xsm:h-8 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          autoComplete="off"
-          required
-          placeholder="******"
-          onChange={(e) => setPassword(e.target.value)}
-          value={password}
-        />
-        <button
-          type="submit"
-          className="h-8 w-24 border-2 border-black-700 rounded-md mt-4 mx-auto bg-blue-500 text-white"
-        >
-          Sign Up
-        </button>
-        <p className="xsm:text-sm xsm:mt-2">
-          Already have an account?{" "}
-          <Link to={"/login"} className="text-blue-500">
-            Login
-          </Link>{" "}
-        </p>
-      </form>
-    </div>
+        Sign Up
+      </button>
+      
+      <p className="text-sm sm:text-md mt-4 text-center">
+        Already have an account?{" "}
+        <Link to="/login" className="text-blue-500 font-medium">
+          Login
+        </Link>
+      </p>
+    </form>
+  </div>
+  
   );
 };
 

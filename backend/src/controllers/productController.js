@@ -20,30 +20,29 @@ router.post('/', (req, res, next) => {
 },
 async (req, res) => {
   try {
-    const { name, price, category, description, offer, stock, sizes, style } = req.body;
+    const { name, price, category, description,offertype, offer, stock, sizes, style } = req.body;
 
     // Group the images and metadata into the required nested array structure
     
     const productImages = req.files.productImages || [];
     const colorImages = req.files.colorImages || [];
-    const metadata = req.body.productImageslength || [];
-    
+    const metadata = Array.isArray(req.body.productImageslength) ? req.body.productImageslength : [req.body.productImageslength] || [];
 
     const colorGroups = []; // To store the final grouped result
 
     let currentIndex = 0; // Keeps track of the current index in productImages
-    
     // Iterate over metadata (lengths of product image slices)
+  
     metadata.forEach((length, index) => {
       // Slice the productImages array based on the current length
       const productSlice = productImages.slice(currentIndex, currentIndex + Number(length)); // Slice based on metadata value
       const productImageIds = productSlice.map((productImage) => productImage.id);
-      
+      // console.log(productImageIds)
       // Get the corresponding color image
       const colorImage = colorImages[index] || null; // Get the color image corresponding to the index
       // Push the productSlice and colorImage into the result array
-      colorGroups.push([productImageIds, [colorImage.id]]);
-    
+
+      colorGroups.push([productImageIds, [{colorname:colorImage.originalname.split('.')[0], colorImage : colorImage.id}]]);    
       // Update the currentIndex to the next section of productImages
       currentIndex += Number(length);
     });
@@ -51,6 +50,7 @@ async (req, res) => {
             id: uuidv4(),
             name,
             price,
+            offertype,
             offer,
             stock,
             sizes,
@@ -60,7 +60,7 @@ async (req, res) => {
             images:colorGroups            
         });
 
-        // Save the product to the database
+    //     // Save the product to the database
         const result = await product.save();
 
     res.status(200).json({ message: 'Product uploaded successfully', data: colorGroups, result });

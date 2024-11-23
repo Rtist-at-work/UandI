@@ -64,43 +64,88 @@ const Login = ({handleCart}) => {
   };
 
   return (
-    <div  className='relative  w-full h-full flex items-center justify-center'>
-      <form  onSubmit={handleSubmit} className='xsm:min-h-max xsm:w-[90%] border-2 border-black-800 p-8 '>
-        <h2 className='xsm:text-2xl'>Login</h2>
-        <div className='flex flex-col mt-4 gap-2'>
-        <label htmlFor='emailOrMobile' className='text-md xsm:text-sm'>Email or Mobile:</label>
-          <input
-            type='text'
-            autoComplete='off'
-            placeholder='Email or Mobile'
-            onChange={(e) => setEmailOrMobile(e.target.value)}
-            value={emailOrMobile}
-            className='xsm:h-8 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-          />
+    <div className="relative w-full h-full flex items-center justify-center bg-gray-100">
+  <form
+    onSubmit={handleSubmit}
+    className="xsm:min-h-max xsm:w-[90%] md:w-[50%] shadow-md border-2 border-gray-300 rounded p-8 bg-white"
+  >
+    <h2
+      className="xsm:text-2xl md:text-3xl font-semibold text-gray-700 mb-6 text-center"
+      style={{ fontFamily: "Kabel, sans-serif" }}
+    >
+      Login
+    </h2>
+    <div className="flex flex-col gap-4">
+      {/* Email or Mobile */}
+      <label
+        htmlFor="emailOrMobile"
+        className="text-md xsm:text-sm text-gray-500"
+        style={{ fontFamily: "Kabel, sans-serif" }}
+      >
+        Email or Mobile:
+      </label>
+      <input
+        type="text"
+        id="emailOrMobile"
+        autoComplete="off"
+        placeholder="Enter your Email or Mobile"
+        onChange={(e) => setEmailOrMobile(e.target.value)}
+        value={emailOrMobile}
+        className="xsm:h-10 md:h-12 px-4 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      />
 
-          <nobr>
-            <label htmlFor='password' className='text-md xsm:text-sm'>Password :</label> 
-            <Link to='/forgotpassword' className='ml-32 xsm:ml-10 underline xsm:text-sm  text-blue-500'>Forgot password</Link>
-          </nobr>
-          <input 
-            type='password' 
-            autoComplete='off' 
-            placeholder='******' 
-            onChange={(e) => setPassword(e.target.value)} 
-            value={password} 
-            className='xsm:h-8 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-          />
-          <button 
-          className='h-8 w-24 border-2 border-black-700 rounded mt-4 mx-auto bg-blue-500 text-white'
-            type='submit' 
-            
-          >
-            Login
-          </button>
-          <p className='mt-4 xsm:text-sm text-md-'>Already have an account? <Link to='/signup' className='underline text-blue-500'>Sign Up</Link></p>
-        </div>
-      </form>
+      {/* Password */}
+      <div className="flex items-center justify-between">
+        <label
+          htmlFor="password"
+          className="text-md xsm:text-sm text-gray-500"
+          style={{ fontFamily: "Kabel, sans-serif" }}
+        >
+          Password:
+        </label>
+        <Link
+          to="/forgotpassword"
+          className="underline xsm:text-sm text-blue-500 hover:text-blue-600 transition"
+        >
+          Forgot password?
+        </Link>
+      </div>
+      <input
+        type="password"
+        id="password"
+        autoComplete="off"
+        placeholder="******"
+        onChange={(e) => setPassword(e.target.value)}
+        value={password}
+        className="xsm:h-10 md:h-12 px-4 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      />
+
+      {/* Submit Button */}
+      <button
+        className="h-10 w-full md:w-32 mx-auto mt-4 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition"
+        type="submit"
+        style={{ fontFamily: "Kabel, sans-serif" }}
+      >
+        Login
+      </button>
+
+      {/* Sign Up Link */}
+      <p
+        className="text-center text-md xsm:text-sm mt-4"
+        style={{ fontFamily: "Kabel, sans-serif" }}
+      >
+        Don’t have an account?{" "}
+        <Link
+          to="/signup"
+          className="underline text-blue-500 hover:text-blue-600 transition"
+        >
+          Sign Up
+        </Link>
+      </p>
     </div>
+  </form>
+</div>
+
   );
 };
 

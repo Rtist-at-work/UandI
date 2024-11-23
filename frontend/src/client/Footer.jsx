@@ -2,29 +2,31 @@ import React from 'react'
 import { RiInstagramFill } from "react-icons/ri";
 import { FaFacebookSquare } from "react-icons/fa";
 import { FaArrowRightLong } from "react-icons/fa6";
+import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {
+    const navigate = useNavigate()
   return (
     <footer className='relative h-auto w-full bg-gray-200 p-4 xsm:grid xsm:grid-cols-2 my-4 '>
                    <div >
                         <h1>SUPPORT</h1>
                         <ul className='ml-6 list-disc underline texm-sm'>
-                            <li>shipping</li>
-                            <li>return</li>
-                            <li>FAQ</li>
-                            <li>shipping</li>
-                            <li>Contact Us</li>
+                            <li className='cursor-pointer'>shipping</li>
+                            <li className='cursor-pointer' onClick={()=>navigate('/return')}>return</li>
+                            <li className='cursor-pointer' onClick={()=>navigate('/faq')}>FAQ</li>
+                            <li className='cursor-pointer' onClick={()=>navigate('/shippingpolicy')}>shipping</li>
+                            <li className='cursor-pointer' >Contact Us</li>
                         </ul>
                     </div>
                     <div >
                         <h1>ABOUT US</h1>
                         <ul className='ml-6 list-disc underline text-sm'>
-                            <li>ABOUT US</li>
-                            <li>Our Story</li>
-                            <li>Blog</li>
-                            <li>Privacy</li>
-                            <li>Terms & Conditions</li>
-                            <li>Accesibility</li>
+                            <li className='cursor-pointer'>ABOUT US</li>
+                            <li className='cursor-pointer'>Our Story</li>
+                            <li className='cursor-pointer'>Blog</li>
+                            <li className='cursor-pointer' onClick={()=>navigate('/PrivacyPolicy')}>Privacy</li>
+                            <li className='cursor-pointer' onClick={()=>navigate('/Terms&Services')}>Terms & Conditions</li>
+                            <li className='cursor-pointer'>Accesibility</li>
                         </ul>
                     </div>
                     <div className=' py-6 w-full  flex items-center col-span-2'>

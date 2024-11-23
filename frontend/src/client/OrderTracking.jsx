@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
-import uandiLogo from "../assets/uandilogo.jpg";
-import { MdOutlineShoppingCart } from "react-icons/md";
-import { CgProfile } from "react-icons/cg";
 import { FaStar } from "react-icons/fa6";
-import { FaChevronRight, FaCheck } from "react-icons/fa";
+import { FaCheck } from "react-icons/fa";
 import axios from "axios";
 import { RxCross2 } from "react-icons/rx";
 import { useRef } from "react";
@@ -118,7 +115,7 @@ const OrderTracking = () => {
         config
       );
       if (response.status === 200) {
-        alert("rated successfully");
+        setPopup(true);
       }
     } catch (err) {
       console.log(err);
@@ -144,7 +141,7 @@ const OrderTracking = () => {
     if (!review) {
       alert("please write something");
     }
-    console.log(productId);
+    console.log(productId)
     const formData = new FormData();
     formData.append("review", review);
     formData.append("orderId", order.orderId);
@@ -176,6 +173,7 @@ const OrderTracking = () => {
       }
     }
   };
+  console.log(productId)
   return (
     <div className="relative h-screen w-full overflow-auto scrollbar-hidden">
       <Header />
@@ -198,7 +196,7 @@ const OrderTracking = () => {
                 )}
               </div>
               <p
-                className={`text-sm mt-2 xsm:text-xs xsm:mt-3 ${
+                className={`text3-sm mt-2 xsm:text-xs xsm:mt-3 ${
                   index <= currentStep ? "text-green-500" : "text-gray-400"
                 }`}
               >
@@ -232,9 +230,10 @@ const OrderTracking = () => {
                     key={productItem._id}
                   >
                     <img
-                      src={`data:image/png;base64,${
-                        productItem.product?.images?.[0] || "default_image_url"
-                      }`}
+                      src={
+                        productItem.product?.images[0][0][0] ||
+                        "default_image_url"
+                      }
                       alt={productItem.product?.name || ""}
                       className="sm:w-32 xsm:w-24 xsm:h-24 sm:h-32 aspect-square object-cover mr-4"
                     />
@@ -251,13 +250,16 @@ const OrderTracking = () => {
                       </div>
                       <div className="flex gap-2 items-center justify-left xsm:text-sm text-gray-700">
                         <p className="md:text-base xsm:xs font-semibold">
-                          ₹
-                          {productItem.product?.price
-                            ? (productItem.product.price -
-                              (productItem.product.price / 100) *
-                                (productItem.product.offer || 0)).toFixed(2)
+                          {productItem.product?.offer
+                            ? `₹${(productItem.product?.offertype ===
+                              "Flat offer"
+                                ? productItem.product?.price -
+                                  productItem.product?.offer
+                                : productItem.product?.price -
+                                  (productItem.product?.price / 100) *
+                                    productItem.product?.offer
+                              ).toFixed(2)}/-`
                             : "Price not available"}
-                          /-
                         </p>
                         {productItem.product?.offer > 0 && (
                           <p className="line-through md:text-sm xsm:text-xs text-gray-500">
@@ -265,7 +267,7 @@ const OrderTracking = () => {
                           </p>
                         )}
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 flex-wrap">
                         {order.coupon.length > 0 && (
                           <p className="xsm:text-xs md:text-base  text-green-700 font-semibold">
                             1 Coupon
@@ -287,61 +289,64 @@ const OrderTracking = () => {
                             1 Offer
                           </p>
                         )}
-                        {order.coupon.length > 0 ||
-                          (productItem.product?.offer > 0 && (
-                            <p className="xsm:text-xs md:text-base  text-green-700 font-semibold">
-                              {" "}
-                              applied
-                            </p>
-                          ))}
+                        {(order.coupon.length > 0 ||
+                          productItem.product?.offer > 0) && (
+                          <p className="xsm:text-xs md:text-base text-green-700 font-semibold">
+                            applied
+                          </p>
+                        )}
                       </div>
                       <div className="flex gap-2 text-xs text-green-500">
                         <div>Arriving Tomorrow</div>
                       </div>
                     </div>
                   </div>
-                  {order.status.toLowerCase() === "delivered" &&  productItem.product &&(
-                    <div className="flex gap-4 w-[90%]  items-center mt-4">
-                      <div className="flex gap-1 items-center" key={index}>
-                        {[1, 2, 3, 4, 5].map((rating) => (
-                          <FaStar
-                            key={rating}
-                            className={`text-xl text-gray-700 ${
-                              (selectedRating.length > index &&
-                                selectedRating[index] >= rating) ||
-                              hover[index] >= rating
-                                ? "text-yellow-500"
-                                : "text-gray-500"
-                            } cursor-pointer border-2 border-transparent`}
-                            onClick={() => {
-                              handlereview(
-                                rating,
-                                index,
-                                productItem.product.id
-                              ); // Handle review submission
-                            }}
-                            onMouseEnter={() => {
-                              const updated = [...selectedRating];
-                              updated[index] = rating;
-                              setHover(updated); // Set hover state
-                            }}
-                            onMouseLeave={() => {
-                              setHover(selectedRating); // Reset hover state on mouse leave
-                            }}
-                          />
-                        ))}
+                  {order.status.toLowerCase() === "delivered" &&
+                    productItem.product && (
+                      <div className="flex gap-4 w-[90%]  items-center mt-4">
+                        <div className="flex gap-1 items-center" key={index}>
+                          {[1, 2, 3, 4, 5].map((rating) => (
+                            <FaStar
+                              key={rating}
+                              className={`text-xl text-gray-700 ${
+                                (selectedRating.length > index &&
+                                  selectedRating[index] >= rating) ||
+                                hover[index] >= rating
+                                  ? "text-yellow-500"
+                                  : "text-gray-500"
+                              } cursor-pointer border-2 border-transparent`}
+                              onClick={() => {
+                                setProductId(() => 
+                                  productItem.product._id
+                                );
+                                handlereview(
+                                  rating,
+                                  index,
+                                  productItem.product._id
+                                ); // Handle review submission
+                              }}
+                              onMouseEnter={() => {
+                                const updated = [...selectedRating];
+                                updated[index] = rating;
+                                setHover(updated); // Set hover state
+                              }}
+                              onMouseLeave={() => {
+                                setHover(selectedRating); // Reset hover state on mouse leave
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <div
+                          className="text-sm text-gray-700 flex items-center cursor-pointer"
+                          onClick={() => {
+                            setProductId(() => productItem.product._id);
+                            setPopup(!popup);
+                          }}
+                        >
+                          Write a review
+                        </div>
                       </div>
-                      <div
-                        className="text-sm text-gray-700 flex items-center cursor-pointer"
-                        onClick={() => {
-                          setProductId(productItem.product.id);
-                          setPopup(!popup);
-                        }}
-                      >
-                        Write a review
-                      </div>
-                    </div>
-                  )}
+                    )}
                 </>
               );
             })
@@ -365,7 +370,6 @@ const OrderTracking = () => {
               placeholder="Write your review here..."
               value={review}
               onChange={(e) => {
-                console.log(e.target.value);
                 setReview(e.target.value);
               }}
             />

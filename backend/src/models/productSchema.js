@@ -33,6 +33,10 @@ const productSchema = new mongoose.Schema({
         required: true,
         min: 0 // Ensure price is not negative
     },
+    offertype: {
+        type: String,
+        required: true,      
+    },
     offer: {
         type: Number,
         min: 0, // Ensure offer is not negative

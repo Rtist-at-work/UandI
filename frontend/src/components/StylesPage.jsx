@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Footer from "./mobile components/Footer";
-import { IoIosClose } from "react-icons/io";
-import { MdDelete } from "react-icons/md";
-import { Buffer } from "buffer";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 
 const StylesPage = () => {
-  // const [popup, setPopup] = useState("false");
   const [filteredStyles, setFilteredStyles] = useState([]);
   const [productList, setProductList] = useState([]);
-  const [categoryList, setCategoryList] = useState([]);
+  const [categorynav, setCategorynav] = useState([]);
   const location = useLocation();
 
   const URI = "http://localhost:5000";
@@ -19,22 +15,26 @@ const StylesPage = () => {
   const navigate = useNavigate();
 
   const handleproductlist = (e) => {
-    navigate(`/admin/productpage/?stylenav=${e.target.id}`);
+    navigate(`/admin/productpage/?stylenav=${e.target.id}&categorynav=${categorynav}`);
   };
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
+    const category = queryParams.get("category");
+    setCategorynav(()=>queryParams.get("category"))
     const getproducts = async () => {
       try {
-        const response = await axios.get(URI + "/productList");
+        const response = await axios.get(
+          `${URI}/productList/?categorynav=${category}`
+        );
+        console.log(response);
         if (response.status === 200 || response.status === 201) {
-          setProductList(response.data);
+          setProductList(response.data.products);
         }
       } catch (err) {
         console.log(err);
       }
     };
-
     getproducts();
 
     const getCategory = async () => {
@@ -44,12 +44,10 @@ const StylesPage = () => {
           `${URI}/category/?categorynav=${category}`
         );
         if (response.status === 200 || response.status === 201) {
-          setCategoryList(response.data.category);
           const sl = response.data.category.filter(
             (c) => c.category.toLowerCase().trim(" ") === category.toLowerCase().trim(" ")
           );
           setFilteredStyles(sl);
-          setPopup(false);
         }
       } catch (err) {
         console.log(err);
@@ -103,14 +101,13 @@ const StylesPage = () => {
                   {cat.length > 0 &&
                     cat.map((catItem, imgIndex) => {
                       if (catItem.images.length > 0) {
-                        let base64Img = catItem.images[0];
                         return (
                           <div
                             key={`${imgIndex}`}
                             className="flex flex-shrink-0 gap-2 p-0.5 h-[100%] aspect-[1/1] rounded overflow-hidden overflow-x-auto border-2 border-gray-300"
                           >
                             <img
-                              src={`data:image/png;base64,${base64Img}`}
+                              src={catItem.images[0][0][0]}
                               alt={`product-${imgIndex}`}
                               className="h-[100%] w-[100%] "
                             />
@@ -139,32 +136,6 @@ const StylesPage = () => {
           </div>
         )}
       </main>
-      {/* {popup &&
-        filteredStyles.length > 0 &&
-        filteredStyles[0].style.length > 0 && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-[70%] w-[80%] max-w-lg max-h-[500px] border-2 border-gray-300 bg-red-200 p-4 rounded-lg overflow-auto">
-            {filteredStyles[0].style.map((s, index) => (
-              <div
-                key={s.key}
-                className="relative flex items-center border-2 border-gray-300 min-h-12 max-h-max w-full flex items-center justify-between rounded-lg bg-blue-100"
-              >
-                <input
-                  type="text"
-                  value={s[0]}
-                  // onChange={handleStyleEdit} // Uncomment and implement if needed
-                  className="outline-none h-12 w-[80%] px-4 flex items-center justify-between rounded-lg bg-blue-100"
-                />
-                <MdDelete
-                  className="h-6 w-[20%] right-4 top-1 text-red-600 cursor-pointer"
-                  onClick={() => handleDel(index)}
-                />
-              </div>
-            ))}
-            <button className="h-12 w-24 mt-4 flex items-center justify-center mx-auto border-2 border-gray-300 font-bold rounded bg-blue-300">
-              Submit
-            </button>
-          </div>
-        )} */}
 
       <footer className="h-[5%] w-ful md:hidden xsm:block">
         <Footer />

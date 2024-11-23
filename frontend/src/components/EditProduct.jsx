@@ -21,46 +21,46 @@ const EditProduct = ({ URI }) => {
   const [stockStatus, setStockStatus] = useState();
   const [categoryList, setCategoryList] = useState([]);
   const [images, setImages] = useState([]);
+  const [colorIndex, setColorIndex] = useState(0);
   const [colors, setColors] = useState([]);
-  const [id, setId] = useState();
+  const [colorGroup,setColorGroup] = useState([]);
+  const [uploadedColor,setUploadedColor] = useState([]);
   const pid = new URLSearchParams(useLocation().search).get("id");
 
   const navigate = useNavigate();
-  const location = useLocation();
-  const [editId, setProductDetails] = useState(location.state?.product);
 
   useEffect(() => {
     const getCategory = async () => {
       try {
         const response = await axios.get(`${URI}/category`);
-        console.log("Category List Response:", response);
         if (response.status === 200 || response.status === 201) {
           setCategoryList(response.data.category);
         }
       } catch (err) {
         console.log(err);
       }
-    };
+    };   
 
     const getProduct = async () => {
       try {
-        console.log("Fetching product with ID:", pid);
-        const response = await axios.get(
-          `${URI}/editproducts/getProducts/?editId=${pid}`
-        );
+        const response = await axios.get(`${URI}/productList`, {
+          params: {
+            productDetails: pid,
+          },
+        });
         if (response.status === 200 || response.status === 201) {
-          setName(response.data.product.name);
-          setPrice(response.data.product.price);
-          setCategory(response.data.product.category); // Set category here
-          setDescription(response.data.product.description);
-          setOffer(response.data.product.offer);
-          setStockStatus(response.data.product.stock);
-          setStyle(response.data.product.style);
-          setSize(response.data.product.sizes);
-          setImages(response.data.product.images);
-          setColors(response.data.product.colors);
+          setName(response.data.products[0].name);
+          setPrice(response.data.products[0].price);
+          setCategory(response.data.products[0].category); // Set category here
+          setDescription(response.data.products[0].description);
+          setOffer(response.data.products[0].offer);
+          setStockStatus(response.data.products[0].stock);
+          setStyle(response.data.products[0].style);
+          setSize(response.data.products[0].sizes);
+          setUploadedColor(() =>
+            response.data.products[0].images.map((img)=>img)
+          );               
           
-          setId(response.data.product._id);
         }
       } catch (err) {
         console.log(err);
@@ -131,39 +131,35 @@ const EditProduct = ({ URI }) => {
   };
 
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const isImageUpload = e.currentTarget.id === "image";
-    const isColorUpload = e.currentTarget.id === "color";
-  
+    let files = Array.from(e.target.files);
+    const updated = [...colorGroup];
+
     if (files.length > 0) {
-      const imageUrlsPromises = files.map((file) => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const base64String = reader.result.split(",")[1]; // Get Base64 without prefix
-            const colorKey = file.name.split(".")[0]; // Extract color name from filename
-            resolve({ color: colorKey, image: base64String }); // Return object with color and image
-          };
-          reader.onerror = reject;
-          if (file) {
-            reader.readAsDataURL(file);
-          }
-        });
+      const imageUrls = files.map((file) => {
+        // Ensure colorGroup[colorIndex] is defined
+        if (!updated[colorIndex]) {
+          updated[colorIndex] = [[], []]; // Initialize as two empty arrays
+        }
+        if (e.target.id === "image") {
+          // Push file to images array
+          updated[colorIndex][0] = [...updated[colorIndex][0], file];
+        }
+        if (e.target.id === "color") {
+          // Push file to colors array
+          updated[colorIndex][1] = [file];
+        }
+        return URL.createObjectURL(file);
       });
-  
-      Promise.all(imageUrlsPromises)
-        .then((processedImages) => {
-          if (isImageUpload) {
-            // Assuming setImages just stores plain Base64 strings
-            setImages((prevImages) => [...prevImages, ...processedImages.map(img => img.image)]);
-          } else if (isColorUpload) {
-            // For color uploads, set in desired {color, image} format
-            setColors((prevColors) => [...prevColors, ...processedImages]);
-          }
-        })
-        .catch((error) => {
-          console.error("Error reading files:", error);
-        });
+
+      // Update the image or color URLs for display
+      if (e.target.id === "image") {
+        setImages([...images, ...imageUrls]);
+      }
+      if (e.target.id === "color") {
+        setColors([...imageUrls]); // Updated to use colors state
+      }
+
+      setColorGroup(()=>updated.filter((u)=>u!=undefined)); // Update colorGroup state
     }
   };
   
@@ -177,7 +173,7 @@ const EditProduct = ({ URI }) => {
       !stockStatus ||
       size.length === 0 ||
       !description ||
-      images.length === 0
+      uploadedColor.length === 0
     ) {
       alert("Please fill out all fields and upload at least one image.");
       return false;
@@ -189,27 +185,38 @@ const EditProduct = ({ URI }) => {
     e.preventDefault();
 
     if (!validateForm()) return;
+    const formdata = new FormData();
 
-    const productData = {
-      name,
-      price,
-      offer,
-      stock: stockStatus,
-      sizes: size,
-      category,
-      style,
-      description,
-      images, // Send Base64 images directly in the JSON payload
-      colors
-    };
+    formdata.append("name", name);
+    formdata.append("price", price);
+    formdata.append("offer", offer);
+    formdata.append("stock", stockStatus);
+    Array.from(size).forEach((size) => formdata.append("sizes", size));
+    formdata.append("category", category);
+    formdata.append("style", style);
+    formdata.append("description", description);
+    colorGroup.forEach((group, index) => {
+      // Append product images to 'productImages'
+      group[0].forEach((file) => {
+        formdata.append('productImages', file); // Append the file
+      });
+      formdata.append(`productImageslength`, `${group[0].length}`); // Append the metadata
+    
+      // Append color images to 'colorImages'
+      group[1].forEach((file) => {
+        formdata.append('colorImages', file);        
+      });
+    
+    });
   
     try {
-      const config = { headers: { "Content-Type": "application/json" } };
+      const config = { headers: { "Content-Type": "multipart/form-data" } };
       const response = await axios.put(
-        `${URI}/editproducts/${id}`,
-        productData,
+        `${URI}/editproducts/${pid}`,
+        formdata,
         config
       );
+      console.log(response)
       if (response.status === 200 || response.status === 201) {
         setName("");
         setPrice("");
@@ -219,24 +226,30 @@ const EditProduct = ({ URI }) => {
         setCategory("");
         setDescription("");
         setImages([]);
-        setColors([])
+        setColors([]);
+        setUploadedColor([]);
+        setColorGroup([]);
         alert("Product Edited successfully");
-        navigate(`/admin/productpage/?stylenav=${style}`);
+        navigate(`/admin/productpage/?stylenav=${style}&categorynav=${category}`);
       }
     } catch (err) {
       console.log("Error adding product:", err);
     }
   };
-  console.log(name,
-    price,
-    offer,
-    stockStatus,
-     size,
-    category,
-    style,
-    description,
-    images, // Send Base64 images directly in the JSON payload
-    colors)
+  const handleDeleteImages = async(colorname,index)=>{
+    try{
+      const response = await axios.delete(
+        `${URI}/editproducts/deleteColor/${pid}`,{
+        params : {'colorname' : colorname}}
+      );
+      if(response.status===200 || response.status===201){
+        setUploadedColor(()=>uploadedColor.filter((_,ind)=>index!=ind))
+      }
+    }
+    catch(err){
+      console.log(err)
+    }
+  }
   return (
     <div className="absolute  h-[90%] w-full rounded-md shadow-md">
       <div className="relative xsm:h-[95%] md:h-full w-[100%]  overflow-hidden scrollbar-hidden p-2">
@@ -383,7 +396,7 @@ const EditProduct = ({ URI }) => {
               value={description}
             />
             <label htmlFor="image"> IMAGE </label>
-            <div className="flex p-2 h-24 w-full border-2 border-blue-500 rounded bg-blue-50 ">
+            <div className="flex p-2 h-24 w-full border-2 border-gray-300 rounded">
               <input
                 type="file"
                 multiple
@@ -398,24 +411,25 @@ const EditProduct = ({ URI }) => {
               <TbBookUpload
                 id="image"
                 className="h-[100%] w-[10%] cursor-pointer"
-                onClick={(e) => handleButtonClick(e)}
+                onClick={(e) => {
+                  handleButtonClick(e);
+                }}
               />
-              <div className="flex h-[100%] w-[90%] overflow-x-auto  ">
+              <div className="flex h-[100%] w-[90%] overflow-x-auto">
                 {images.length > 0 ? (
                   images.map((image, index) => (
                     <div className=" relative h-[100%] aspect-[1/1] rounded ml-2 shrink-0 ">
                       <img
                         key={index}
-                        src={`data:image/png;base64,${image}`}
+                        src={image}
                         alt={`Uploaded ${index}`}
                         className="h-full aspect-[1/1] rounded"
                       />
                       <MdDelete
+                        id="image"
                         className="absolute right-1 top-1 text-red-600 text-lg"
-                        onClick={() => {
-                          setImages(() =>
-                            images.filter((_, image) => image != index)
-                          );
+                        onClick={(e) => {
+                          setImages(()=>images.filter((_,ind)=>ind!=index))
                         }}
                       />
                     </div>
@@ -427,7 +441,7 @@ const EditProduct = ({ URI }) => {
             </div>
             <label htmlFor="color"> COLORS </label>
 
-            <div className="flex p-2 h-24 w-full border-2 border-blue-500 rounded bg-blue-50">
+            <div className="flex p-2 h-24 gap-4 w-full border-2 border-gray-300 rounded">
               <input
                 type="file"
                 multiple
@@ -446,29 +460,77 @@ const EditProduct = ({ URI }) => {
                   handleButtonClick(e);
                 }}
               />
-              <div className="flex h-[100%] w-[90%] overflow-x-auto ">
+              <div className="relative h-full w-[90%] overflow-auto flex items-center gap-1">
                 {colors.length > 0 &&
                   colors.map((image, index) => (
                     <div
                       key={index}
-                      className=" relative h-[100%] aspect-[1/1] rounded ml-2 shrink-0 "
+                      className="relative max-h-max w-16 flex-shrink-0 flex flex-col gap-1"
                     >
                       <img
-                        src={`data:image/png;base64,${image.image}`}
-                        className="h-full aspect-[1/1] rounded"
+                        src={image}
+                        className="h-16 w-16 rounded border-2 border-gray-500 p-0.5"
                       />
                       <MdDelete
-                        className="absolute right-1 top-1 text-red-600 text-lg"
-                        onClick={() => {
-                          setColors(() =>
-                            colors.filter((_, image) => image != index)
-                          );
+                        id="color"
+                        className="absolute top-1 right-1 text-red-500 cursor-pointer"
+                        onClick={(e) => {
+                          setColors(()=>colors.filter((_,ind)=>ind!=index))
                         }}
                       />
                     </div>
                   ))}
               </div>
             </div>
+            <button
+              className="max-h-max max-w-max py-2 px-4 rounded bg-blue-500 text-white lg:font-medium text-sm items-bottomrounded border-2  "
+              type="button"
+              onClick={() => {
+                if(colors.length<=0) alert("please Select color")
+                else{
+                  setColorIndex(() => colorIndex + 1);
+                  setUploadedColor([...uploadedColor,colors[colors.length-1]]);
+                  setImages([]);
+                  setColors([]);}
+              }}
+            >
+              ADD COLORS
+            </button>
+            <label htmlFor="color"> PRODUCT COLORS UPLOADED</label>
+            <div className="flex p-2 h-24 gap-4 w-full border-2 border-gray-300 rounded">
+              <div className="relative h-full w-[90%] overflow-auto flex items-center gap-1">
+                {uploadedColor.length > 0 &&
+                  uploadedColor.map((image, index) => (
+                    <div
+                      key={index}
+                      className="relative max-h-max w-16 flex-shrink-0 flex flex-col gap-1"
+                    >
+                      <img
+                        src={image?.[1]?.[0]?.colorImage || image}
+                        className="h-16 w-16 rounded border-2 border-gray-500 p-0.5"
+                      />
+                      <MdDelete
+                        id="color"
+                        className="absolute top-1 right-1 text-red-500 cursor-pointer"
+                        onClick={(e) => {  
+                          if(image?.[1]?.[0]?.colorImage){
+                            handleDeleteImages(image?.[1]?.[0]?.colorname,index)
+                          }                       
+                           else{
+                            setColorGroup(() =>
+                              colorGroup.filter((_, ind) => ind != (index-((uploadedColor.length)-(colorGroup.length))))
+                            );
+                            setUploadedColor(() =>
+                              uploadedColor.filter((_, ind) => ind != index)
+                            );
+                           }
+                        }}
+                      />
+                    </div>
+                  ))}
+              </div>
+            </div>
+            
             <button
               className="h-12 w-24 lg:font-medium text-sm items-bottom  rounded border-2 mx-auto"
               type="submit"

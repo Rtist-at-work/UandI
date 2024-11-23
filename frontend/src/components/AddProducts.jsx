@@ -11,6 +11,7 @@ const AddProducts = ({ URI }) => {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
   const [offer, setOffer] = useState("");
+  const [OfferType,setOfferType] = useState();
   const [style, setStyle] = useState("");
   const [size, setSize] = useState([]);
   const [stockStatus, setStockStatus] = useState("");
@@ -146,13 +147,13 @@ const AddProducts = ({ URI }) => {
     return true;
   };
   const handleFormSubmission = async (e) => {
-    console.log(colorGroup)
     e.preventDefault();
     if (!validateForm()) return;
 
     const formData = new FormData();
     formData.append("name", name);
     formData.append("price", price);
+    formData.append("offertype", OfferType);
     formData.append("offer", offer);
     formData.append("stock", stockStatus);
     Array.from(size).forEach((size) => formData.append("sizes", size));
@@ -172,26 +173,19 @@ const AddProducts = ({ URI }) => {
         
       });
     
-      // Append metadata corresponding to the entire group
     });
     
-    // Array.from(imageRef.current.files).forEach((file) =>
-    //   formData.append("images", file)
-    // );
-    // Array.from(colorRef.current.files).forEach((file) =>
-    //   formData.append("colors", file)
-    // );
     
     try {
       const config = { headers: { "Content-Type": "multipart/form-data" } };
       const response = await axios.post(`${URI}/addproducts`, formData, config);
-      console.log(response)
 
       // Clear form fields after success
       if (response.status === 200 || response.status === 201) {
         setSize([]);
         setName("");
         setPrice("");
+        setOfferType("")
         setOffer("");
         setStockStatus("");
         setStockStatus([]);
@@ -200,6 +194,8 @@ const AddProducts = ({ URI }) => {
         setDescription("");
         setImages([]);
         setColors([]);
+        setColorGroup([]);
+        setUploadedColor([]);
         alert("Product added successfully");
       }
     } catch (err) {
@@ -216,7 +212,6 @@ const AddProducts = ({ URI }) => {
       }
     }
   };
-  
   return (
     <div className="absolute  h-[90%] w-full rounded-md shadow-md">
       <div className="relative xsm:h-[95%] md:h-full w-[100%]  overflow-hidden scrollbar-hidden p-2">
@@ -248,6 +243,20 @@ const AddProducts = ({ URI }) => {
               onChange={handleChange}
               value={price}
             />
+             <label htmlFor="category"> Offer Type </label>
+            <select
+              id="style"
+              name="style"
+              className="h-12 rounded border-2 border-gray-300 px-2"
+              value={OfferType}
+              onChange={(e)=>{
+                setOfferType(()=>e.target.value)
+              }}
+            >
+              <option>Select Offer Type</option>             
+              <option>Flat offer</option>             
+              <option>Percentage Offer</option>             
+            </select>
             <label htmlFor="price"> OFFER </label>
             <input
               type="number"
@@ -472,10 +481,12 @@ const AddProducts = ({ URI }) => {
               className="max-h-max max-w-max py-2 px-4 rounded bg-blue-500 text-white lg:font-medium text-sm items-bottomrounded border-2  "
               type="button"
               onClick={() => {
-                setColorIndex(() => colorIndex + 1);
-                setUploadedColor([...uploadedColor,colors[colors.length-1]]);
-                setImages([]);
-                setColors([]);
+                if(colors.length<=0 || images.length <=0) alert("please Select color and Images")
+                  else{
+                    setColorIndex(() => colorIndex + 1);
+                    setUploadedColor([...uploadedColor,colors[colors.length-1]]);
+                    setImages([]);
+                    setColors([]);}
               }}
             >
               ADD COLORS

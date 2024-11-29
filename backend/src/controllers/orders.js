@@ -5,22 +5,16 @@ const User = require('../models/usermodel');
 const Order = require('../models/orderModel');
 const product = require('../models/productSchema')
 const fetchImageData = require('../../fetchImageData');
+const verifyauth = require('./verifyauth')
 
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 router.use(cookieParser());
 
-router.post('/', async (req, res) => {
-    const token = req.cookies.token;
-
-    if (!token) {
-        return res.status(401).json({ status: false, message: 'Token missing or invalid' });
-    }
-
-    try {
-        const decoded = await jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
+router.post('/',verifyauth, async (req, res) => {
+    const {id} =req.user
+    try {   
 
         if (!id) {
             return res.status(401).json({ status: false, message: "User not found. Please login to place order" });
@@ -80,19 +74,19 @@ router.post('/', async (req, res) => {
         // Update user order history
         user.orderHistory.push({
             orderId: orderId,
-            productDetails: user.cartProducts.map((order) => ({
+            productDetails: user.cartProducts.map(order => ({
                 product: order.product,
                 count: order.count,
-                selectedSize: order.selectedSize
+                selectedSize: order.selectedSize,
+                selectedColor: order.selectedColor,
             })),
             price: finalPrice,
             paymentMethod: paymentMethod,
             deliveryaddress: deliveryAddress,
             coupon: appliedKey || '',
             orderDate: Date.now(),
-            status: "order placed"
+            status: "order placed",
         });
-       
         
 
         // // Clear user's cart products
@@ -107,16 +101,9 @@ router.post('/', async (req, res) => {
         return res.status(500).json({ status: false, message: "An error occurred", error: error.message });
     }
 });
-router.get('/orderId', async (req, res) => {
-    const token = req.cookies.token;
-
-    if (!token) {
-        return res.status(401).json({ status: false, message: 'Token missing or invalid' });
-    }
-
-    try {
-        const decoded = await jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
+router.get('/orderId',verifyauth, async (req, res) => {
+    const {id} = req.user;
+    try {       
 
         if (!id) {
             return res.status(401).json({ status: false, message: "User not found. Please login to place order" });
@@ -132,17 +119,11 @@ router.get('/orderId', async (req, res) => {
         return res.status(500).json({ status: false, message: "An error occurred", error: err.message });
     }
 });
-router.get('/orderDetails',async(req,res,next)=>{
+router.get('/orderDetails',verifyauth,async(req,res,next)=>{
     const orderId = req.query.orderId;
-    const token = req.cookies.token;
+    const { id } =req.user;
 
-    if (!token) {
-        return res.status(401).json({ status: false, message: 'Token missing or invalid' });
-    }
-
-    try {
-        const decoded = await jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
+    try {       
     
         if (!id) {
             return res.status(401).json({ status: false, message: "User not found. Please login to place order" });

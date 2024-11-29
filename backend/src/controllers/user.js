@@ -1,5 +1,5 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const usermodel = require('../models/usermodel');
 const multer = require('multer')
 const uploadImage = require('../../uploadProduct')
@@ -9,6 +9,7 @@ const product = require('../models/productSchema')
 require('dotenv').config();
 const { body, validationResult } = require('express-validator'); // Import express-validator
 const { v4: uuidv4 } = require('uuid');
+const verifyauth = require('./verifyauth'); 
 const fetchImageData = require('../../fetchImageData');
 
 
@@ -107,7 +108,7 @@ router.post('/:userId/personalInfo', async (req, res) => {
 });
 
 
-router.post('/address', async (req, res) => {
+router.post('/address',verifyauth, async (req, res) => {
     const {name,
         mobile,
         locality,
@@ -120,13 +121,10 @@ router.post('/address', async (req, res) => {
         pincode} = req.body;
 
     try{
-        const token = req.cookies.token;
-        if (!token) {
+        const { id } = req.user; 
+        if (!id) {
             return res.status(401).json({ message: 'Token missing or invalid' });
         }
-        const decoded = await jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
-
         const user = await usermodel.findById(id);
     
         if (!user) {
@@ -169,17 +167,16 @@ router.post('/:userId/order', async (req, res) => {
 
     res.json({ status: true, message: 'Order added', user });
 });
-router.post('/cart', upload.none(), async (req, res) => {
-    const token = req.cookies.token;
+router.post('/cart', upload.none(),verifyauth, async (req, res) => {
+    const { id } = req.user; 
     const { productDetails, count, selectedSize,selectedColor } = req.body;
     const parsedCount = count ? Number(count) : 1;     
-    if (!token) {
+    if (!id) {
         return res.status(401).json({ message: 'Token missing or invalid' });
     }
  
     try {
-        const decoded = await jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
+     
         const user = await usermodel.findById(id);
 
         if (!user) {
@@ -211,16 +208,9 @@ router.post('/cart', upload.none(), async (req, res) => {
     }
 });
 
-router.get('/getCart', async (req, res, next) => {
+router.get('/getCart',verifyauth, async (req, res, next) => {
     try {
-        console.log("ppp")
-        const token = req.cookies.token;
-        if (!token) {
-            return res.status(401).json({ status: false, message: "Please login" });
-        }
-
-        const decoded = await jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
+        const { id } = req.user; 
 
         if (!id) {
             return res.status(401).json({ status: false, message: "Please login" });
@@ -267,18 +257,18 @@ router.get('/getCart', async (req, res, next) => {
         res.status(500).json({ status: false, message: "Failed to process image data" });
     }
 });
-router.put('/deleteCartProduct/:productId', async(req,res)=>{
+router.put('/deleteCartProduct/:productId',verifyauth, async(req,res)=>{
     const {productId} = req.params;
+    const { id } = req.user; 
     try{
-        const token = req.cookies.token;
-        const decoded = await jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
+        
         const user = await usermodel.findById(id);
+        if (!user) return res.status(404).json({ message: "User not found" });
         const cart = user.cartProducts;
         const updatedCart = cart.filter((product)=>product._id!=productId);
         user.cartProducts = updatedCart;
         await user.save();
-        
+        return res.status(200).json({status:true,message:"cart product delelated successfully"})
 
 }
 catch(err){
@@ -286,17 +276,12 @@ catch(err){
 }
 
 });
-router.put('/editCartProduct/:productId/:editedcount', async(req,res)=>{
+router.put('/editCartProduct/:productId/:editedcount',verifyauth, async(req,res)=>{
     const {productId} = req.params;
     const {editedcount} = req.params;
+    const { id } = req.user; 
     console.log(productId)
-    try {
-        const token = req.cookies.token;
-        if (!token) return res.status(401).json({ message: "No token provided" });
-    
-        const decoded = jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
-        
+    try {        
         const user = await usermodel.findById(id);
         if (!user) return res.status(404).json({ message: "User not found" });
     
@@ -323,33 +308,29 @@ router.put('/editCartProduct/:productId/:editedcount', async(req,res)=>{
     
 
 
-});
-router.post('/whishlist', async (req, res) => {
-    const {productId} = req.body;  // Product from request body
-    const token = req.cookies.token;
-    console.log("plp")
-    if (!token) {
-        return res.status(401).json({ status: false, message: "Please Log In" });
-    }
-
+});router.post('/whishlist', verifyauth, async (req, res) => {
+    const { productId } = req.body; // Product from request body
+    const { id } = req.user; // Extract user ID from the decoded token
     try {
-        const decoded = await jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
         const user = await usermodel.findById(id);
         if (!user) {
-            return res.status(404).json({ status: false, message: "User not found Please Log In" });
+            return res.status(404).json({ status: false, message: "User not found. Please log in." });
         }
-        const existingProduct = user.whishlist.find((wishlistItem) => wishlistItem.productId === productId);
-        
+
+        // Check if the product already exists in the user's wishlist
+        const existingProduct = user.whishlist.find(
+            (wishlistItem) => wishlistItem.productId === productId
+        );
+
         if (existingProduct) {
-            user.whishlist = user.whishlist.filter((p)=>p.productId!=productId)
+            // Remove the product from the wishlist
+            user.whishlist = user.whishlist.filter((p) => p.productId !== productId);
             await user.save();
             return res.status(200).json({ status: true, message: "Product removed successfully" });
-        }
-        else{
+        } else {
+            // Add the product to the wishlist
             user.whishlist.push({ productId });
             await user.save();
-
             return res.status(200).json({ status: true, message: "Product added to wishlist successfully" });
         }
     } catch (err) {
@@ -357,18 +338,16 @@ router.post('/whishlist', async (req, res) => {
         return res.status(500).json({ status: false, message: "An error occurred", error: err.message });
     }
 });
+
 router.get(
-    "/getWhishlist",
+    "/getWhishlist",verifyauth,    
     async (req, res, next) => {
       try {
         // Verify token
-        const token = req.cookies.token;
-        if (!token) {
+        const { id } = req.user; 
+        if (!id) {
           return res.status(401).json({ status: false, message: "Token is not valid" });
-        }
-        const decoded = jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
-  
+        }  
         // Fetch user and wishlist products
         const user = await usermodel.findById(id);
         if (!user ) {
@@ -419,14 +398,12 @@ router.get(
     }
   );
   
-router.put('/deletewhishlist/:productId', async(req,res)=>{
+router.put('/deletewhishlist/:productId',verifyauth, async(req,res)=>{
     try{
-        const token = req.cookies.token;
-        if (!token) {
+        const { id } = req.user; 
+        if (!id) {
             return res.status(401).json({ status: false, message: "Token is not valid" });
         }
-        const decoded = await jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
         const user = await usermodel.findById(id);
         if(!user){
             return res.json({status:false,message:"user not found"});
@@ -443,7 +420,7 @@ catch(err){
 }
 
 })
-router.post('/review', (req, res, next) => {
+router.post('/review',(req, res, next) => {
     const contentType = req.headers['content-type'];
 
     if (contentType.startsWith('multipart/form-data')) {
@@ -458,21 +435,18 @@ router.post('/review', (req, res, next) => {
     } else {
         return res.status(400).json({ error: "Unsupported content type" });
     }
-}, async (req, res) => {
+},verifyauth,  async (req, res) => {
    
 
     try {
         const { rating, orderId, review, productId } = req.body;
-        const token = req.cookies.token;
-        if (!token) {
+        const {id} = req.user;
+        if (!id) {
             return res.status(401).json({ status: false, message: "Token is not valid" });
         }
 
         // Ensure files are checked only when they are sent
         const images = req.files ? req.files.map(file => file.id) : [];
-
-        const decoded = await jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
 
         const user = await usermodel.findById(id);
         if (!user) {
@@ -486,7 +460,6 @@ router.post('/review', (req, res, next) => {
         const product = order.productDetails.find((product)=>
             (product.product._id).toString() === productId
         );
-        console.log(productId)
         // Update logic for ratings and reviews
         if (rating) {
             product.review = {
@@ -494,7 +467,6 @@ router.post('/review', (req, res, next) => {
                 stars: rating
             };
         }
-        console.log(product.review)
         if (images.length > 0 || review) {
             product.review = {
                 ...product.review,

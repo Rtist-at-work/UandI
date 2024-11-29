@@ -4,6 +4,7 @@ import { FaFacebookSquare } from "react-icons/fa";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { useNavigate } from 'react-router-dom';
 
+
 const Footer = () => {
     const navigate = useNavigate()
   return (
@@ -15,7 +16,7 @@ const Footer = () => {
                             <li className='cursor-pointer' onClick={()=>navigate('/return')}>return</li>
                             <li className='cursor-pointer' onClick={()=>navigate('/faq')}>FAQ</li>
                             <li className='cursor-pointer' onClick={()=>navigate('/shippingpolicy')}>shipping</li>
-                            <li className='cursor-pointer' >Contact Us</li>
+                            <li className='cursor-pointer' onClick={()=>navigate('/admin/homepage')}>Contact Us</li>
                         </ul>
                     </div>
                     <div >

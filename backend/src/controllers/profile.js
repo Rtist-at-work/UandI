@@ -3,48 +3,45 @@ const usermodel = require('../models/usermodel');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser'); // Ensure cookie-parser is added
 require('dotenv').config();
+const verifyauth  = require('./verifyauth')
 
 const router = express.Router();
 
 // Add cookie-parser middleware
 router.use(cookieParser());
 
-router.get('/userDetails', async (req, res) => {
-  const token = req.cookies.token;
+// router.get('/userDetails', async (req, res) => {
+//   const token = req.cookies.token;
 
-  if (!token) {
+//   if (!token) {
+//     return res.status(401).json({ message: 'Access denied. No token provided.' });
+//   }
+
+//   try {
+//     const decoded = jwt.verify(token, process.env.KEY);
+//     const { username } = decoded;
+//     console.log(username)
+    
+//     const user = await usermodel.findOne({ username: username });
+
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found.' });
+//     }
+    
+
+//     res.json({ user });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(400).json({ message: 'Invalid token.' });
+//   }
+// });
+
+router.get('/getUser',verifyauth,async (req,res)=>{
+  const {id} = req.user;
+  if (!id) {
     return res.status(401).json({ message: 'Access denied. No token provided.' });
   }
-
   try {
-    const decoded = jwt.verify(token, process.env.KEY);
-    const { username } = decoded;
-    console.log(username)
-    
-    const user = await usermodel.findOne({ username: username });
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
-    
-
-    res.json({ user });
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ message: 'Invalid token.' });
-  }
-});
-
-router.get('/getUser',async (req,res)=>{
-  const token = req.cookies.token;
-
-  if (!token) {
-    return res.status(401).json({ message: 'Access denied. No token provided.' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.KEY);
-    const { id } = decoded;
       const user = await usermodel.findById(id);
       res.json(user);
     }
@@ -53,14 +50,12 @@ router.get('/getUser',async (req,res)=>{
     }
 })
 
-router.post('/update/:updateId', async (req, res) => {
-  const token = req.cookies.token;
+router.post('/update/:updateId',verifyauth, async (req, res) => {
+ const {id} = req.user;
 
-  if (!token) {
+  if (!id) {
     return res.status(401).json({ message: 'Access denied. No token provided.' });
   }
-
-  const decoded = jwt.verify(token, process.env.KEY);
     
 
     try {

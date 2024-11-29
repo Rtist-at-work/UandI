@@ -4,6 +4,7 @@ import axios from "axios";
 import Header from "./Header";
 
 const AddressForm = () => {
+  axios.defaults.withCredentials = true;
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
   const [locality, setLocality] = useState("");

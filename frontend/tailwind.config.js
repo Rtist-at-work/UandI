@@ -25,6 +25,7 @@ export default {
       'md' : '768px'
     },
     fontFamily: {
+      fredoka: ['"Fredoka"', 'cursive'],
       sans: ['Roboto', 'Arial', 'sans-serif'],
     },
   },

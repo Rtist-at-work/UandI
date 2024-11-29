@@ -8,7 +8,7 @@ import { FaStar } from "react-icons/fa6";
 
 const Whishlist = () => {
   const URI = "http://localhost:5000";
-
+  axios.defaults.withCredentials = true;
   const [whishlist, setWhishlist] = useState([]);
   const [productList, setProductList] = useState([]);
   const navigate = useNavigate();
@@ -70,6 +70,7 @@ const Whishlist = () => {
 
         {whishlist && whishlist.length > 0 ? (
           whishlist.map((product, index) => {
+            
             return (
               <div
                 key={index}

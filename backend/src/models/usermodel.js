@@ -39,6 +39,7 @@ const product = new mongoose.Schema({
     product : Object,
     count : Number,
     selectedSize : String,
+    selectedColor : {type:String},
     review :{type :review, default:{}, sparse:true}
 })
 

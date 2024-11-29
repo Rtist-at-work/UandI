@@ -8,6 +8,7 @@ import Header from "./Header";
 import { FaRegStarHalfStroke } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
+import { CiDeliveryTruck } from "react-icons/ci";
 
 const ProductDetails = ({ handleCart }) => {
   const [index, setIndex] = useState(0);
@@ -20,7 +21,7 @@ const ProductDetails = ({ handleCart }) => {
   const containerRef = useRef(null);
   const navigate = useNavigate();
   const URI = "http://localhost:5000";
-  console.log(colorIndex);
+  axios.defaults.withCredentials = true;
   // Call useLocation at the top level of the component
   const location = useLocation();
 
@@ -218,6 +219,7 @@ const ProductDetails = ({ handleCart }) => {
                       onClick={() => {
                         setColorIndex(() => index);
                         setSelectedColor(images[1][0].colorname);
+                        setIndex(0);
                       }}
                       key={index} // Added key for each image element
                       src={images[1][0].colorImage} // Use the Base64 string for the image source
@@ -228,6 +230,18 @@ const ProductDetails = ({ handleCart }) => {
               ) : (
                 <div>Sizes Not available</div>
               )}
+            </div>
+            <h4 className="my-4">Delivery</h4>
+            <div className=" flex gap-16 items-center">
+              <div className="flex flex-col gap-2">
+                <p className="md:text-base xsm:text-xs  text-gray-500">
+                  Within India maximum 7 working days
+                </p>
+                <p className="md:text-base xsm:text-xs text-gray-500">
+                  Outside India maximum 10 working days
+                </p>
+              </div>
+              <CiDeliveryTruck className="md:text-8xl text-red-800 xsm:text-5xl bg-white border-4 border-red-800 rounded-full p-2" />
             </div>
 
             <div className="flex flex-col gap-2 my-4">
@@ -396,16 +410,17 @@ const ProductDetails = ({ handleCart }) => {
                   {reviewItem.image && reviewItem.image.length > 0 && (
                     <div className="w-full overflow-x-auto scrollbar-hidden whitespace-nowrap">
                       <div className="flex">
-                        {reviewItem.image.map((image, i) => {
-                          console.log(image)
-                        }
+                        {reviewItem.image.map(
+                          (image, i) => {
+                            console.log(image);
+                          }
                           // <img
                           //   key={i}
                           //   src={image}
                           //   className="w-[50%] h-auto aspect-square object-cover mr-2 rounded-lg border-2 border-gray-200"
                           //   alt={`Review image ${i + 1}`}
                           // />
-                        // )
+                          // )
                         )}
                       </div>
                     </div>

@@ -6,7 +6,7 @@ import Footer from "./Footer";
 
 const PrivacyPolicy = () => {
   const URI = "http://localhost:5000";
-
+  axios.defaults.withCredentials = true;
   const navigate = useNavigate();
   const location = useLocation(); // Import useLocation to get the current path
 
@@ -173,7 +173,7 @@ const PrivacyPolicy = () => {
                   ))}
                 </div>
               ))}
-          </div>
+          </div>  
         )}
         <Footer />
       </main>

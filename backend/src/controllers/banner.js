@@ -6,7 +6,6 @@ const posterSchema = require('../models/poster');
 const category = require('../models/category')
 const path = require('path');
 const upload = require('../../uploadProduct')
-const multer = require('multer');
 const fetchImageData = require('../../fetchImageData')
 
 router.post('/age', (req, res) => {
@@ -236,9 +235,7 @@ router.get('/delete', async(req,res)=>{
 router.put('/edit/:editId',upload.array('images',10),async (req, res) => {
 
     const { editId } = req.params;
-    const { poster } = req.query;
-    console.log(editId)
-    console.log(poster)
+    const { poster } = req.query;    
   const image = req.files.map((file)=>String(file.id));   
     try {
       if (!image) {
@@ -246,7 +243,6 @@ router.put('/edit/:editId',upload.array('images',10),async (req, res) => {
       }
       let updatedPoster;
       if(poster==="mainbanner"){
-        console.log("kkk")
        updatedPoster = bannerSchema;
         
       }

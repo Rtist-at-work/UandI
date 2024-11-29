@@ -6,7 +6,6 @@ const fetchImageData = require('../../fetchImageData')
 
 
 router.get('/',async(req,res,next)=>{
-  console.log("ppp")
   let imageIds = [] ; 
 
     try{
@@ -29,7 +28,7 @@ router.get('/',async(req,res,next)=>{
 
             const catProducts = category
                     .map((cat) => {
-                        const productWithOffer = products.find((product) => product.category === cat.category && product.offer > 0);
+                        const productWithOffer = products.find(( ) => product.category === cat.category && product.offer > 0);
                         return productWithOffer || products.find((product) => product.category === cat.category) || null;
                     })
                     .filter(product => product !== null);

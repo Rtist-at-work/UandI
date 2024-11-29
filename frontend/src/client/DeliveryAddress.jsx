@@ -11,7 +11,7 @@ const DeliveryAddress = ({handleAddAddress}) => {
   const [addresses, setAddresses] = useState([]);
 
   const URI = "http://localhost:5000";
-
+  axios.defaults.withCredentials = true;
  
 
   useEffect(() => {

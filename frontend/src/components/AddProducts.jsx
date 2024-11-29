@@ -5,6 +5,7 @@ import Footer from "./mobile components/Footer";
 import { MdDelete } from "react-icons/md";
 
 const AddProducts = ({ URI }) => {
+  axios.defaults.withCredentials = true;
   const imageRef = useRef(null);
   const colorRef = useRef(null);
   const [name, setName] = useState("");
@@ -84,7 +85,7 @@ const AddProducts = ({ URI }) => {
       colorRef.current.click();
     }
   };
-
+  console.log(colorGroup)
   const handleImageUpload = (e) => {
     let files = Array.from(e.target.files);
     const updated = [...colorGroup];
@@ -117,7 +118,6 @@ const AddProducts = ({ URI }) => {
       setColorGroup(updated); // Update colorGroup state
     }
   };
-
   const handleDel = (e, index) => {
     if (e.currentTarget.id === "image") {
       const filteredimages = images.filter((_, ind) => ind !== index);
@@ -161,6 +161,7 @@ const AddProducts = ({ URI }) => {
     formData.append("style", style);
     formData.append("description", description);
     colorGroup.forEach((group, index) => {
+      console.log(group)
       // Append product images to 'productImages'
       group[0].forEach((file) => {
         formData.append('productImages', file); // Append the file

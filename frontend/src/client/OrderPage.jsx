@@ -27,14 +27,16 @@ const OrderPage = ({ handleAddAddress }) => {
   const [discount, setDiscount] = useState(0);
   const index = "";
   const URI = "http://localhost:5000";
+  axios.defaults.withCredentials = true;
   const navigate = useNavigate();
 
   const handleexit = () => {
-    navigate("/paymentpage");
     localStorage.setItem(
       "order",
       JSON.stringify({ orderSummary, address, coupon, subTotal })
     );
+    navigate("/paymentpage");
+
   };
 
   const handle = (e) => {

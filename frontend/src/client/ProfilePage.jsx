@@ -8,6 +8,7 @@ import Header from "./Header";
 
 const ProfilePage = () => {
   const URI = "http://localhost:5000";
+  axios.defaults.withCredentials = true;
   const [personalInfo, setPersonalInfo] = useState({
     name: "",
     gender: "",
@@ -28,7 +29,9 @@ const ProfilePage = () => {
 
   const userDetails = async () => {
     try {
-      const response = await axios.get(`${URI}/profile/getUser`);
+      const response = await axios.get(`${URI}/profile/getUser`, { withCredentials: true });
+
+      console.log(response)
       if (response.status === 200 || response.status === 201) {
         setUpdateId(response.data._id);
         setPersonalInfo({

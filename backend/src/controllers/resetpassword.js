@@ -1,16 +1,17 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const usermodel = require('../models/usermodel');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const router = express.Router();
+const verifyauth = require('./verifyauth')
 
 
-router.get("/check", async (req, res) => {
-    const token = req.cookies.token;
+router.get("/check", verifyauth,async (req, res) => {
+    const {id} = req.user;
     const { password } = req.query;
 
-    if (!token) {
+    if (!id) {
         return res.status(401).json({ status: false, message: 'No token provided' });
     }
 
@@ -19,8 +20,6 @@ router.get("/check", async (req, res) => {
     }
 
     try {
-        const decoded = await jwt.verify(token, process.env.KEY);
-        const id = decoded.id;
 
         const user = await usermodel.findById(id);
         if (!user) {
@@ -42,7 +41,7 @@ router.get("/check", async (req, res) => {
     }
 });
 router.put("/update", async (req, res) => {
-    const token = req.cookies.token;
+    const token = req.cookies?.token || req.query;
     const { newpassword } = req.query;
 
     if (!token) {

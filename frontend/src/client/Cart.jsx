@@ -5,7 +5,7 @@ import Header from "./Header";
 
 const Cart = () => {
   const URI = "http://localhost:5000";
-
+  axios.defaults.withCredentials = true;
   const [cartProducts, setCartProducts] = useState([]);
   const [subTotal, setSubTotal] = useState(0);
   const [discount, setDiscount] = useState(0);
@@ -29,6 +29,9 @@ const Cart = () => {
       }
       subtotal += price * cartProduct.count;
     });
+    console.log(discount)
+    console.log(subtotal)
+    console.log(subtotal-discount)
     setDiscount(discount);
     setSubTotal(subtotal);
   };
@@ -95,6 +98,7 @@ const Cart = () => {
 
   // Delete item from cart
   const deleteCartItem = async (index) => {
+    console.log("ppp")
     try {
       const productId = cartProducts[index]._id;     
       const response = await axios.put(
@@ -106,10 +110,11 @@ const Cart = () => {
         setCartProducts(updatedCart);
       }
     } catch (err) {
+      alert("something went wrong please try again later")
       console.error(err);
     }
   };
-
+console.log(cartProducts)
   // Navigate to order page
   const handleOrder = () => {
     navigate("/orderpage");
@@ -302,10 +307,9 @@ const Cart = () => {
                                 "Flat offer"
                                   ? filteredProduct.product.price -
                                     filteredProduct.product.offer
-                                  : (filteredProduct.product.price -
-                                      filteredProduct.product.price / 100) *
+                                  : (filteredProduct.product.price -(filteredProduct.product.price / 100) *
                                     filteredProduct.product.offer
-                                )*(filteredProduct.count).toFixed(2)} /-`}
+                                ))*(filteredProduct.count).toFixed(2)} /-`}
                               </p>
                             )}
                           </div>

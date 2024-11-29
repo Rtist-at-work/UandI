@@ -3,8 +3,7 @@ const router = express.Router();
 const productForm = require('../models/productSchema');
 const user = require('../models/usermodel');
 const fetchImageData = require('../../fetchImageData');
-const { GiConsoleController } = require('react-icons/gi');
-const { promises } = require('nodemailer/lib/xoauth2');
+
 
 router.get('/', async (req, res,next) => {
     try {

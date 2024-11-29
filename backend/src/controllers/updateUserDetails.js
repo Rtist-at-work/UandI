@@ -3,11 +3,12 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const User = require('../models/usermodel');  // Assuming you have a User model
+const verifyauth = require('./verifyauth')
 
-router.put('/', async (req, res) => {
-  const token = req.cookies.token;
+router.put('/',verifyauth, async (req, res) => {
+  const {id} = req.user;
 
-  if (!token) {
+  if (!id) {
     return res.status(401).json({ message: 'Token missing or invalid' });
 }
   const  addresses  = req.body;
@@ -17,8 +18,6 @@ router.put('/', async (req, res) => {
   }
 
   try {
-    const decoded = await jwt.verify(token, process.env.KEY);
-        const { id } = decoded;
     const updatedUser = await User.findByIdAndUpdate(
       { _id: id },       // Filter by username
       { $set: { addresses: addresses } },  // Update the addresses field

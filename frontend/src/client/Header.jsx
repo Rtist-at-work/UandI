@@ -7,11 +7,11 @@ import { useNavigate } from "react-router-dom";
 const Header = () => {
   const navigate = useNavigate();
   return (
-    <header className="relative h-[15%] w-full bg-red-200">
+    <header className="relative h-[15%] w-full">
     <div className="h-[25%] w-full bg-pink-300 xsm:text-sm flex items-center justify-center">
         10% Discount on first purchase | Welcome
       </div>
-      <div className="h-[75%] w-full bg-yellow-300 flex">
+      <div className="h-[75%] w-full bg-yellow-300  flex">
         <div className="h-full aspect-[1/1] bg-pink-300 shrink-0">
           <img src={uandiLogo} alt="dsvd" className="h-full w-full cursor-pointer" 
           onClick={

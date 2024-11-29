@@ -3,17 +3,15 @@ const router = express.Router();
 const usermodel =require("../models/usermodel")
 const product = require("../models/productSchema")
 const jwt = require('jsonwebtoken');
+const verifyauth = require('./verifyauth')
 
 //kbshb
-router.get('/address',async(req,res)=>{
-    const token = req.cookies.token;
+router.get('/address',verifyauth,async(req,res)=>{
+    const {id} = req.user;
 
-    if(!token){
+    if(!id){
         return res.status(401).json({ message: 'Access denied. No token provided.' });
     }
-
-    const decoded = jwt.verify(token, process.env.KEY);
-    const {id} = decoded;
     try{
        
         const user = await usermodel.findById(id);
@@ -22,7 +20,7 @@ router.get('/address',async(req,res)=>{
         }
     }
     catch(err){
-        console.log(err);
+       return res.json(err)
     }
 
 }) 

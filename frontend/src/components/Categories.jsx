@@ -9,6 +9,7 @@ import { FiUpload } from "react-icons/fi";
 import { IoIosArrowDown } from "react-icons/io";
 
 const Categories = ({ URI }) => {
+  axios.defaults.withCredentials = true;
   const [popup, setPopup] = useState(false);
   const [editpopup, setEditPopup] = useState(false);
   const [sizePopup, setSizePopup] = useState(false);
@@ -103,6 +104,7 @@ const Categories = ({ URI }) => {
     const getCategory = async () => {
       try {
         const response = await axios.get(`${URI}/category`);
+        console.log(response)
         if (response.status === 200 || response.status === 201) {
           setCategoryList(response.data.category);
           setPopup(false);

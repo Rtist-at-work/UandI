@@ -8,7 +8,7 @@ require('dotenv').config();
 // Reuse or create MongoDB connection
 let conn;
 if (!conn) {
-  conn = mongoose.createConnection(process.env.URL, {
+  conn = mongoose.createConnection(process.env.MONGO_URI, {
     maxPoolSize: 10 // You can keep this option for connection pooling if needed
   });
 }
@@ -21,7 +21,7 @@ conn.once('open', () => {
 });
 
 const storage = new GridFsStorage({
-  url: process.env.URL,
+  url: process.env.MONGO_URI,
   file: (req, file) => {
     const filename = `${Date.now()}-${file.originalname}`;
     const metadata = req.body[`metadata[${file.fieldname}]`] || {};

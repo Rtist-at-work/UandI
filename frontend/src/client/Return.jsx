@@ -4,11 +4,10 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Footer from "./Footer";
 import { AiOutlineCheckCircle } from "react-icons/ai"; // Importing success icon
-import { RxCrossCircled } from "react-icons/rx";
 
 const Return = () => {
   const URI = "http://localhost:5000";
-
+  axios.defaults.withCredentials = true;
   const navigate = useNavigate();
 
   const [categoryList, setCategoryList] = useState([]);

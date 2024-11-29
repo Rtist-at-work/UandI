@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 const ProductPage = () => {
   const URI = "http://localhost:5000";
+  axios.defaults.withCredentials = true;
   const navigate = useNavigate();
 
   const [filteredProduct, setFilteredProduct] = useState([]);

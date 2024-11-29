@@ -27,6 +27,7 @@ const Signup = () => {
         emailOrMobile,
         password,
       });
+      console.log(res)
       if (res.data.status) {
         navigate("/login");
       } else {

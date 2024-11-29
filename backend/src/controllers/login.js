@@ -1,5 +1,5 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const userloginmodel = require('../models/usermodel');
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
@@ -30,8 +30,14 @@ router.post('/', async (req, res) => {
         process.env.KEY,
         { expiresIn: "12hr"}
       );
-      res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'Strict' });
-      return res.json({ status: true, message: "Login successfully" });
+      res.cookie('token', token, {
+        httpOnly: true, // Prevents JavaScript access to cookies
+        secure: true,  // Use true for HTTPS
+        sameSite: 'None', // Required for cross-origin cookies
+        maxAge: 24 * 60 * 60 * 1000, // Cookie expiration time in milliseconds
+      });
+      
+      return res.json({ status: true,token, message: "Login successfully" });
 });
 
 module.exports = router;

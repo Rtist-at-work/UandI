@@ -29,21 +29,42 @@ const orderStatusUpdation = require('./src/controllers/orderStatusUpdation')
 const returnRequest = require('./src/controllers/returnRequest')
 const cookieParser = require('cookie-parser');
 const path = require('path'); // Import path module
+const helmet = require('helmet');
+
 
 require('dotenv').config();
 const app = express();
 const server = http.createServer(app);
 
+
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                fontSrc: ["'self'", "https://fonts.gstatic.com"],
+                styleSrc: ["'self'", "https://fonts.googleapis.com"],
+            },
+        },
+    })
+);
+
+  
+app.get('/', (req, res) => {
+    console.log('Cookies:', req.cookies);
+    res.send('Backend server is running.');
+});
+
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(cors({ origin: ["http://172.19.160.1", "http://localhost:5173","www.uandi.co"], credentials: true }));
 
 app.use(cookieParser());
 
 const io = require('socket.io')(server, {
   cors: {
-      origin: "http://localhost:5173",
+      origin: ["http://172.19.160.1", "http://localhost:5173","www.uandi.co"],
       methods: ["GET", "POST", "PUT"],
       credentials: true
   }
@@ -54,6 +75,7 @@ let userSockets = {};
 
 io.on('connection', (socket) => {
   const cookies = cookie.parse(socket.request.headers.cookie || '');
+  console.log('parsed Cookies',cookies)
   const token = cookies.token; // Assuming your JWT token is stored with the key 'token'
 
   // Check if the token exists
@@ -120,13 +142,6 @@ app.use('/admin/policy', policy);
 app.use('/returnRequest', returnRequest);  
 app.use('/upload-faqs', faq);  
 
-// Serve static files from the React app build directory
-app.use(express.static(path.join(__dirname, 'frontend', 'build')));
-
-// Fallback route to serve index.html for all other routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
-});
 
 // Start the server
 const PORT = process.env.PORT || 5000;

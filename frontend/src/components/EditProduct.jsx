@@ -7,6 +7,7 @@ import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const EditProduct = ({ URI }) => {
+  axios.defaults.withCredentials = true;
   const colorRef = useRef(null);
 
   const uploadRef = useRef(null);

@@ -6,7 +6,7 @@ import { withHistory } from "slate-history";
 
 const Policy = () => {
   const URI = "http://localhost:5000";
-
+  axios.defaults.withCredentials = true;
   const [editor] = useState(() => withHistory(withReact(createEditor())));
   const [policyContent, setPolicyContent] = useState([
     {

@@ -16,7 +16,6 @@ const Login = ({handleCart}) => {
   const categorynav = params.get('categorynav');
   const stylenav = params.get('stylenav');
   const navigation = params.get('pagetype');
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateInput(emailOrMobile)) {
@@ -32,17 +31,18 @@ const Login = ({handleCart}) => {
   
       if (res.status===200 || res.status===201) {
         if(navigation==="cart"){
-
           alert(res.data.message); 
           handleCart(e,productDetails,selectedSize)
         }
-        else if(navigation==="productpage"){
+        else if(navigation==="productpage" && categorynav!==null && stylenav!==null){
           alert(res.data.message); 
           navigate(`/productpage?categorynav=${categorynav}&stylenav=${stylenav}`);     
         }
+        else if(res.data.status===true){
+          navigate('/')
+        }
         else{
           alert(res.data.message); 
-          navigate('/') 
         }
       }
     } catch (err) {

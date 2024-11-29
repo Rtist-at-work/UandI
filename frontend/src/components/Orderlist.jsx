@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 const Orderlist = () => {
   const URI = "http://localhost:5000";
+  axios.defaults.withCredentials = true;
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [socketInstance, setSocketInstance] = useState(null);

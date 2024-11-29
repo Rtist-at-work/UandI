@@ -8,6 +8,7 @@ import Header from "./Header";
 
 const UserOrders = () => {
   const URI = "http://localhost:5000";
+  axios.defaults.withCredentials = true;
   const [orderDetails, setOrderDetails] = useState([]);
   const navigate = useNavigate();
 
@@ -55,6 +56,7 @@ const UserOrders = () => {
     const getOrders = async () => {
       try {
         const response = await axios.get(`${URI}/placeOrder/orderDetails`);
+        console.log(response);
         if (response.status === 200 || response.status === 201) {
           setOrderDetails(response.data.orders);
         }
@@ -99,7 +101,7 @@ const UserOrders = () => {
           orderDetails.map((order) => {
             const steps = getTrackingSteps(order.status);
             const currentStep = getStepIndex(order.status);
-
+            let k = 0;
             return (
               <div
                 key={order._id}
@@ -117,28 +119,36 @@ const UserOrders = () => {
                 </div>
 
                 {/* Product Images */}
-                <div className="flex flex-wrap gap-4 mb-4">
-                  {order.productDetails?.map((product) => (
-                    <div
-                      key={product._id}
-                      className="w-24 h-24 border rounded-md flex-shrink-0 overflow-hidden"
-                    >
-                      <img
-                        src={
-                          product.product?.images?.[0][0][0] ||
-                          "default_image_url"
-                        }
-                        alt={product.product?.name || "Image not available"}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
+                <div className="relative min-h-24  w-full  flex  flex-wrap gap-4 mb-4">
+                  {order.productDetails?.map((product, ind) => {
+                    let imgIndex = 0;
+                    product.product.images.map((img, ind) => {
+                      if (img[1][0].colorname === product.selectedColor)
+                        imgIndex = ind;
+                    });
+                    k = k + 2;
+                    return (
+                      <div
+                        key={product._id}
+                        className={`absolute w-24 h-24  rounded-md flex-shrink-0 overflow-hidden ml-${k} mt-${k}`}
+                      >
+                        <img
+                          src={
+                            product.product?.images?.[imgIndex][0][0] ||
+                            "default_image_url"
+                          }
+                          alt={product.product?.name || "Image not available"}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Order Status or Tracking */}
                 {order.status.toLowerCase() !== "delivered" &&
                 order.status.toLowerCase() !== "cancelled" ? (
-                  <div className="flex justify-center items-center w-full md:w-[70%] mx-auto">
+                  <div className="flex justify-center items-center w-full md:w-[70%] mx-auto mt-4">
                     <div className="flex justify-between items-center w-full">
                       {steps.map((step, index) => (
                         <div

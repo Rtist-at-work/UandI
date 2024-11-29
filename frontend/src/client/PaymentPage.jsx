@@ -9,8 +9,10 @@ import axios from 'axios';
 
 const PaymentPage = () => {
   const URI = "http://localhost:5000";
+  axios.defaults.withCredentials = true;
   const navigate = useNavigate(); // Use navigate from React Router v6
   const order = JSON.parse(localStorage.getItem('order'))
+  console.log(order)
   // Extracting data passed via location.state
   const orderSummary = order.orderSummary;
   const deliveryAddress = order.address;

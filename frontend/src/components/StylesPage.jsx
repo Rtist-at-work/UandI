@@ -9,8 +9,8 @@ const StylesPage = () => {
   const [productList, setProductList] = useState([]);
   const [categorynav, setCategorynav] = useState([]);
   const location = useLocation();
-
   const URI = "http://localhost:5000";
+  axios.defaults.withCredentials = true;
 
   const navigate = useNavigate();
 

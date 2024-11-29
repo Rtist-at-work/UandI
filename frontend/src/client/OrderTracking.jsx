@@ -12,6 +12,7 @@ import Header from "./Header";
 
 const OrderTracking = () => {
   const URI = "http://localhost:5000";
+  axios.defaults.withCredentials = true;
   const navigate = useNavigate();
   const [popup, setPopup] = useState(false);
   const [order, setOrder] = useState(null);
@@ -141,7 +142,7 @@ const OrderTracking = () => {
     if (!review) {
       alert("please write something");
     }
-    console.log(productId)
+    console.log(productId);
     const formData = new FormData();
     formData.append("review", review);
     formData.append("orderId", order.orderId);
@@ -173,7 +174,7 @@ const OrderTracking = () => {
       }
     }
   };
-  console.log(productId)
+  console.log(productId);
   return (
     <div className="relative h-screen w-full overflow-auto scrollbar-hidden">
       <Header />
@@ -218,6 +219,11 @@ const OrderTracking = () => {
         <div className="h-full w-full flex flex-col items-center">
           {order && order.productDetails && order.productDetails.length > 0 ? (
             order.productDetails.map((productItem, index) => {
+              let imgIndex = 0;
+              productItem.product.images.map((img, ind) => {
+                if (img[1][0].colorname === productItem.selectedColor)
+                  imgIndex = ind;
+              });
               let coupon = 0;
               let offer = 0;
               if (productItem && productItem.coupon) coupon++;
@@ -231,7 +237,7 @@ const OrderTracking = () => {
                   >
                     <img
                       src={
-                        productItem.product?.images[0][0][0] ||
+                        productItem.product?.images[imgIndex][0][0] ||
                         "default_image_url"
                       }
                       alt={productItem.product?.name || ""}
@@ -245,8 +251,13 @@ const OrderTracking = () => {
                             : productItem.product.name
                           : "Name not available"}
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {productItem.selectedSize}
+                      <div className="flex flex-wrap gap-2">
+                        <div className="text-xs text-gray-500">
+                          {productItem.selectedSize}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {productItem.selectedColor}
+                        </div>
                       </div>
                       <div className="flex gap-2 items-center justify-left xsm:text-sm text-gray-700">
                         <p className="md:text-base xsm:xs font-semibold">
@@ -316,9 +327,7 @@ const OrderTracking = () => {
                                   : "text-gray-500"
                               } cursor-pointer border-2 border-transparent`}
                               onClick={() => {
-                                setProductId(() => 
-                                  productItem.product._id
-                                );
+                                setProductId(() => productItem.product._id);
                                 handlereview(
                                   rating,
                                   index,

@@ -11,7 +11,7 @@ import Header from "./Header";
 
 const ProductPage = () => {
   const URI = "http://localhost:5000";
-
+  axios.defaults.withCredentials = true;
   const [isOpen, setIsOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(true);
   const [isSizeOpen, setIsSizeOpen] = useState(true);
@@ -114,6 +114,7 @@ const ProductPage = () => {
           `/login/?categorynav=${productDetails.category}&stylenav=${productDetails.style}&pagetype=productpage`
         );
       } else if (error.response && error.response.status === 404) {
+        console.log(error)
         alert(error.response.data.message);
         navigate(
           `/login/?categorynav=${productDetails.category}&stylenav=${productDetails.style}&pagetype=productpage`

@@ -3,7 +3,7 @@ require('dotenv').config();
 
 
 const connect = ()=>{
-    const url = process.env.URL;
+    const url = process.env.MONGO_URI;
     try{
         mongoose.connect(url);
     }

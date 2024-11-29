@@ -11,7 +11,7 @@ import { useRef } from "react";
 
 const Homepage = ({ handleCart }) => {
   const URI = "http://localhost:5000";
-
+  axios.defaults.withCredentials = true;
   const [categoryList, setCategoryList] = useState();
   const [banner, setBanner] = useState([]); // fetched banners
   const [ageBanner, setAgeBanner] = useState([]);
@@ -42,6 +42,7 @@ const Homepage = ({ handleCart }) => {
     const getCategory = async () => {
       try {
         const response = await axios.get(`${URI}/category`);
+        console.log(response)
         if (response.status === 200 || response.status === 201) {
           setCategoryList(response.data.category);
           setCatBanner(response.data.catProducts);
@@ -80,21 +81,21 @@ const Homepage = ({ handleCart }) => {
     };
     bannerFetch();
   }, []);
-  console.log(catBanner);
   const handleStyleNav = (c, s) => {
     navigate(`/productpage?categorynav=${c}&stylenav=${s}`);
   };
+  console.log(catBanner)
   return (
     <div className="h-screen w-screen">
       <Header />
 
       <main className="relative h-[85%] w-full overflow-y-auto overflow-x-hidden scrollbar-hidden">
-        <div className="h-6 lg:h-12 w-full flex bg-blue-300 gap-4 px-4 justify-around items-center z-10">
+        <div className="h-6 lg:h-12 w-full flex bg-white shadow-md gap-4 px-4 justify-around items-center z-10">
           {categoryList && categoryList.length > 0 ? (
             categoryList.map((category) => (
               <div key={category.category} className="relative group z-30">
-                <a className="cursor-pointer text-gray-900">
-                  {category.category}
+                <a className="cursor-pointer font-semibold text-customRed">
+                  {(category.category).toUpperCase()}
                 </a>
                 <ul className="absolute left-0 hidden group-hover:block bg-white border z-50 min-w-max transition duration-3000 ease-out hover:ease-in rounded shadow-lg">
                   {category.style.length > 0 ? (
